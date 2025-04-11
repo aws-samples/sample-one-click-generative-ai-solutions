@@ -1,0 +1,351 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deploys Generative AI Use Cases (GenU) using CodeBuild'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "GenU Deployment Parameters"
+        Parameters:
+          - Environment
+          - NotificationEmail
+          - ModelRegion
+          - RAGEnabled
+          - SelfSignUp
+          - AllowedSignUpEmailDomains
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name to use for deployment
+  
+  NotificationEmail:
+    Type: String
+    Description: Email address to receive deployment notifications
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  ModelRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
+    Description: AWS region for Bedrock models
+  
+  RAGEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: Enable RAG capabilities with Knowledge Base
+  
+  SelfSignUp:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: Toggle self-signup functionality
+  
+  AllowedSignUpEmailDomains:
+    Type: String
+    Default: ""
+    Description: Comma-separated list of allowed email domains for signup
+  
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv4 address ranges for access
+  
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv6 address ranges for access
+
+Resources:
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: GenU Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmail
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GenUDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GenUDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  GenUDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys Generative AI Use Cases'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: Environment
+            Value: !Ref Environment
+          - Name: ModelRegion
+            Value: !Ref ModelRegion
+          - Name: RAGEnabled
+            Value: !Ref RAGEnabled
+          - Name: SelfSignUp
+            Value: !Ref SelfSignUp
+          - Name: AllowedSignUpEmailDomains
+            Value: !Ref AllowedSignUpEmailDomains
+          - Name: AllowedIpV4AddressRanges
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: AllowedIpV6AddressRanges
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting GenU deployment"
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "GenU Deployment Started" --message "Deployment of GenU has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/generative-ai-use-cases.git
+                - cd generative-ai-use-cases
+                - npm ci
+
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
+                - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
+                
+                # Create and run the parameter update script
+                - |
+                  cat > update-params.js << 'EOF'
+                  const fs = require('fs');
+                  
+                  const envName = process.env.Environment;
+                  const params = {
+                    modelRegion: process.env.ModelRegion,
+                    ragEnabled: process.env.RAGEnabled === 'true',
+                    selfSignUpEnabled: process.env.SelfSignUp === 'true',
+                    allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
+                    allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
+                    allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
+                  };
+  
+                  try {
+                    let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
+                    const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
+                    
+                    if (content.match(envRegex)) {
+                      const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
+                      const updatedContent = content.replace(envRegex, envReplacement);
+                      fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
+                      console.log(`Updated ${envName} environment in parameter.ts`);
+                    } else {
+                      console.error(`Could not find ${envName} environment in parameter.ts`);
+                      process.exit(1);
+                    }
+                  } catch (error) {
+                    console.error('Error:', error);
+                    process.exit(1);
+                  }
+                  EOF
+                  
+                  node update-params.js
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
+                
+                # Check if bootstrap is needed
+                - |
+                  BOOTSTRAP_STACK_NAME="CDKToolkit"
+                  BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
+                  
+                  if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
+                    echo "Running CDK bootstrap..."
+                    npx -w packages/cdk cdk bootstrap
+                  fi
+                
+                # Deploy the stack
+                - npm run cdk:deploy:quick -- -c env=${Environment}
+                
+                # Get the application URL
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'GenerativeAiUseCasesStack${Environment}')].StackName" --output text)
+                  APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebUrl'].OutputValue" --output text)
+                  USER_POOL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                  USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL}/user-management/users?region=${AWS_DEFAULT_REGION}"
+
+                  cat << EOF > deployment-info.txt
+                  GenU Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Login URL: ${APP_URL}
+                  Create User: ${USER_CREATION_URL}
+
+                  Environment: ${Environment}
+                  RAG Enabled: ${RAGEnabled}
+                  Self-Signup Enabled: ${SelfSignUp}
+                  Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
+                  Allowed IpV4 Address Ranges: ${AllowedIpV4AddressRanges}
+                  Allowed IpV6 Address Ranges: ${AllowedIpV6AddressRanges}
+
+                  Stack Details:
+                  Stack Name: ${STACK_NAME}
+                  Region: ${AWS_DEFAULT_REGION}
+                  EOF
+
+            post_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/
+                - aws sns publish --topic-arn "${SNSTopicArn}" --subject "GenU Deployment Complete" --message file://deployment-info.txt
+                - rm -rf generative-ai-use-cases
+          artifacts:
+            files:
+              - deployment-info.txt
+      TimeoutInMinutes: 30
+
+  # Custom Resource to trigger CodeBuild
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref GenUDeploymentProject
+      ServiceTimeout: 600
+
+  # Lambda function for the Custom Resource
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 30
+      ReservedConcurrentExecutions: 5
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  # IAM Role for Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codebuild:StartBuild
+                Resource: !GetAtt GenUDeploymentProject.Arn
+
+Outputs:
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref GenUDeploymentProject
+  
+  CodeBuildLogGroup:
+    Description: CloudWatch Logs group for CodeBuild logs
+    Value: !Sub '/aws/codebuild/${GenUDeploymentProject}'
+  
+  DeploymentStatus:
+    Description: Deployment status information
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmail} when the deployment is complete."
