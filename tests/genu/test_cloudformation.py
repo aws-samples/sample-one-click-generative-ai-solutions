@@ -5,7 +5,7 @@ from pathlib import Path
 
 # Get the repository root directory
 REPO_ROOT = Path(__file__).parent.parent.parent
-TEMPLATE_PATH = REPO_ROOT / "build" / "genu" / "genu_deployment.yaml"
+TEMPLATE_PATH = REPO_ROOT / "deployments" / "genu" / "GenUDeploymentProcess.yaml"
 
 def test_template_exists():
     """Test that the CloudFormation template file exists."""
