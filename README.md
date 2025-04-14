@@ -1,8 +1,10 @@
 # AWS Generative AI Asset Box
 
-本リポジトリは、[AWS CDK](https://aws.amazon.com/jp/cdk/) で開発されたアセットを 1click / 1command でデプロイするための手順とツールを提供します。アセットとしては、[Generative AI Use Cases JP](https://github.com/aws-samples/generative-ai-use-cases-jp) や [Bedrock Claude Chat](https://github.com/aws-samples/bedrock-claude-chat) 、また 3rd Party の [Dify](https://github.com/aws-samples/dify-self-hosted-on-aws) 等を扱います。
+本リポジトリは、[AWS CDK](https://aws.amazon.com/jp/cdk/) で開発されたアセットを 1click / 1command でデプロイするための手順とツールを提供します。CDK で構築されたアプリケーションを動かすには AWS 環境への接続設定や Node.js のセットアップなど開発者でないと準備が困難でしたが、こちらのリポジトリでは AWS アカウントさえあれば 1 click 、難しい場合でも 1 command でデプロイ・検証できる体験を提供します。
 
-実装として、[Bedrock Claude Chat](https://github.com/aws-samples/bedrock-claude-chat) で用意されている `deploy.yaml` を踏襲し CloudFormation で CodeBuild を作成しデプロイ、完了後に Amazon SNS で通知する方式をとります。
+様々なアプリケーションが動かせる AWS のプラットフォームとしての便利さを体感いただければ幸いです。
+
+※本格的な開発やパラメーターのカスタマイズには開発環境が必要なことはご留意ください。
 
 ## Repository
 
@@ -18,17 +20,23 @@ aws-generative-ai-asset-box/
 └── README.md        # This file
 ```
 
+1 click の基本的な方式は、CloudFormation で CodeBuild を作成し CDK で構築したアプリケーションをデプロイ、開始 / 完了時に Amazon SNS で通知します。
+
 ### [Generative AI Use Cases JP](https://github.com/aws-samples/generative-ai-use-cases-jp)
 
  [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/genu/GenUDeploymentProcess.yaml) 
 
 Parameters
 * Environment (default: dev)
-   * `packages/cdk/parameter.ts` で指定する環境です。Environment の値を切り替えることで複数の GenU 環境をデプロイできます
+   * デプロイする環境の種別です。`packages/cdk/parameter.ts` で指定する環境です。Environment の値を切り替えることで複数の GenU 環境をデプロイできます
+* NotificationEmail
+   * デプロイの開始・終了を通知するメールアドレスです。
+* ModelRegion
+   * Amazon Bedrock のモデルを利用するリージョンです
 * RAGEnabled (default: false)
    * Knowledge Base での RAG を有効化します
 * SelfSignUp (default: false)
-   * セルフサインアップの有効 / 無効を切り替えます
+   * セルフサインアップの有効 / 無効を切り替えます。
 * AllowedSignUpEmailDomains
    * カンマ区切りで利用可能なメールドメインを設定します
 * AllowedIpV4AddressRanges
@@ -36,9 +44,9 @@ Parameters
 * AllowedIpV6AddressRanges
    * アクセス可能な IP アドレスを指定 (IPv6)
 
-デフォルトで IP アドレス指定がないため Public Access 可能な状態でデプロイされます。しかし、SelfSignUp が false であるためログインするにはデプロイした AWS アカウントで Cognito を通じアカウントを作成する必要があるようにしています。
+できるだけ IP 制限をかけてデプロイすることを推奨します。 IP 制限を書けない場合は Public Access 可能な状態でデプロイされますが、SelfSignUp は false にしているためログインには AWS アカウントでのユーザー作成 (Amazon Cognito) が必要です。
 
-### [Bedrock Claude Chat](https://github.com/aws-samples/bedrock-claude-chat)
+### [Dify](https://github.com/aws-samples/dify-self-hosted-on-aws)
 
 Comming Soon
 
