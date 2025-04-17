@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Deploys Generative AI Use Cases (GenU) using CodeBuild'
+Description: 'Generative AI Use Cases (GenU) one click deployment'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -8,7 +8,7 @@ Metadata:
           default: "GenU Deployment Parameters"
         Parameters:
           - Environment
-          - NotificationEmail
+          - NotificationEmailAddress
           - ModelRegion
           - RAGEnabled
           - SelfSignUp
@@ -23,7 +23,7 @@ Parameters:
     AllowedValues: [dev, staging, prod]
     Description: Environment name to use for deployment
   
-  NotificationEmail:
+  NotificationEmailAddress:
     Type: String
     Description: Email address to receive deployment notifications
     AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
@@ -45,12 +45,12 @@ Parameters:
     Type: String
     AllowedValues: [true, false]
     Default: false
-    Description: Toggle self-signup functionality
+    Description: 'Enable self-signup functionality (CAUTION Carefully consider when you allow public access)'
   
   AllowedSignUpEmailDomains:
     Type: String
     Default: ""
-    Description: Comma-separated list of allowed email domains for signup
+    Description: Allowed email domains for signup (comma separated)
   
   AllowedIpV4AddressRanges:
     Type: String
@@ -77,7 +77,7 @@ Resources:
     Properties:
       Protocol: email
       TopicArn: !Ref DeploymentNotificationTopic
-      Endpoint: !Ref NotificationEmail
+      Endpoint: !Ref NotificationEmailAddress
 
   # IAM Role for CodeBuild
   CodeBuildServiceRole:
@@ -238,7 +238,8 @@ Resources:
                   Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
 
                   Login URL: ${APP_URL}
-                  Create User: ${USER_CREATION_URL}
+                  User Registration URL: ${USER_CREATION_URL}
+                  User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account
 
                   Environment: ${Environment}
                   RAG Enabled: ${RAGEnabled}
@@ -348,4 +349,4 @@ Outputs:
   
   DeploymentStatus:
     Description: Deployment status information
-    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmail} when the deployment is complete."
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmailAddress} when the deployment is complete."

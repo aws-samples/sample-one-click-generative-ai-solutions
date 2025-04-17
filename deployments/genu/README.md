@@ -44,7 +44,7 @@ aws cloudformation create-stack \
   --template-body file://GenUDeploymentProcess.yaml \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
   --parameters \
-      ParameterKey=NotificationEmail,ParameterValue=example@example.co.jp \
+      ParameterKey=NotificationEmailAddress,ParameterValue=example@example.co.jp \
       ParameterKey=Environment,ParameterValue=dev \
       ParameterKey=RAGEnabled,ParameterValue=false \
       ParameterKey=SelfSignUp,ParameterValue=true

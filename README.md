@@ -29,7 +29,7 @@ aws-generative-ai-asset-box/
 Parameters
 * Environment (default: dev)
    * デプロイする環境の種別です。`packages/cdk/parameter.ts` で指定する環境です。Environment の値を切り替えることで複数の GenU 環境をデプロイできます
-* NotificationEmail
+* NotificationEmailAddress
    * デプロイの開始・終了を通知するメールアドレスです。
 * ModelRegion
    * Amazon Bedrock のモデルを利用するリージョンです
@@ -45,6 +45,7 @@ Parameters
    * アクセス可能な IP アドレスを指定 (IPv6)
 
 できるだけ IP 制限をかけてデプロイすることを推奨します。 IP 制限を書けない場合は Public Access 可能な状態でデプロイされますが、SelfSignUp は false にしているためログインには AWS アカウントでのユーザー作成 (Amazon Cognito) が必要です。
+
 
 ### [Dify](https://github.com/aws-samples/dify-self-hosted-on-aws)
 
