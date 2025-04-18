@@ -2,6 +2,8 @@
 
 Quick reference guide for deploying and managing the GenU CloudFormation template.
 
+We deploy `https://github.com/aws-samples/generative-ai-use-cases` by CloudFormation file.
+
 ```mermaid
 graph TD
     User[User/Developer] -->|Deploys| CFN[CloudFormation Stack]
