@@ -1,0 +1,332 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Dify Self-Hosted on AWS one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Dify Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - Region
+          - AutoPause
+          - AllowedIpV4Ciders
+          - AllowedIpV6Ciders
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: Email address to receive deployment notifications
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  Region:
+    Type: String
+    Default: us-east-1
+    Description: AWS region for deployment
+  
+  AutoPause:
+    Type: String
+    AllowedValues: [true, false]
+    Default: true
+    Description: Enable scale down to zero feature (it costs around 10 seconds for cold start)
+
+  AllowedIpV4Ciders:
+    Type: String
+    Default: "0.0.0.0/1,128.0.0.0/1"
+    Description: Allowed IPv4 CIDR ranges for access (CAUTION default value allows all ip addresses)
+    AllowedPattern: '^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\/([0-9]|[1-2][0-9]|3[0-2])(,|$))+$'
+    ConstraintDescription: Must be a comma-separated list of valid IPv4 CIDR ranges  
+
+  AllowedIpV6Ciders:
+    Type: String
+    Default: "::/1,8000::/1"
+    Description: 'Allowed IPv6 CIDR ranges for access. (CAUTION default value allows all ip addresses)'
+    AllowedPattern: '^([0-9a-fA-F:]{1,39}(\/([0-9]|[1-9][0-9]|1[0-1][0-9]|12[0-8]))(,|$))+$'
+    ConstraintDescription: Must be a comma-separated list of valid IPv6 CIDR ranges
+
+Resources:
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Dify Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${DifyDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${DifyDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  DifyDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys Dify Self-Hosted on AWS'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: REGION
+            Value: !Ref Region
+          - Name: AUTO_PAUSE
+            Value: !Ref AutoPause
+          - Name: ALLOWED_IPV4_CIDERS
+            Value: !Ref AllowedIpV4Ciders
+          - Name: ALLOWED_IPV6_CIDERS
+            Value: !Ref AllowedIpV6Ciders
+          - Name: SNS_TOPIC_ARN
+            Value: !Ref DeploymentNotificationTopic
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting Dify deployment"
+                - aws sns publish --topic-arn ${SNS_TOPIC_ARN} --subject "Dify Deployment Started" --message "Deployment of Dify has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/dify-self-hosted-on-aws.git
+                - cd dify-self-hosted-on-aws
+                - npm ci
+
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/dify-self-hosted-on-aws
+                - echo "Configuring Dify parameters"
+                - |
+                  # Create a script with incremental string building to modify cdk.ts
+                  cat > update_cdk.js << EOF
+                  const fs = require('fs');
+                  
+                  // 1. Open bin/cdk.ts
+                  const filePath = 'bin/cdk.ts';
+                  let content = fs.readFileSync(filePath, 'utf8');
+                  
+                  // 2. Compose the string incrementally
+                  // Process arrays first
+                  const ipv4Array = JSON.stringify(process.env.ALLOWED_IPV4_CIDERS.split(',').map(cidr => cidr.trim()));
+                  const ipv6Array = JSON.stringify(process.env.ALLOWED_IPV6_CIDERS.split(',').map(cidr => cidr.trim()));
+                  const autoPause = process.env.AUTO_PAUSE === 'true';
+                  
+                  // Build replacement parts
+                  const parts = [
+                    'awsRegion: \'' + process.env.REGION + '\'',
+                    'allowedIPv4Cidrs: ' + ipv4Array,
+                    'allowedIPv6Cidrs: ' + ipv6Array,
+                    'enableAuroraScalesToZero: ' + autoPause
+                  ];
+                  
+                  // Join with proper indentation
+                  const replacement = parts.join(',\\n  ');
+                  
+                  // 3. Replace awsRegion with the composed string
+                  content = content.replace(/awsRegion: ['"]([^'"]+)['"]/, replacement);
+
+                  // Write the updated content back to the file
+                  fs.writeFileSync(filePath, content);
+                  console.log('Successfully updated ' + filePath);
+                  EOF
+                  
+                  # Run the script
+                  node update_cdk.js
+                  
+                  # Display the modified file for verification
+                  echo "Modified cdk.ts:"
+                  cat bin/cdk.ts
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/dify-self-hosted-on-aws
+
+                # Check if bootstrap is needed
+                - |
+                  BOOTSTRAP_STACK_NAME="CDKToolkit"
+                  BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
+                  
+                  if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
+                    echo "Running CDK bootstrap..."
+                    npx cdk bootstrap
+                  fi
+
+                - echo "Deploying Dify infrastructure with CDK"
+                - npx cdk deploy --all --require-approval never
+                
+                # Get the application URL and other important information
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  # Extract outputs from CDK deployment
+                  STACK_NAME="DifyOnAwsStack"
+                  APP_URL=$(aws cloudformation describe-stacks --stack-name ${STACK_NAME} --query "Stacks[0].Outputs[?OutputKey=='DifyUrl'].OutputValue" --output text || echo "URL not available")
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+                  cat << EOF > deployment-info.txt
+                  Dify Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Dify URL: ${APP_URL}
+                  
+                  Configuration:
+                  Region: ${AWS_REGION}
+                  Allowed IPv4 CIDR Ranges: ${ALLOWED_IPV4_CIDERS}
+                  Allowed IPv6 CIDR Ranges: ${ALLOWED_IPV6_CIDERS}
+
+                  Stack Details:
+                  Stack Name: ${STACK_NAME}
+
+                  Please enable model access on Amazon Bedrock:
+                  https://${AWS_ACCOUNT_ID}.${AWS_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_REGION}#/modelaccess
+                  
+                  EOF
+
+            post_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/
+                - aws sns publish --topic-arn "${SNS_TOPIC_ARN}" --subject "Dify Deployment Complete" --message file://deployment-info.txt
+                - echo "Deployment completed successfully"
+                - rm -rf dify-self-hosted-on-aws
+          artifacts:
+            files:
+              - deployment-info.txt
+      TimeoutInMinutes: 60
+
+  # Custom Resource to trigger CodeBuild
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref DifyDeploymentProject
+      ServiceTimeout: 3600
+
+  # Lambda function for the Custom Resource
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 30
+      ReservedConcurrentExecutions: 5
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  # IAM Role for Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codebuild:StartBuild
+                Resource: !GetAtt DifyDeploymentProject.Arn
+
+Outputs:
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref DifyDeploymentProject
+  
+  CodeBuildLogGroup:
+    Description: CloudWatch Logs group for CodeBuild logs
+    Value: !Sub '/aws/codebuild/${DifyDeploymentProject}'
+  
+  DeploymentStatus:
+    Description: Deployment status information
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmailAddress} when the deployment is complete."
