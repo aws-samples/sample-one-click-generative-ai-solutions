@@ -179,7 +179,7 @@ Resources:
                   const envName = process.env.Environment;
                   const params = {
                     modelRegion: process.env.ModelRegion,
-                    ragEnabled: process.env.RAGEnabled === 'true',
+                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'true',
                     selfSignUpEnabled: process.env.SelfSignUp === 'true',
                     allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
