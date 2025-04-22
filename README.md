@@ -1,32 +1,14 @@
 # AWS Generative AI Solution Box
 
-本リポジトリは、[AWS CDK](https://aws.amazon.com/jp/cdk/) で開発されたアセットを 1click / 1command でデプロイするための手順とツールを提供します。CDK で構築されたアプリケーションを動かすには AWS 環境への接続設定や Node.js のセットアップなど開発者でないと準備が困難でしたが、こちらのリポジトリでは AWS アカウントさえあれば 1 click 、難しい場合でも 1 command でデプロイ・検証できる体験を提供します。
-
-様々なアプリケーションが動かせる AWS のプラットフォームとしての便利さを体感いただければ幸いです。
+本リポジトリでは、オープンソースで開発されている生成 AI の活用や開発に役立つアプリケーションを 1 click でデプロイする機能を提供します。様々なアプリケーションが動かせる AWS のプラットフォームとしての便利さを体感いただければ幸いです。
 
 ※本格的な開発やパラメーターのカスタマイズには開発環境が必要なことはご留意ください。
 
-## Repository
-
-```
-aws-generative-ai-asset-box/
-├── build/           # CloudFormation templates and scripts for deployment
-│   ├── genu/        
-│   ├── bedrock-cc/  # Comming Soon
-│   └── dify/        # Comming Soon
-├── tests/           # Test for scripts
-├── .venv/           # Python virtual environment (created by uv)
-├── pyproject.toml   # Python project configuration
-└── README.md        # This file
-```
-
-1 click の基本的な方式は、CloudFormation で CodeBuild を作成し CDK で構築したアプリケーションをデプロイ、開始 / 完了時に Amazon SNS で通知します。
-
 ## Generative AI Use Cases (GenU)
 
- [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentProcess.yaml) 
-
 [Generative AI Use Cases](https://github.com/aws-samples/generative-ai-use-cases-jp) は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentProcess.yaml) 
 
 ### Parameters
 
@@ -53,9 +35,9 @@ aws-generative-ai-asset-box/
 
 ## Dify on AWS
 
- [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentProcess.yaml)
-
 [Dify](https://dify.ai/jp) は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては [dify-self-hosted-on-aws](https://github.com/aws-samples/dify-self-hosted-on-aws) を使うことで容易に配置できます。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentProcess.yaml)
 
 ### Parameters
 
@@ -73,6 +55,61 @@ aws-generative-ai-asset-box/
 ### [Bedrock Claude Chat](https://github.com/aws-samples/dify-self-hosted-on-aws)
 
 Comming Soon
+
+
+## Technical Background
+
+AWS で動く多くのアプリケーションは [AWS CDK](https://aws.amazon.com/jp/cdk/) で開発されています。CDK で構築されたアプリケーションを動かすには AWS 環境への接続設定や Node.js のセットアップなど開発に関する知識が必要で、技術的知見がない方が生成 AI を試すために設定するのは困難でした。そのため、こちらのリポジトリでは AWS アカウントさえあれば 1 click 、難しい場合でも 1 command でデプロイ・検証できる体験を提供します。
+
+具体的には、CodeBuild を使用して CDK Deploy を行う構成を CloudFormation で作成し、必要なパラメーターを Cloud Formation から CodeBuild 側に引き渡しています。CloudFormation 自体は AWS のリソースを構築して終了するため、そのままでは CodeBuild が出来てもキックができません。そこで、CloudFormation の Custom Resource を使い自分自身が構築した CodeBuild をキックして終了するようにしています。アプリケーションの構築には時間がかかるため、開始 / 完了時に Amazon SNS で通知するようにしています。
+
+### Overview
+
+```mermaid
+graph TD
+    User[User/Developer] -->|Deploys| CFN[CloudFormation Stack]
+    
+    CFN -->|Creates| SNS[SNS Topic]
+    CFN -->|Creates| CB[CodeBuild Project]
+    CFN -->|Creates| Lambda[Lambda Trigger Function]
+    
+    SNS -->|Sends Notifications| Email[Email Subscriber]
+    
+    Lambda -->|Triggers| CB
+    
+    CB -->|Assumes| CBRole[CodeBuild IAM Role]
+    Lambda -->|Assumes| LambdaRole[Lambda IAM Role]
+    
+    subgraph "CodeBuild Pipeline"
+        CB -->|1. Install| Install[Install Node.js & Clone Repo]
+        Install -->|2. Pre-build| PreBuild[Update Parameters]
+        PreBuild -->|3. Build| Build[Deploy CDK Stack]
+        Build -->|4. Post-build| PostBuild[Send Completion Notification]
+    end
+    
+    Build -->|Creates| GenU[GenU Application Stack]
+    PostBuild -->|Publishes to| SNS
+    
+    classDef aws fill:#FF9900,stroke:#232F3E,stroke-width:2px,color:white;
+    classDef process fill:#1EC9E8,stroke:#232F3E,stroke-width:2px,color:white;
+    
+    class SNS,CB,Lambda,GenU aws;
+    class Install,PreBuild,Build,PostBuild process;
+```
+
+## Directory Structure
+
+```
+aws-generative-ai-asset-box/
+├── build/           # CloudFormation templates and scripts for deployment
+│   ├── genu/        
+│   ├── bedrock-cc/  # Comming Soon
+│   └── dify/        # Comming Soon
+├── tests/           # Test for scripts
+├── .venv/           # Python virtual environment (created by uv)
+├── pyproject.toml   # Python project configuration
+└── README.md        # This file
+```
 
 ## Security
 
