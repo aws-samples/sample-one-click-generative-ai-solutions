@@ -1,0 +1,97 @@
+# Project
+site_name: Generative AI Solution Box
+copyright: Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+site_author: AWS
+site_description: One click deployment experience for Generative AI solutions from AWS
+# Repository
+repo_name: "Github: sample-one-click-generative-ai-solutions"
+repo_url: "https://github.com/aws-samples/sample-one-click-generative-ai-solutions"
+# Plugins
+plugins:
+  - tags:
+      # tags_hierarchy: true
+      tags_file: 'general/tags.md'
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+  - tags:
+      tags: false
+      tags_allowed:
+        - End-User-Application
+        - Developer-Tool
+# # extras and additional configuration
+extra:
+  generator: false
+  tags:
+    Compatibility: compat
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
+  analytics: 
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/thumb-up-outline
+          name: This page was helpful
+          data: 1
+          note: >-
+            Thanks for your feedback!
+        - icon: material/thumb-down-outline
+          name: This page could be improved
+          data: 0
+          note: >- 
+            Thanks for your feedback! Help us improve this page by
+            <a href="https://github.com/aws-samples/sample-one-click-generative-ai-solutions/issues/new?title=[Online Feedback]: Short-Summary-of-Issue&body=Page URL: {url}" target="_blank" rel="noopener">creating an issue</a>.
+
+extra_javascript:
+  - javascript/feedback.js
+
+# Theme
+theme:
+  name: material
+  logo: logo.png
+  font:
+    text: Roboto
+    code: Roboto Mono
+  icon: 
+    repo: fontawesome/brands/git-alt
+  features:
+    - tags
+    - toc.integrate
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - navigation.footer
+    # - navigation.sections
+    # - navigation.tabs
+    - search.highlight
+    - search.suggest
+  language: en
+  palette:
+    - scheme: default
+      primary: white
+      accent: purple 
+  favicon: assets/favicon.png
+  
+# Extensions 
+markdown_extensions:
+  - attr_list
+  - admonition
+  - pymdownx.superfences
+  - def_list
+  - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.details
+  - pymdownx.mark
+
+# Website Page Tree
+nav:
+  - Home: 'index.md'
+  # - Get Started: 'general/get-started.md'
+  - Solutions:
+    - Generative AI Use Cases: 'genu/README.md'
+    - Dify: 'dify/README.md'
+  - Tags: 'general/tags.md'
+  - License: 'general/license.md'
