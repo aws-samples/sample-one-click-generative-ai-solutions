@@ -4,6 +4,8 @@
 
 ※本格的な開発やパラメーターのカスタマイズには開発環境が必要なことはご留意ください。
 
+Web Site : https://aws-samples.github.io/sample-one-click-generative-ai-solutions/
+
 ## Generative AI Use Cases (GenU)
 
 [Generative AI Use Cases](https://github.com/aws-samples/generative-ai-use-cases-jp) は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
