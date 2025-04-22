@@ -1,97 +1,73 @@
 # Project
-site_name: Generative AI Solution Box
+site_name: AWS Generative AI Solution Box
+site_description: Start your generative AI journey with AWS and one click
 copyright: Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 site_author: AWS
-site_description: One click deployment experience for Generative AI solutions from AWS
 # Repository
 repo_name: "Github: sample-one-click-generative-ai-solutions"
 repo_url: "https://github.com/aws-samples/sample-one-click-generative-ai-solutions"
 # Plugins
 plugins:
-  - tags:
-      # tags_hierarchy: true
-      tags_file: 'general/tags.md'
   - search:
       separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - minify:
       minify_html: true
-  - tags:
-      tags: false
-      tags_allowed:
-        - End-User-Application
-        - Developer-Tool
-# # extras and additional configuration
-extra:
-  generator: false
-  tags:
-    Compatibility: compat
-  social:
-    - icon: fontawesome/brands/github
-      link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
-  analytics: 
-    feedback:
-      title: Was this page helpful?
-      ratings:
-        - icon: material/thumb-up-outline
-          name: This page was helpful
-          data: 1
-          note: >-
-            Thanks for your feedback!
-        - icon: material/thumb-down-outline
-          name: This page could be improved
-          data: 0
-          note: >- 
-            Thanks for your feedback! Help us improve this page by
-            <a href="https://github.com/aws-samples/sample-one-click-generative-ai-solutions/issues/new?title=[Online Feedback]: Short-Summary-of-Issue&body=Page URL: {url}" target="_blank" rel="noopener">creating an issue</a>.
-
-extra_javascript:
-  - javascript/feedback.js
-
 # Theme
 theme:
   name: material
-  logo: logo.png
-  font:
-    text: Roboto
-    code: Roboto Mono
-  icon: 
-    repo: fontawesome/brands/git-alt
+  palette:
+    # Using a friendlier color scheme instead of AWS colors
+    primary: indigo
+    accent: pink
   features:
-    - tags
     - toc.integrate
     - content.code.copy
     - content.code.select
     - content.code.annotate
     - navigation.footer
-    # - navigation.sections
-    # - navigation.tabs
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - content.action.edit
     - search.highlight
     - search.suggest
-  language: en
-  palette:
-    - scheme: default
-      primary: white
-      accent: purple 
+  font:
+    text: 'Roboto'
+    code: 'Roboto Mono'
+  icon:
+    logo: material/bookmark-box
+    repo: fontawesome/brands/git-alt
   favicon: assets/favicon.png
-  
+
+extra_css:
+  - stylesheets/extra.css
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css
+
+# extras and additional configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
+
 # Extensions 
 markdown_extensions:
-  - attr_list
   - admonition
+  - pymdownx.details
   - pymdownx.superfences
   - def_list
   - md_in_html
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.details
   - pymdownx.mark
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 # Website Page Tree
 nav:
   - Home: 'index.md'
-  # - Get Started: 'general/get-started.md'
+  - Getting Started: 'getting-started.md'
   - Solutions:
-    - Generative AI Use Cases: 'genu/README.md'
-    - Dify: 'dify/README.md'
-  - Tags: 'general/tags.md'
-  - License: 'general/license.md'
+    - 'Generative AI Use Cases': 'solutions/generative-ai-use-cases.md'
+    - 'Dify': 'solutions/dify.md'
+#  - License: 'general/license.md'

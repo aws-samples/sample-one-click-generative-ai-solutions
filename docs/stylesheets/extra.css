@@ -1,0 +1,208 @@
+/* Custom styles to make the site more friendly and approachable */
+
+:root {
+  --md-primary-fg-color: #6366f1;
+  --md-primary-fg-color--light: #818cf8;
+  --md-primary-fg-color--dark: #4f46e5;
+  --md-accent-fg-color: #ec4899;
+}
+
+/* Rounded corners for cards and buttons */
+.md-button, 
+.md-card {
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+}
+
+/* Friendly button styling */
+.md-button {
+  font-weight: 600;
+  padding: 0.7em 1.4em;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.md-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.md-button--primary {
+  background-color: var(--md-primary-fg-color);
+}
+
+.md-button--accent {
+  background-color: var(--md-accent-fg-color);
+}
+
+/* Solution cards */
+.solution-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  margin-bottom: 2rem;
+}
+
+.solution-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 16px rgba(0, 0, 0, 0.1);
+}
+
+.solution-card__content {
+  padding: 1.5rem;
+}
+
+.solution-card__image {
+  overflow: hidden;
+  max-height: 200px;
+}
+
+.solution-card__image img {
+  width: 100%;
+  height: auto;
+  transition: transform 0.5s ease;
+}
+
+.solution-card:hover .solution-card__image img {
+  transform: scale(1.05);
+}
+
+.solution-card__title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--md-primary-fg-color);
+}
+
+.solution-card__description {
+  color: #4b5563;
+  margin-bottom: 1.5rem;
+}
+
+.solution-card__actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: auto;
+}
+
+/* Steps section */
+.steps-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.step-card {
+  flex: 1;
+  min-width: 250px;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--md-primary-fg-color);
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.step-title {
+  font-weight: 600;
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--md-primary-fg-color--dark);
+}
+
+.step-description {
+  color: #4b5563;
+}
+
+/* Hero section */
+.hero {
+  text-align: center;
+  padding: 4rem 1rem;
+  margin-bottom: 3rem;
+  border-color: #4b5563;
+  border-radius: 0 0 20px 20px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.hero p {
+  font-size: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  opacity: 0.9;
+}
+
+/* Deployment button */
+.deployment-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.deployment-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.detail-button {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  gap: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.detail-button:hover {
+  background-color: #e5e7eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive design */
+@media screen and (max-width: 768px) {
+  .hero h1 {
+    font-size: 2rem;
+  }
+  
+  .hero p {
+    font-size: 1rem;
+  }
+  
+  .solution-card__actions {
+    flex-direction: column;
+  }
+}
