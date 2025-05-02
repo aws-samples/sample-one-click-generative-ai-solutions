@@ -3,6 +3,7 @@ site_name: AWS Generative AI Solution Box
 site_description: Start your generative AI journey with AWS and one click
 copyright: Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 site_author: AWS
+site_url: https://aws-samples.github.io/sample-one-click-generative-ai-solutions/
 # Repository
 repo_name: "Github: sample-one-click-generative-ai-solutions"
 repo_url: "https://github.com/aws-samples/sample-one-click-generative-ai-solutions"
