@@ -259,7 +259,6 @@ Resources:
       Role: !GetAtt TriggerFunctionRole.Arn
       Runtime: nodejs20.x
       Timeout: 30
-      ReservedConcurrentExecutions: 5
       Code:
         ZipFile: |
           const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');

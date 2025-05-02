@@ -10,6 +10,7 @@ Metadata:
           - Environment
           - NotificationEmailAddress
           - ModelRegion
+          - AdditionalModels
           - RAGEnabled
           - SelfSignUp
           - AllowedSignUpEmailDomains
@@ -34,7 +35,12 @@ Parameters:
     Default: us-east-1
     AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
     Description: AWS region for Bedrock models
-  
+
+  AdditionalModels:
+    Type: String
+    Default: us.anthropic.claude-3-7-sonnet-20250219-v1:0,us.deepseek.r1-v1:0
+    Description: Additional models to be added to the deployment (comma separated)
+
   RAGEnabled:
     Type: String
     AllowedValues: [true, false]
@@ -138,6 +144,8 @@ Resources:
             Value: !Ref Environment
           - Name: ModelRegion
             Value: !Ref ModelRegion
+          - Name: AdditionalModels
+            Value: !Ref AdditionalModels
           - Name: RAGEnabled
             Value: !Ref RAGEnabled
           - Name: SelfSignUp
@@ -170,17 +178,23 @@ Resources:
               commands:
                 - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
                 - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
-                
+
                 # Create and run the parameter update script
                 - |
                   cat > update-params.js << 'EOF'
                   const fs = require('fs');
-                  
+
+                  // Read the existing cdk.json file
+                  const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
+
+                  const additionalModelIds = process.env.AdditionalModels ? 
+                    process.env.AdditionalModels.split(',').map(id => id.trim()) 
+                    : [];
+
                   const envName = process.env.Environment;
                   const params = {
                     modelRegion: process.env.ModelRegion,
-                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'true',
-                    selfSignUpEnabled: process.env.SelfSignUp === 'true',
+                    modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
                     allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
                     allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
@@ -279,7 +293,6 @@ Resources:
       Role: !GetAtt TriggerFunctionRole.Arn
       Runtime: nodejs20.x
       Timeout: 30
-      ReservedConcurrentExecutions: 5
       Code:
         ZipFile: |
           const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
