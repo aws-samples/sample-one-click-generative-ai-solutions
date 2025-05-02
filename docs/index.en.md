@@ -78,7 +78,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
   </div>
 </div>
 
-## Start Journey
+## 3. Start Journey
 
 For Generative AI Use Cases, you can learn how to use it by following this workshop:
 

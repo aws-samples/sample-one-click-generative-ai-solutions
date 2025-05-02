@@ -13,6 +13,10 @@ plugins:
       separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
   - minify:
       minify_html: true
+  - social:
+      cards_layout_options:
+        font_family: 'Roboto'
+        background_color: indigo
   - i18n:
       docs_structure: suffix
       languages:
@@ -47,7 +51,7 @@ theme:
     text: 'Roboto'
     code: 'Roboto Mono'
   icon:
-    logo: material/bookmark-box
+    logo: material/cursor-default-click
     repo: fontawesome/brands/git-alt
   favicon: assets/favicon.png
 
@@ -76,8 +80,8 @@ markdown_extensions:
 
 # Website Page Tree
 nav:
-  - Home: 'index.md'
-  - Solutions:
+  - Start GenAI with One Click: 'index.md'
+  - Supported Solutions:
     - 'Generative AI Use Cases': 'solutions/generative-ai-use-cases.md'
     - 'Dify': 'solutions/dify.md'
 #  - License: 'general/license.md'

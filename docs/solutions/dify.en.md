@@ -2,7 +2,7 @@
 
 The parameters for deploying Dify are as follows.
 
-# Parameters
+## Parameters
 
 * NotificationEmailAddress
     * Email address for receiving notifications about deployment start and completion.
