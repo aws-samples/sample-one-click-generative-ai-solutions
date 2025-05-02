@@ -1,0 +1,72 @@
+# Project
+site_name: AWS Generative AI Solution Box
+site_description: Start your generative AI journey with AWS and one click
+copyright: Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+site_author: AWS
+# Repository
+repo_name: "Github: sample-one-click-generative-ai-solutions"
+repo_url: "https://github.com/aws-samples/sample-one-click-generative-ai-solutions"
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\u200b\-_,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - minify:
+      minify_html: true
+# Theme
+theme:
+  name: material
+  palette:
+    # Using a friendlier color scheme instead of AWS colors
+    primary: indigo
+    accent: pink
+  features:
+    - toc.integrate
+    - content.code.copy
+    - content.code.select
+    - content.code.annotate
+    - navigation.footer
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - content.action.edit
+    - search.highlight
+    - search.suggest
+  font:
+    text: 'Roboto'
+    code: 'Roboto Mono'
+  icon:
+    logo: material/bookmark-box
+    repo: fontawesome/brands/git-alt
+  favicon: assets/favicon.png
+
+extra_css:
+  - stylesheets/extra.css
+  - https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css
+
+# extras and additional configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
+
+# Extensions 
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - def_list
+  - md_in_html
+  - pymdownx.mark
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+# Website Page Tree
+nav:
+  - Home: 'index.md'
+  - Solutions:
+    - 'Generative AI Use Cases': 'solutions/generative-ai-use-cases.md'
+    - 'Dify': 'solutions/dify.md'
+#  - License: 'general/license.md'
