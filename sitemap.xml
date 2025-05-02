@@ -1,3 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>None./</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="None"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
+    </url>
+    <url>
+        <loc>Nonesolutions/dify/</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="Nonesolutions/dify/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/solutions/dify/"/>
+    </url>
+    <url>
+        <loc>Nonesolutions/generative-ai-use-cases/</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="Nonesolutions/generative-ai-use-cases/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/solutions/generative-ai-use-cases/"/>
+    </url>
+    <url>
+        <loc>Noneen/</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="None"/>
+    </url>
+    <url>
+        <loc>Noneen/solutions/dify/</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/solutions/dify/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="Nonesolutions/dify/"/>
+    </url>
+    <url>
+        <loc>Noneen/solutions/generative-ai-use-cases/</loc>
+        <lastmod>2025-05-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="Noneen/solutions/generative-ai-use-cases/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="Nonesolutions/generative-ai-use-cases/"/>
+    </url>
 </urlset>
