@@ -64,6 +64,10 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
+  extra:
+    analytics:
+      provider: google
+      property: G-2FHDMP8T1L
 
 # Extensions 
 markdown_extensions:
