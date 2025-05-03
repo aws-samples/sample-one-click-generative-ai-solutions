@@ -30,6 +30,7 @@ plugins:
 # Theme
 theme:
   name: material
+  custom_dir: overrides
   palette:
     # Using a friendlier color scheme instead of AWS colors
     primary: indigo
@@ -63,10 +64,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
-  extra:
-    analytics:
-      provider: google
-      property: G-2FHDMP8T1L
 
 # Extensions 
 markdown_extensions:
