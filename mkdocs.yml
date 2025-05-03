@@ -40,7 +40,6 @@ theme:
     - content.code.select
     - content.code.annotate
     - navigation.footer
-    - navigation.instant
     - navigation.tracking
     - navigation.sections
     - navigation.expand
