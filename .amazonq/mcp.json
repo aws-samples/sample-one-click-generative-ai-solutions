@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+      "github": {
+        "command": "npx",
+        "envFile": "${workspaceFolder}/.env",
+        "args": [
+          "-y",
+          "@modelcontextprotocol/server-github"
+        ]
+      }
+    }
+}

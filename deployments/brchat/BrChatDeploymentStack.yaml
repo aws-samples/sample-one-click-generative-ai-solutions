@@ -1,0 +1,374 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Bedrock Chat (BrChat) one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Bedrock Chat Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - BedrockRegion
+          - SelfSignUp
+          - AllowedSignUpEmailDomains
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+          - EnableRagReplicas
+          - EnableLambdaSnapStart
+          - Version
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: Email address to receive deployment notifications
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  BedrockRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
+    Description: AWS region for Bedrock models
+  
+  SelfSignUp:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Enable self-signup functionality (CAUTION: Carefully consider when allowing public access)'
+  
+  AllowedSignUpEmailDomains:
+    Type: String
+    Default: ""
+    Description: Allowed email domains for signup (comma separated)
+  
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv4 address ranges for access (comma separated, e.g. "192.168.1.0/24,10.0.0.0/8")
+  
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv6 address ranges for access (comma separated)
+  
+  EnableRagReplicas:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: Enable replicas for RAG database (increases availability but also cost)
+    
+  Version:
+    Type: String
+    Default: "v3"
+    Description: Version of Bedrock Chat to deploy (default is v3.0.0)
+
+Resources:
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: BrChat Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BrChatDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${BrChatDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  BrChatDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys Bedrock Chat (BrChat)'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: BEDROCK_REGION
+            Value: !Ref BedrockRegion
+          - Name: SELF_SIGNUP
+            Value: !Ref SelfSignUp
+          - Name: ALLOWED_SIGNUP_EMAIL_DOMAINS
+            Value: !Ref AllowedSignUpEmailDomains
+          - Name: ALLOWED_IPV4_ADDRESS_RANGES
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: ALLOWED_IPV6_ADDRESS_RANGES
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: ENABLE_RAG_REPLICAS
+            Value: !Ref EnableRagReplicas
+          - Name: VERSION
+            Value: !Ref Version
+          - Name: SNS_TOPIC_ARN
+            Value: !Ref DeploymentNotificationTopic
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting Bedrock Chat deployment"
+                - aws sns publish --topic-arn ${SNS_TOPIC_ARN} --subject "Bedrock Chat Deployment Started" --message "Deployment of Bedrock Chat has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/bedrock-chat.git
+                - cd bedrock-chat
+                - git checkout ${VERSION}
+                - cd cdk
+                - npm ci
+
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/bedrock-chat/cdk
+                - echo "Configuring Bedrock Chat parameters"
+                - |
+                  # Create a script to update cdk.json with the provided parameters
+                  cat > update_cdk_json.js << 'EOF'
+                  const fs = require('fs');
+                  
+                  // Read the existing cdk.json file
+                  const cdkJsonPath = 'cdk.json';
+                  const cdkJson = JSON.parse(fs.readFileSync(cdkJsonPath, 'utf8'));
+                  
+                  // Process the parameters
+                  const ipv4Ranges = process.env.ALLOWED_IPV4_ADDRESS_RANGES 
+                    ? process.env.ALLOWED_IPV4_ADDRESS_RANGES.split(',').map(range => range.trim())
+                    : ["0.0.0.0/1", "128.0.0.0/1"]; // Default to all IPs if not specified
+                  
+                  const ipv6Ranges = process.env.ALLOWED_IPV6_ADDRESS_RANGES
+                    ? process.env.ALLOWED_IPV6_ADDRESS_RANGES.split(',').map(range => range.trim())
+                    : ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"]; // Default to all IPs if not specified
+                  
+                  const emailDomains = process.env.ALLOWED_SIGNUP_EMAIL_DOMAINS
+                    ? process.env.ALLOWED_SIGNUP_EMAIL_DOMAINS.split(',').map(domain => domain.trim())
+                    : [];
+
+                  // Update the context values
+                  cdkJson.context.bedrockRegion = process.env.BEDROCK_REGION;
+                  cdkJson.context.allowedIpV4AddressRanges = ipv4Ranges;
+                  cdkJson.context.allowedIpV6AddressRanges = ipv6Ranges;
+                  cdkJson.context.allowedSignUpEmailDomains = emailDomains;
+                  cdkJson.context.selfSignUpEnabled = process.env.SELF_SIGNUP === 'true';
+                  cdkJson.context.enableRagReplicas = process.env.ENABLE_RAG_REPLICAS === 'true';
+                  
+                  // Write the updated JSON back to the file
+                  fs.writeFileSync(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
+                  console.log('Successfully updated cdk.json with deployment parameters');
+                  EOF
+                  
+                  # Run the script
+                  node update_cdk_json.js
+                  
+                  # Display the modified file for verification
+                  echo "Modified cdk.json:"
+                  cat cdk.json
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/bedrock-chat/cdk
+                
+                # Check if bootstrap is needed
+                - |
+                  BOOTSTRAP_STACK_NAME="CDKToolkit"
+                  BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
+                  
+                  if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
+                    echo "Running CDK bootstrap..."
+                    npx cdk bootstrap
+                  fi
+                
+                # Deploy the stack
+                - echo "Deploying Bedrock Chat with CDK"
+                - npx cdk deploy --all --asset-parallelism --asset-prebuild=false --concurrency 3 --method=direct --require-approval never --force
+                
+                # Get the application URL and other important information
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  STACK_NAME="BedrockChatStack"
+                  APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue" --output text)
+                  USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'AuthUserPoolId')].OutputValue" --output text)
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                  USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+
+                  cat << EOF > deployment-info.txt
+                  Bedrock Chat Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Frontend URL: ${APP_URL}
+
+                  Important Next Steps:
+                  1. Please enable model access on Amazon Bedrock:
+                     https://${AWS_ACCOUNT_ID}.${BEDROCK_REGION}.console.aws.amazon.com/bedrock/home?region=${BEDROCK_REGION}#/modelaccess
+                  
+                  2. Please create a user in the Cognito User Pool to access the application (if self-signup disabled):
+                     ${USER_CREATION_URL}
+
+                  3. To allow users to create custom bots, add them to the "CreatingBotAllowed" group in Cognito.
+                  
+                  4. For admin access, add users to the "Admin" group in Cognito.
+                  
+                  5. For API publishing capabilities, add users to the "PublishAllowed" group in Cognito.
+
+                  Configuration:
+                  Bedrock Region: ${BEDROCK_REGION}
+                  Self-Signup Enabled: ${SELF_SIGNUP}
+                  Allowed SignUp Email Domains: ${ALLOWED_SIGNUP_EMAIL_DOMAINS}
+                  Allowed IPv4 Address Ranges: ${ALLOWED_IPV4_ADDRESS_RANGES}
+                  Allowed IPv6 Address Ranges: ${ALLOWED_IPV6_ADDRESS_RANGES}
+                  RAG Replicas Enabled: ${ENABLE_RAG_REPLICAS}
+                  Version: ${VERSION}
+
+                  Stack Details:
+                  Stack Name: ${STACK_NAME}
+                  Region: ${AWS_DEFAULT_REGION}
+
+                  EOF
+
+            post_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/
+                - aws sns publish --topic-arn "${SNS_TOPIC_ARN}" --subject "Bedrock Chat Deployment Complete" --message file://deployment-info.txt
+                - echo "Deployment completed successfully"
+                - rm -rf bedrock-chat
+          artifacts:
+            files:
+              - deployment-info.txt
+      TimeoutInMinutes: 60
+
+  # Custom Resource to trigger CodeBuild
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref BrChatDeploymentProject
+      ServiceTimeout: 600
+
+  # Lambda function for the Custom Resource
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  # IAM Role for Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codebuild:StartBuild
+                Resource: !GetAtt BrChatDeploymentProject.Arn
+
+Outputs:
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref BrChatDeploymentProject
+  
+  CodeBuildLogGroup:
+    Description: CloudWatch Logs group for CodeBuild logs
+    Value: !Sub '/aws/codebuild/${BrChatDeploymentProject}'
+  
+  DeploymentStatus:
+    Description: Deployment status information
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmailAddress} when the deployment is complete."
