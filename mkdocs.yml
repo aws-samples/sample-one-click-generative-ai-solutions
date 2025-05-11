@@ -84,4 +84,5 @@ nav:
   - Supported Solutions:
     - 'Generative AI Use Cases': 'solutions/generative-ai-use-cases.md'
     - 'Dify': 'solutions/dify.md'
+    - 'Bedrock Chat': 'solutions/brchat.md'
 #  - License: 'general/license.md'

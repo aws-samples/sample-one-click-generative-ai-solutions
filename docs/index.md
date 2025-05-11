@@ -38,7 +38,7 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
 
 <div class="solution-card">
   <div class="solution-card__image">
-    <!-- <img src="/assets/images/generative-ai-use-cases.png" alt="Generative AI Use Cases Screenshot"> -->
+    <!-- <img src="assets/images/usecase_generate_diagram.gif" alt="Generative AI Use Cases Screenshot"> -->
   </div>
   <div class="solution-card__content">
     <div class="solution-card__title">Generative AI Use Cases</div>
@@ -46,7 +46,7 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentProcess.yaml" class="deployment-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
@@ -67,10 +67,31 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://dify.ai/jp" target="_blank">Dify</a> は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては <a href="https://github.com/aws-samples/" target="_blank">dify-self-hosted-on-aws</a>を使うことで容易に配置できます。
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentProcess.yaml" class="deployment-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/dify/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        View Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card">
+  <div class="solution-card__image">
+    <!-- <img src="/assets/images/bedrock-chat.png" alt="Bedrock Chat Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Bedrock Chat</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。
+    </div>
+    <div class="solution-card__actions">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BedrockChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BedrockChatDeploymentStack.yaml" class="deployment-button" target="_blank">
+        <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
+      </a>
+      <a href="solutions/brchat/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         View Details
       </a>
@@ -83,3 +104,4 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
 Generative AI Use Cases については、次のワークショップを進めることで使い方を学ぶことが出来ます。
 
 * [生成 AI 体験ワークショップ](https://catalog.workshops.aws/generative-ai-use-cases-jp)
+

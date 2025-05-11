@@ -252,10 +252,18 @@ Resources:
                   Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
 
                   Login URL: ${APP_URL}
-                  User Registration URL: ${USER_CREATION_URL}
-                  User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account
 
+                  Important Next Steps:
+                  1. Please enable model access on Amazon Bedrock:
+                     https://${AWS_ACCOUNT_ID}.${ModelRegion}.console.aws.amazon.com/bedrock/home?region=${ModelRegion}#/modelaccess
+                  
+                  2. Please create a user in the Cognito User Pool to access the application (if self-signup disabled):
+                     ${USER_CREATION_URL}
+                     User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account
+
+                  Configuration:
                   Environment: ${Environment}
+                  Model Region: ${ModelRegion}
                   RAG Enabled: ${RAGEnabled}
                   Self-Signup Enabled: ${SelfSignUp}
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
@@ -265,6 +273,7 @@ Resources:
                   Stack Details:
                   Stack Name: ${STACK_NAME}
                   Region: ${AWS_DEFAULT_REGION}
+
                   EOF
 
             post_build:

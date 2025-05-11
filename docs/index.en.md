@@ -46,7 +46,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
       <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> is an application with various pre-integrated generative AI use cases. It's ideal for organizations looking to establish a safe and user-friendly environment to promote the adoption of generative AI.
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentProcess.yaml" class="deployment-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
@@ -67,10 +67,31 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
       <a href="https://dify.ai" target="_blank">Dify</a> allows you to create chatbots and workflows using generative AI through a GUI. It's perfect for implementing multi-step generative AI processes. For AWS deployment, you can easily set it up using <a href="https://github.com/aws-samples/" target="_blank">dify-self-hosted-on-aws</a>.
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentProcess&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentProcess.yaml" class="deployment-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/dify/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        View Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card">
+  <div class="solution-card__image">
+    <!-- <img src="/assets/images/bedrock-chat.png" alt="Bedrock Chat Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Bedrock Chat</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> is a multilingual generative AI platform powered by Amazon Bedrock. It supports not only simple chat functionality but also custom bot creation with knowledge bases (RAG), bot sharing through a bot store, and task automation using agents.
+    </div>
+    <div class="solution-card__actions">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BedrockChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BedrockChatDeploymentStack.yaml" class="deployment-button" target="_blank">
+        <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
+      </a>
+      <a href="solutions/brchat/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         View Details
       </a>

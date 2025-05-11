@@ -10,11 +10,15 @@ REPO_ROOT = Path(__file__).parent.parent
 TEMPLATES = [
     {
         "name": "GenU",
-        "path": REPO_ROOT / "deployments" / "genu" / "GenUDeploymentProcess.yaml"
+        "path": REPO_ROOT / "deployments" / "genu" / "GenUDeploymentStack.yaml"
     },
     {
         "name": "Dify",
-        "path": REPO_ROOT / "deployments" / "dify" / "DifyDeploymentProcess.yaml"
+        "path": REPO_ROOT / "deployments" / "dify" / "DifyDeploymentStack.yaml"
+    },
+    {
+        "name": "BrChat",
+        "path": REPO_ROOT / "deployments" / "brchat" / "BrChatDeploymentStack.yaml"
     }
 ]
 
