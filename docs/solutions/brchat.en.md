@@ -15,7 +15,7 @@
 
 Click the button below to create a CloudFormation stack:
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BedrockChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BedrockChatDeploymentStack.yaml)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml)
 
 ### Parameter Settings
 
@@ -52,4 +52,4 @@ When deployment is complete, you'll receive a notification email containing:
 
 ## Resource Removal
 
-To remove deployed resources, delete the `BedrockChatDeploymentStack` stack from the CloudFormation console.
+To remove deployed resources, delete the `BrChatDeploymentStack` stack from the CloudFormation console.

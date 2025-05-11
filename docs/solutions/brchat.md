@@ -15,7 +15,7 @@
 
 以下のボタンをクリックして、CloudFormation スタックを作成します。
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BedrockChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BedrockChatDeploymentStack.yaml)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml)
 
 ### パラメータ設定
 
@@ -54,4 +54,4 @@
 
 ## リソースの削除
 
-デプロイしたリソースを削除するには、CloudFormation コンソールから `BedrockClaudeChat` と `BedrockChatDeploymentStack` スタックを削除します。
+デプロイしたリソースを削除するには、CloudFormation コンソールから `BedrockClaudeChat` と `BrChatDeploymentStack` スタックを削除します。
