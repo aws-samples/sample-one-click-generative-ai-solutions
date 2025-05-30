@@ -195,6 +195,8 @@ Resources:
                   const params = {
                     modelRegion: process.env.ModelRegion,
                     modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
+                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'true',
+                    selfSignUpEnabled: process.env.SelfSignUp === 'true',
                     allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
                     allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
