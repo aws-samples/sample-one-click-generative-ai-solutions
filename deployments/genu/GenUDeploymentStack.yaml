@@ -69,6 +69,18 @@ Parameters:
     Description: Allowed IPv6 address ranges for access
 
 Resources:
+  # S3 Bucket for parameter file storage
+  ParameterFileStoreBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+    Properties:
+      BucketName: !Sub 'genu-params-${Environment}-${AWS::AccountId}-${AWS::Region}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
   # SNS Topic for deployment notifications
   DeploymentNotificationTopic:
     Type: AWS::SNS::Topic
@@ -119,6 +131,14 @@ Resources:
               - sns:Publish
             Effect: Allow
             Resource: !Ref DeploymentNotificationTopic
+          - Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:ListBucket
+            Effect: Allow
+            Resource:
+              - !GetAtt ParameterFileStoreBucket.Arn
+              - !Sub "${ParameterFileStoreBucket.Arn}/*"
       Roles:
         - !Ref CodeBuildServiceRole
 
@@ -158,6 +178,8 @@ Resources:
             Value: !Ref AllowedIpV6AddressRanges
           - Name: SNSTopicArn
             Value: !Ref DeploymentNotificationTopic
+          - Name: PARAMETER_BUCKET
+            Value: !Ref ParameterFileStoreBucket
       Source:
         Type: NO_SOURCE
         BuildSpec: |
@@ -222,6 +244,11 @@ Resources:
                   EOF
                   
                   node update-params.js
+                
+                # Upload parameter file to S3
+                - |
+                  echo "Uploading parameter.ts to S3 bucket"
+                  aws s3 cp packages/cdk/parameter.ts s3://${PARAMETER_BUCKET}/${Environment}/parameter.ts
 
             build:
               commands:
@@ -358,7 +385,140 @@ Resources:
                 Action: codebuild:StartBuild
                 Resource: !GetAtt GenUDeploymentProject.Arn
 
+  # Lambda function to empty S3 bucket before deletion
+  EmptyBucketFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt EmptyBucketFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 60
+      Code:
+        ZipFile: |
+          const { S3Client, ListObjectVersionsCommand, DeleteObjectsCommand } = require('@aws-sdk/client-s3');
+          const response = require('cfn-response');
+          
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            // Execute only when the stack is being deleted
+            if (event.RequestType === 'Delete') {
+              const bucketName = event.ResourceProperties.BucketName;
+              try {
+                console.log(`Emptying bucket ${bucketName} before deletion`);
+                await emptyBucket(bucketName);
+                console.log(`Successfully emptied bucket ${bucketName}`);
+                await response.send(event, context, response.SUCCESS, {});
+              } catch (error) {
+                console.error('Error emptying bucket:', error);
+                await response.send(event, context, response.FAILED, { Error: error.message });
+              }
+            } else {
+              // Return success without any action for Create/Update
+              await response.send(event, context, response.SUCCESS, {});
+            }
+          };
+          
+          async function emptyBucket(bucketName) {
+            const s3Client = new S3Client();
+            let isTruncated = true;
+            let keyMarker;
+            let versionIdMarker;
+            
+            while(isTruncated) {
+              // List all objects including versioned objects
+              const listCommand = new ListObjectVersionsCommand({
+                Bucket: bucketName,
+                KeyMarker: keyMarker,
+                VersionIdMarker: versionIdMarker
+              });
+              
+              const listResponse = await s3Client.send(listCommand);
+              
+              const deleteObjects = [];
+              
+              // Add normal versions to deletion targets
+              if (listResponse.Versions && listResponse.Versions.length > 0) {
+                for (const version of listResponse.Versions) {
+                  deleteObjects.push({
+                    Key: version.Key,
+                    VersionId: version.VersionId
+                  });
+                }
+              }
+              
+              // Add delete markers to deletion targets
+              if (listResponse.DeleteMarkers && listResponse.DeleteMarkers.length > 0) {
+                for (const marker of listResponse.DeleteMarkers) {
+                  deleteObjects.push({
+                    Key: marker.Key,
+                    VersionId: marker.VersionId
+                  });
+                }
+              }
+              
+              // Delete objects if there are any
+              if (deleteObjects.length > 0) {
+                const deleteCommand = new DeleteObjectsCommand({
+                  Bucket: bucketName,
+                  Delete: { Objects: deleteObjects }
+                });
+                
+                await s3Client.send(deleteCommand);
+                console.log(`Deleted ${deleteObjects.length} objects/versions from ${bucketName}`);
+              }
+              
+              // Check if there are more pages
+              isTruncated = listResponse.IsTruncated;
+              if (isTruncated) {
+                keyMarker = listResponse.NextKeyMarker;
+                versionIdMarker = listResponse.NextVersionIdMarker;
+              }
+            }
+          }
+
+  # IAM Role for the EmptyBucket Lambda function
+  EmptyBucketFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: EmptyBucketPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                  - s3:ListBucketVersions
+                  - s3:DeleteObject
+                  - s3:DeleteObjectVersion
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource:
+                  - !GetAtt ParameterFileStoreBucket.Arn
+                  - !Sub "${ParameterFileStoreBucket.Arn}/*"
+
+  # Custom resource to empty the bucket before deletion
+  BucketEmptier:
+    Type: Custom::BucketEmptier
+    Properties:
+      ServiceToken: !GetAtt EmptyBucketFunction.Arn
+      BucketName: !Ref ParameterFileStoreBucket
+
 Outputs:
+  ParameterFileStoreBucketName:
+    Description: Name of the S3 bucket storing parameter files
+    Value: !Ref ParameterFileStoreBucket
+  
   NotificationTopicArn:
     Description: ARN of the SNS topic for deployment notifications
     Value: !Ref DeploymentNotificationTopic
