@@ -49,47 +49,47 @@ parameter.ts ファイルを開き、23 行目付近の環境ごとのパラメ�
 
 
 ## SageMaker CodeEditor で開発環境を準備
-GenU 環境を更新するために、SageMaker CodeEditor を利用します。以下のリンクから、CloudFormation を利用して作成をします。
+GenU 環境を更新するために、SageMaker CodeEditor を利用します。以下のリンクから、CloudFormation を利用して作成をします。  
 
 [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/quickcreate?stackName=CodeEditorStack&templateURL=https://ws-assets-prod-iad-r-nrt-2cb4b4649d0e0f94.s3.ap-northeast-1.amazonaws.com/9748a536-3a71-4f0e-a6cd-ece16c0e3487/cloudformation/CodeEditorStack.template.yaml&param_UseDefaultVpc=true&param_EbsSizeInGb=20&param_InstanceType=ml.t3.medium&param_AutoStopIdleTimeInMinutes=180) 
 
-CloudFormation が開かれるので、画面下部にチェックをいれて、Create stack を押します。
+CloudFormation が開かれるので、画面下部にチェックをいれて、Create stack を押します。  
 ![image-20250601211428869](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601211428869.png)
 
-Stack の作成が始まり、約 7 分後 CREATE_COMPLETE になります。その後、Outputs タブから SageMakerSudioUrl を開きます。
+Stack の作成が始まり、約 7 分後 CREATE_COMPLETE になります。その後、Outputs タブから SageMakerSudioUrl を開きます。  
 ![image-20250601213242980](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601213242980.png)
 
-SageMaker Studio AI の画面が開かれるので、Skip を押します。
+SageMaker Studio AI の画面が開かれるので、Skip を押します。  
 ![image-20250601200129208](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601200129208.png)
 
-CodeEditor を開き、Open を押します。Stop していた場合、Start で起動をしたあと、Open を押します。
+CodeEditor を開き、Open を押します。Stop していた場合、Start で起動をしたあと、Open を押します。  
 ![image-20250601213334293](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601213334293.png)
 
 
 ## CDK を使って、アップデートやパラメーター変更
-SageMaker CodeEditor の画面を開けました。New Terminal を押します。
+SageMaker CodeEditor の画面を開けました。New Terminal を押します。  
 ![image-20250601200716789](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601200716789.png)
 
-Terminal 上で以下のコマンドを実行して、最新の GenU のソースコードを clone します。最新のソースコードを clone することで、GenU のバージョンアップを行えます。
+Terminal 上で以下のコマンドを実行して、最新の GenU のソースコードを clone します。最新のソースコードを clone することで、GenU のバージョンアップを行えます。  
 ```shell
 git clone https://github.com/aws-samples/generative-ai-use-cases.git
 ```
 
-コマンドの実行する欄について画像で紹介します。以下の画像で説明しているように、画面下部に Terminal が表示されるので、ここでコマンドを実行します。
+コマンドの実行する欄について画像で紹介します。以下の画像で説明しているように、画面下部に Terminal が表示されるので、ここでコマンドを実行します。  
 ![image-20250601200849728](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601200849728.png)
 
-clone してきたフォルダを開きます。
+clone してきたフォルダを開きます。  
 ![image-20250601200933404](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601200933404.png)
 
-Yes, I trust the authors を押します。
+Yes, I trust the authors を押します。  
 ![image-20250601201003892](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601201003892.png)
 
-`packages/cdk/parameter.ts` を開きます。
+`packages/cdk/parameter.ts` を開きます。  
 ![image-20250601201210065](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601201210065.png)
 
 
 前の手順でダウンロードした parameter.ts ファイルの内容を確認して、SageMaker CodeEditor にコピーします。
-デフォルトでは、dev の部分をコピーします。(23 行目付近)
+デフォルトでは、dev の部分をコピーします。(23 行目付近)  
 
 ```ts
   dev: {
@@ -113,32 +113,32 @@ Yes, I trust the authors を押します。
   },
 ```
 
-これがコピーしたときの画面例です。
+これがコピーしたときの画面例です。  
 ![image-20250601201437327](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601201437327.png)
 
-パラメーターを変更してみましょう。今回の手順では、利用するモデルを変更します。
+パラメーターを変更してみましょう。今回の手順では、利用するモデルを変更します。  
 ![image-20250601201552068](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601201552068.png)
 
-再び Terminal を開きます。
+再び Terminal を開きます。  
 ![image-20250601201738750](/docs/assets/images/solutions/generative-ai-use-cases-update/image-20250601201738750.png)
 
-以下のコマンドを実行します。
+以下のコマンドを実行します。  
 ```shell
 cd /home/sagemaker-user/generative-ai-use-cases/
 ```
 
-実行例
+実行例  
 ```shell
 sagemaker-user@default:~$ cd /home/sagemaker-user/generative-ai-use-cases/
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-依存関係を解決します。
+依存関係を解決します。  
 ```shell
 npm ci
 ```
 
-実行例
+実行例  
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm ci
 npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
@@ -172,14 +172,14 @@ npm notice
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-bootstrap を実行します。
+bootstrap を実行します。  
 
 ```shell
 npx -w packages/cdk cdk bootstrap
 ```
 
 
-実行例
+実行例  
 
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npx -w packages/cdk cdk bootstrap
@@ -193,14 +193,14 @@ sagemaker-user@default:~/generative-ai-use-cases$
 ```
 
 
-GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定する。デフォルトでは dev です。
+GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定する。デフォルトでは dev です。  
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev
 ```
 
 
-実行例
+実行例  
 
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm run cdk:deploy:quick -- -c env=dev
@@ -229,7 +229,7 @@ found 0 vulnerabilities
 ```
 
 
-一定時間後、デプロイが完了します。元の GenU が更新されました。
+一定時間後、デプロイが完了します。元の GenU が更新されました。  
 
 ```shell
 GenerativeAiUseCasesStackdev.WebUrl = https://xxxxxxxxx.cloudfront.net
