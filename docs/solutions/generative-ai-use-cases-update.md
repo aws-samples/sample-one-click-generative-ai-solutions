@@ -193,7 +193,7 @@ sagemaker-user@default:~/generative-ai-use-cases$
 ```
 
 
-GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定する。デフォルトでは dev です。  
+GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定します。デフォルトでは dev です。  
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev
