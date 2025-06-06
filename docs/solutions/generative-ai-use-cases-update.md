@@ -1,5 +1,5 @@
 # GenU のアップデートやパラメーター変更
-GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。基本的な手順を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
+GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
 
 以下のステップを行います。
 - 1 click デプロイで自動生成したパラメータを Parameter Store から確認
