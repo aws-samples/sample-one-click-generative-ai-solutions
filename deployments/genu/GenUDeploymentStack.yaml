@@ -69,6 +69,7 @@ Parameters:
     Description: Allowed IPv6 address ranges for access
 
 Resources:
+
   # SNS Topic for deployment notifications
   DeploymentNotificationTopic:
     Type: AWS::SNS::Topic
@@ -119,6 +120,14 @@ Resources:
               - sns:Publish
             Effect: Allow
             Resource: !Ref DeploymentNotificationTopic
+          - Action:
+              - ssm:PutParameter
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:DeleteParameter
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/genu/${Environment}.json"
       Roles:
         - !Ref CodeBuildServiceRole
 
@@ -179,7 +188,7 @@ Resources:
                 - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
                 - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
 
-                # Create and run the parameter update script
+                # Create and run unified parameter script (updates parameter.ts and creates JSON for Parameter Store)
                 - |
                   cat > update-params.js << 'EOF'
                   const fs = require('fs');
@@ -201,7 +210,8 @@ Resources:
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
                     allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
                   };
-  
+
+                  // Update parameter.ts file
                   try {
                     let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
                     const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
@@ -216,12 +226,34 @@ Resources:
                       process.exit(1);
                     }
                   } catch (error) {
-                    console.error('Error:', error);
+                    console.error('Error updating parameter.ts:', error);
                     process.exit(1);
                   }
+
+                  // Create JSON file for Parameter Store
+                  fs.writeFileSync('env-params.json', JSON.stringify(params, null, 2));
+                  console.log('Environment parameters JSON created:');
+                  console.log(JSON.stringify(params, null, 2));
                   EOF
                   
                   node update-params.js
+                  
+                  # Store the JSON as a single parameter with SecureString type
+                  aws ssm put-parameter --name "/genu/${Environment}.json" \
+                    --value "$(cat env-params.json)" \
+                    --type "SecureString" \
+                    --overwrite || exit 1
+                  
+                  # Add tags to the parameter (separate command due to AWS limitation)
+                  aws ssm add-tags-to-resource \
+                    --resource-type "Parameter" \
+                    --resource-id "/genu/${Environment}.json" \
+                    --tags "Key=Environment,Value=${Environment}" "Key=Application,Value=GenU" || true
+                  
+                  # Verify the parameter was stored
+                  aws ssm get-parameter --name "/genu/${Environment}.json" --query 'Parameter.Name' || exit 1
+                  
+                  echo "Parameters stored successfully in Parameter Store as /genu/${Environment}.json"
 
             build:
               commands:
@@ -358,7 +390,12 @@ Resources:
                 Action: codebuild:StartBuild
                 Resource: !GetAtt GenUDeploymentProject.Arn
 
+
 Outputs:
+  ParameterStoreName:
+    Description: Parameter Store name for GenU environment parameters
+    Value: !Sub "/genu/${Environment}.json"
+  
   NotificationTopicArn:
     Description: ARN of the SNS topic for deployment notifications
     Value: !Ref DeploymentNotificationTopic

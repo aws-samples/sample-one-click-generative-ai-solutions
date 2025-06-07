@@ -14,7 +14,7 @@
 
 Click the button below to create a CloudFormation stack:
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
 
 ### Parameter Settings
 
@@ -62,6 +62,10 @@ When deployment is complete, you'll receive a notification email containing:
 To learn how to use Generative AI Use Cases, refer to the following workshop:
 
 * [Exploring Generative AI Use Cases with GenU](https://catalog.us-east-1.prod.workshops.aws/workshops/58088ef5-d47c-441d-ae65-e44ff1d6a92b/en-US)
+
+## Related Documentation
+
+- [Update Guide](generative-ai-use-cases-update.en.md) - How to update existing environments
 
 ## Resource Removal
 

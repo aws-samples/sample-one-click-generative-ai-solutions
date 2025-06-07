@@ -46,7 +46,7 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">

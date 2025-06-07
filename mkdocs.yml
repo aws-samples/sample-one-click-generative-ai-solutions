@@ -82,7 +82,9 @@ markdown_extensions:
 nav:
   - Start GenAI with One Click: 'index.md'
   - Supported Solutions:
-    - 'Generative AI Use Cases': 'solutions/generative-ai-use-cases.md'
+    - 'Generative AI Use Cases': 
+      - 'Overview': 'solutions/generative-ai-use-cases.md'
+      - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
 #  - License: 'general/license.md'

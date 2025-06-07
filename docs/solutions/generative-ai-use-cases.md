@@ -14,7 +14,7 @@
 
 以下のボタンをクリックして、CloudFormation スタックを作成します。
 
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
+[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
 
 ### パラメータ設定
 
@@ -62,6 +62,10 @@ IP 制限を設定しない場合は Public Access 可能な状態でデプロ�
 Generative AI Use Cases の使い方を学ぶには、以下のワークショップを参照してください：
 
 * [生成 AI 体験ワークショップ](https://catalog.workshops.aws/generative-ai-use-cases-jp)
+
+## 関連ドキュメント
+
+- [アップデート手順](generative-ai-use-cases-update.md) - 既存環境のアップデート方法
 
 ## リソースの削除
 
