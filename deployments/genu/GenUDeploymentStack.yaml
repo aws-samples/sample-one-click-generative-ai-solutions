@@ -127,7 +127,7 @@ Resources:
               - ssm:DeleteParameter
             Effect: Allow
             Resource:
-              - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/genu/*"
+              - !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/genu/${Environment}.json"
       Roles:
         - !Ref CodeBuildServiceRole
 
@@ -238,8 +238,20 @@ Resources:
                   
                   node update-params.js
                   
-                  # Store the JSON as a single parameter
-                  aws ssm put-parameter --name "/genu/${Environment}.json" --value "$(cat env-params.json)" --type "String" --overwrite
+                  # Store the JSON as a single parameter with SecureString type
+                  aws ssm put-parameter --name "/genu/${Environment}.json" \
+                    --value "$(cat env-params.json)" \
+                    --type "SecureString" \
+                    --overwrite || exit 1
+                  
+                  # Add tags to the parameter (separate command due to AWS limitation)
+                  aws ssm add-tags-to-resource \
+                    --resource-type "Parameter" \
+                    --resource-id "/genu/${Environment}.json" \
+                    --tags "Key=Environment,Value=${Environment}" "Key=Application,Value=GenU" || true
+                  
+                  # Verify the parameter was stored
+                  aws ssm get-parameter --name "/genu/${Environment}.json" --query 'Parameter.Name' || exit 1
                   
                   echo "Parameters stored successfully in Parameter Store as /genu/${Environment}.json"
 

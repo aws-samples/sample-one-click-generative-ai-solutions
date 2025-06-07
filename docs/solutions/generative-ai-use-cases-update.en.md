@@ -105,7 +105,7 @@ If using environments other than `dev`, manually copy and paste the Parameter St
 If using `dev`, retrieve data from Parameter Store and store it in the variable PARAMS.  
 
 ```shell
-PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --query "Parameter.Value" --output text)
+PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --with-decryption --query "Parameter.Value" --output text)
 ```
 
 Next, execute the following command to edit the `parameter.ts` file.  

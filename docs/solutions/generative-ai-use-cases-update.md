@@ -2,21 +2,22 @@
 GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
 
 以下のステップを行います。  
-- 1 click デプロイで自動生成したパラメータを Parameter Store から確認  
-- SageMaker Code Editor で開発環境を準備  
-- CDK を使って、アップデートやパラメーター変更  
+- 1 click デプロイで自動生成したパラメータを [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) から確認
+- [Amazon SageMaker Studio Code Editor](https://docs.aws.amazon.com/ja_jp/sagemaker/latest/dg/code-editor.html) で開発環境を準備
+- CDK を使って、アップデートやパラメーター変更
 
 ## 1 click デプロイで自動生成したパラメータを確認
 
-1 click デプロイでは、GenU デプロイ時に利用したパラメータが AWS Systems Manager Parameter Store に JSON 形式で保存されます。
+1 click デプロイでは、GenU デプロイ時に利用したパラメータが Parameter Store に JSON 形式で保存されます。
 
-[AWS Systems Manager Parameter Store のマネジメントコンソール画面](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters
-)を開き、パラメータを確認します。デフォルトでは東京リージョンに作成されますが、変更した場合は変更先のリージョンで確認しましょう。
+[Parameter Store のマネジメントコンソール画面 (※東京リージョン (`ap-northeast-1`) の画面です)](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters
+)を開き、パラメータを確認します。東京リージョン以外にデプロイした場合は、デプロイ先のリージョンで確認しましょう (`us-east-1` など)。
 
-デプロイしたときに指定した Environment 名 (デフォルトは dev) で、以下のパラメータが保存されています  
+デプロイしたときに指定した Environment 名 (デフォルトは `dev`) で、以下のパラメータが保存されています  
 - `/genu/dev.json` - dev 環境のすべてのパラメータをJSON形式で保存  
-- `/genu/staging.json` - staging 環境のパラメータ（該当環境をデプロイした場合）  
-- `/genu/prod.json` - prod 環境のパラメータ（該当環境をデプロイした場合）  
+
+!!! Tip
+    `staging`, `prod` でデプロイした場合はそれぞれ `/genu/staging.json` 、`/genu/prod.json` となります。 
 
 ![parameter-store-01](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-01.png)
 
@@ -45,15 +46,20 @@ GenU を 1 click でデプロイしたあとに、アップデートやパラメ
 }
 ```
 
-マネジメントコンソールの画面例です。  
+マネジメントコンソールの画面例です (`Show decrypted value` をオンにすると値を参照できます)。  
 ![parameter-store-02](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-02.png)
 
 この JSON データを使って、後述の手順で該当環境セクションに適用することで、パラメータの確認や変更が可能です。
 
 
 ## SageMaker Code Editor で開発環境を準備
-GenU 環境を更新するために、SageMaker Code Editor を利用します。以下のリンクから、CloudFormation を利用して作成をします。GenU のデプロイリージョンをデフォルトの東京から意識して変更した場合は、SageMaker Code Editor のデプロイ先リージョンも変更しましょう。意識していない場合は、以下の URL から東京リージョンにデプロイください。  
-なお、料金について、デフォルトの ml.t3.medium を東京リージョンで稼働する場合、1 時間あたり $0.065 が発生します。一定時間操作を行わない時には Code Editor が自動停止されるため、コスト最適化がされています。
+GenU 環境を更新するために、SageMaker Code Editor を利用します。以下のリンクから、CloudFormation を利用して作成をします。
+
+!!! Tip
+    GenU のデプロイリージョンをデフォルトの東京から意識して変更した場合は、SageMaker Code Editor のデプロイ先リージョンも変更しましょう。意識していない場合は、以下の URL から東京リージョンにデプロイください。  
+
+!!! Warning
+    料金について、デフォルトの ml.t3.medium を東京リージョンで稼働する場合、1 時間あたり $0.065 が発生します。一定時間操作を行わない時には Code Editor が自動停止されるため、コスト最適化がされています。
 
 [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/quickcreate?stackName=CodeEditorStack&templateURL=https://ws-assets-prod-iad-r-nrt-2cb4b4649d0e0f94.s3.ap-northeast-1.amazonaws.com/9748a536-3a71-4f0e-a6cd-ece16c0e3487/cloudformation/CodeEditorStack.template.yaml&param_UseDefaultVpc=true&param_EbsSizeInGb=20&param_InstanceType=ml.t3.medium&param_AutoStopIdleTimeInMinutes=180) 
 
@@ -100,14 +106,13 @@ cd /home/sagemaker-user/generative-ai-use-cases/
 ```
 
 前の手順で確認した Parameter Store の値を利用して、`parameter.ts` のファイルを編集していきます。  
-Environment でデフォルトの dev を利用している場合は、コマンドを利用した自動設定が可能です。  
-Parameter Store の名前 (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) を見て、`dev` を利用している場合は、以下のコマンドを実行していきます。  
-`dev` 以外を利用している場合は、Parameter Store の値を手動でコピペしていき、`parameter.ts` のファイルを直接編集します。　　
+Environment でデフォルトの dev を利用している場合は、コマンドを利用した自動設定が可能です。
 
-`dev` を利用している場合、Parameter Store からデータを取得して、変数 PARAMS に格納します。  
+!!! Tip
+    `dev` 以外を利用している場合は、Parameter Store の値を手動でコピーして`parameter.ts` のファイルを直接編集してください。
 
 ```shell
-PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --query "Parameter.Value" --output text)
+PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --with-decryption --query "Parameter.Value" --output text)
 ```
 
 次に以下のコマンドを発行して、`parameter.ts` ファイルを編集します。  
@@ -262,7 +267,8 @@ SageMaker Code Editor を開いたあと、Open Folder で GenU のディレク�
 
 ![genu-update-repeat-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-01.png)
 
-`packages/cdk/parameter.ts` を開いて、`dev` や `staging` や `prod` の値を手元にメモをします。**なくした場合は復元が困難なので、メモをし忘れ無いように注意しましょう！**  
+!!! Warning
+    `packages/cdk/parameter.ts` を開いて、`dev` や `staging` や `prod` の値を手元にメモをします。**なくした場合は復元が困難なので、メモをし忘れ無いように注意しましょう！**  
 
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
