@@ -1,27 +1,26 @@
-# GenU のアップデートやパラメーター変更
-GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
+# GenU Updates and Parameter Changes
+This guide explains how to update GenU and change parameters after deploying with one-click deployment. For detailed parameters supported by GenU, please refer to the [GenU Documentation](https://aws-samples.github.io/generative-ai-use-cases/en/ABOUT.html).
 
-以下のステップを行います。  
-- 1 click デプロイで自動生成したパラメータを Parameter Store から確認  
-- SageMaker Code Editor で開発環境を準備  
-- CDK を使って、アップデートやパラメーター変更  
+The following steps will be performed:  
+- Check auto-generated parameters from one-click deployment in Parameter Store  
+- Set up development environment with SageMaker Code Editor  
+- Use CDK for updates and parameter changes  
 
-## 1 click デプロイで自動生成したパラメータを確認
+## Check Auto-Generated Parameters from One-Click Deployment
 
-1 click デプロイでは、GenU デプロイ時に利用したパラメータが AWS Systems Manager Parameter Store に JSON 形式で保存されます。
+In one-click deployment, the parameters used during GenU deployment are stored in AWS Systems Manager Parameter Store in JSON format.
 
-[AWS Systems Manager Parameter Store のマネジメントコンソール画面](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters
-)を開き、パラメータを確認します。デフォルトでは東京リージョンに作成されますが、変更した場合は変更先のリージョンで確認しましょう。
+Open the [AWS Systems Manager Parameter Store console](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters) and check the parameters. By default, they are created in the Tokyo region, but if you changed it, check in the destination region.
 
-デプロイしたときに指定した Environment 名 (デフォルトは dev) で、以下のパラメータが保存されています  
-- `/genu/dev.json` - dev 環境のすべてのパラメータをJSON形式で保存  
-- `/genu/staging.json` - staging 環境のパラメータ（該当環境をデプロイした場合）  
-- `/genu/prod.json` - prod 環境のパラメータ（該当環境をデプロイした場合）  
+
+The following parameters are stored with the Environment name specified during deployment (default is dev)  
+- `/genu/dev.json` - All parameters for dev environment stored in JSON format  
+- `/genu/staging.json` - Parameters for staging environment (if deployed)  
+- `/genu/prod.json` - Parameters for prod environment (if deployed)  
 
 ![parameter-store-01](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-01.png)
 
-
-パラメータの内容は以下のようなJSON形式で保存されています：
+The parameter content is stored in JSON format as follows:
 
 ```json
 {
@@ -45,65 +44,62 @@ GenU を 1 click でデプロイしたあとに、アップデートやパラメ
 }
 ```
 
-マネジメントコンソールの画面例です。  
+Here's an example of the management console screen:  
 ![parameter-store-02](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-02.png)
 
-この JSON データを使って、後述の手順で該当環境セクションに適用することで、パラメータの確認や変更が可能です。
+Using this JSON data, you can check and change parameters by applying them to the corresponding environment section in the following steps.
 
-
-## SageMaker Code Editor で開発環境を準備
-GenU 環境を更新するために、SageMaker Code Editor を利用します。以下のリンクから、CloudFormation を利用して作成をします。GenU のデプロイリージョンをデフォルトの東京から意識して変更した場合は、SageMaker Code Editor のデプロイ先リージョンも変更しましょう。意識していない場合は、以下の URL から東京リージョンにデプロイください。  
-なお、料金について、デフォルトの ml.t3.medium を東京リージョンで稼働する場合、1 時間あたり $0.065 が発生します。一定時間操作を行わない時には Code Editor が自動停止されるため、コスト最適化がされています。
+## Set Up Development Environment with SageMaker Code Editor
+To update the GenU environment, we use SageMaker Code Editor. Create it using CloudFormation from the following link. If you intentionally changed the GenU deployment region from the default Tokyo, also change the SageMaker Code Editor deployment destination region. If you haven't changed it intentionally, please deploy to the Tokyo region from the URL below.  
+Regarding pricing, when running the default ml.t3.medium in the Tokyo region, $0.065 per hour is charged. Code Editor automatically stops when no operations are performed for a certain period, providing cost optimization.
 
 [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/quickcreate?stackName=CodeEditorStack&templateURL=https://ws-assets-prod-iad-r-nrt-2cb4b4649d0e0f94.s3.ap-northeast-1.amazonaws.com/9748a536-3a71-4f0e-a6cd-ece16c0e3487/cloudformation/CodeEditorStack.template.yaml&param_UseDefaultVpc=true&param_EbsSizeInGb=20&param_InstanceType=ml.t3.medium&param_AutoStopIdleTimeInMinutes=180) 
 
-CloudFormation が開かれるので、画面下部にチェックをいれて、Create stack を押します。  
+CloudFormation will open, so check the box at the bottom of the screen and press Create stack.  
 ![codeeditor-setup-01](../assets/images/solutions/generative-ai-use-cases-update/codeeditor-setup-01.png)
 
-Stack の作成が始まり、約 7 分後 CREATE_COMPLETE になります。その後、Outputs タブから SageMakerSudioUrl を開きます。  
+Stack creation begins and becomes CREATE_COMPLETE after about 7 minutes. Then open SageMakerStudioUrl from the Outputs tab.  
 ![codeeditor-setup-02](../assets/images/solutions/generative-ai-use-cases-update/codeeditor-setup-02.png)
 
-SageMaker Studio AI の画面が開かれるので、Skip を押します。  
+The SageMaker Studio AI screen opens, so press Skip.  
 ![codeeditor-setup-03](../assets/images/solutions/generative-ai-use-cases-update/codeeditor-setup-03.png)
 
-Code Editor を開き、Open を押します。Stop していた場合、Start で起動をしたあと、Open を押します。  
+Open Code Editor and press Open. If it was stopped, start it first and then press Open.  
 ![codeeditor-setup-04](../assets/images/solutions/generative-ai-use-cases-update/codeeditor-setup-04.png)
 
-
-## CDK を使って、アップデートやパラメーター変更
-SageMaker Code Editor の画面を開けました。New Terminal を押します。  
+## Use CDK for Updates and Parameter Changes
+The SageMaker Code Editor screen is now open. Press New Terminal.  
 ![genu-update-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-01.png)
 
-Terminal 上で以下のコマンドを実行して、最新の GenU のソースコードを clone します。最新のソースコードを clone することで、GenU のバージョンアップが可能です。2 回目以降のバージョンアップで、既に git clone をしている場合は、[こちらの手順](#second-time-update)をご参照ください。
+Execute the following command in the terminal to clone the latest GenU source code. By cloning the latest source code, GenU version upgrades are possible. For second and subsequent version upgrades where git clone has already been done, please refer to [these steps](#second-time-update).
 ```shell
 git clone https://github.com/aws-samples/generative-ai-use-cases.git
 ```
 
-コマンドの実行する欄について画像で紹介します。以下の画像で説明しているように、画面下部に Terminal が表示されるので、ここでコマンドを実行します。  
+Here's an image showing where to execute commands. As explained in the following image, the Terminal is displayed at the bottom of the screen, so execute commands here.  
 ![genu-update-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-02.png)
 
-clone してきたフォルダを開きます。  
+Open the cloned folder.  
 ![genu-update-03](../assets/images/solutions/generative-ai-use-cases-update/genu-update-03.png)
 
-Yes, I trust the authors を押します。  
+Press Yes, I trust the authors.  
 ![genu-update-04](../assets/images/solutions/generative-ai-use-cases-update/genu-update-04.png)
 
-`packages/cdk/parameter.ts` を開きます。  
+Open `packages/cdk/parameter.ts`.  
 ![genu-update-05](../assets/images/solutions/generative-ai-use-cases-update/genu-update-05.png)
 
+Set parameters in SageMaker Code Editor based on the parameter content confirmed from Parameter Store in the previous step.
+Look at the Parameter Store names (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) to identify the section to edit.
 
-前の手順で Parameter Store から確認した パラメーターの内容を参考に、SageMaker Code Editor でパラメータを設定します。　　
-Parameter Store の名前 (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) を見て、編集する箇所を特定します。 
+By default, dev is used. Edit the dev parameters to the values from parameter store `/genu/dev.json`. (around line 23)
 
-デフォルトでは、dev を利用しています。dev のパタメーターを、parameter store の `/genu/dev.json` の値に編集します。(23 行目付近)    
-
-まず、Parameter Store からデータを取得して、変数 PARAMS に格納します。  
+First, retrieve data from Parameter Store and store it in the variable PARAMS.
 
 ```shell
 PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --query "Parameter.Value" --output text)
 ```
 
-次に以下のコマンドをつかって、`parameter.ts` ファイルを編集します。  
+Next, use the following command to edit the `parameter.ts` file.
 
 ```shell
 node -e "
@@ -118,7 +114,7 @@ fs.writeFileSync('packages/cdk/parameter.ts', content);
 "
 ```
 
-以下のように dev ファイルの中身が編集されているはずです。  
+The dev file content should be edited as follows:
 
 ```ts
   dev: {
@@ -142,32 +138,32 @@ fs.writeFileSync('packages/cdk/parameter.ts', content);
   },
 ```
 
-これが編集後の画面例です。  
+This is an example of the screen after editing.  
 ![genu-update-06](../assets/images/solutions/generative-ai-use-cases-update/genu-update-06.png)
 
-パラメーターを変更してみましょう。今回の手順では、利用するモデルを変更します。  
+Let's change the parameters. In this procedure, we will change the models to use.  
 ![genu-update-07](../assets/images/solutions/generative-ai-use-cases-update/genu-update-07.png)
 
-再び Terminal を開きます。  
+Open the Terminal again.  
 ![genu-update-08](../assets/images/solutions/generative-ai-use-cases-update/genu-update-08.png)
 
-以下のコマンドを実行します。  
+Execute the following command:
 ```shell
 cd /home/sagemaker-user/generative-ai-use-cases/
 ```
 
-実行例  
+Execution example:
 ```shell
 sagemaker-user@default:~$ cd /home/sagemaker-user/generative-ai-use-cases/
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-依存関係を解決します。  
+Resolve dependencies:
 ```shell
 npm ci
 ```
 
-実行例  
+Execution example:
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm ci
 npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
@@ -201,15 +197,13 @@ npm notice
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-
-GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定します。デフォルトでは dev です。  
+Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev
 ```
 
-
-実行例  
+Execution example:
 
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm run cdk:deploy:quick -- -c env=dev
@@ -237,8 +231,7 @@ found 0 vulnerabilities
 
 ```
 
-
-一定時間後、デプロイが完了します。元の GenU が更新されました。  
+After some time, deployment is complete. The original GenU has been updated.
 
 ```shell
 GenerativeAiUseCasesStackdev.WebUrl = https://xxxxxxxxx.cloudfront.net
@@ -250,47 +243,47 @@ arn:aws:cloudformation:us-east-1:xxxxxxxxxx:stack/GenerativeAiUseCasesStackdev/8
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-## 2 回目以降に GenU をアップデートする手順 {#second-time-update}
-SageMaker Code Editor を利用して、2 回目以降に GenU をアップデートする手順を紹介します。1 回目では git clone を利用していたのに対して、2 回目は既に clone 済みなので手順がが変わります。  
-SageMaker Code Editor を開いたあと、Open Folder で GenU のディレクトリを開きます。
+## Steps for Updating GenU from the Second Time Onwards {#second-time-update}
+This section introduces the steps for updating GenU from the second time onwards using SageMaker Code Editor. While the first time used git clone, the second time onwards has different steps since it's already cloned.
+After opening SageMaker Code Editor, open the GenU directory with Open Folder.
 
 ![genu-update-repeat-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-01.png)
 
-`packages/cdk/parameter.ts` を開いて、`dev` や `staging` や `prod` の値を手元にメモをします。**なくした場合は復元が困難なので、メモをし忘れ無いように注意しましょう！**  
+Open `packages/cdk/parameter.ts` and note down the values of `dev`, `staging`, and `prod`. **Be careful not to forget to take notes, as recovery is difficult if lost!**
 
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
-git clone をしたディレクトリに移動します。  
+Move to the git cloned directory.
 
 ```shell
 cd /home/sagemaker-user/generative-ai-use-cases/
 ```
 
-Code Editor で編集したファイルなどの内容をすべて元の状態に戻します。`parameter.ts` 以外に編集したファイルがあればすべて消えてしまうのでご注意ください。
+Reset all file contents edited in Code Editor to their original state. Please note that if you have edited files other than `parameter.ts`, they will all be lost.
 
 ```shell
 git reset --hard
 ```
 
-以下のコマンドで最新バージョンのソースコードを取得します。
+Get the latest version source code with the following command:
 
 ```shell
 git pull
 ```
 
-npm ci で依存関係を解決します。
+Resolve dependencies with npm ci:
 
 ```shell
 npm ci
 ```
 
-`parameter.ts` のファイルを編集します。先ほど退避した、`dev` や `staging` や `prod` の値を元に戻します。  
+Edit the `parameter.ts` file. Restore the previously saved values of `dev`, `staging`, and `prod`.  
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
-GenU を更新します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定します。デフォルトでは dev です。  
+Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev
 ```
 
-これでアップデートが完了です！
+The update is now complete!
