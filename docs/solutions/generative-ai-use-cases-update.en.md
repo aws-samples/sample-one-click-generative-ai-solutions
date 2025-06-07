@@ -2,20 +2,21 @@
 This guide explains how to update GenU and change parameters after deploying with one-click deployment. For detailed parameters supported by GenU, please refer to the [GenU Documentation](https://aws-samples.github.io/generative-ai-use-cases/en/ABOUT.html).
 
 The following steps will be performed:  
-- Check auto-generated parameters from one-click deployment in Parameter Store  
-- Set up development environment with SageMaker Code Editor  
+- Check auto-generated parameters from one-click deployment in [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html)
+- Set up development environment with [Amazon SageMaker Studio Code Editor](https://docs.aws.amazon.com/sagemaker/latest/dg/code-editor.html)
 - Use CDK for updates and parameter changes  
 
 ## Check Auto-Generated Parameters from One-Click Deployment
 
-In one-click deployment, the parameters used during GenU deployment are stored in AWS Systems Manager Parameter Store in JSON format.
+In one-click deployment, the parameters used during GenU deployment are stored in Parameter Store in JSON format.
 
-Open the [AWS Systems Manager Parameter Store console](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters) and check the parameters. By default, they are created in the Tokyo region, but if you changed it, check in the destination region.
+Open the [Parameter Store console (※This is the Tokyo region (`ap-northeast-1`) screen)](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters) and check the parameters. If deployed to a region other than Tokyo, check in the deployment destination region (e.g., `us-east-1`).
 
-The following parameters are stored with the Environment name specified during deployment (default is dev)  
+The following parameters are stored with the Environment name specified during deployment (default is `dev`)  
 - `/genu/dev.json` - All parameters for dev environment stored in JSON format  
-- `/genu/staging.json` - Parameters for staging environment (if deployed)  
-- `/genu/prod.json` - Parameters for prod environment (if deployed)  
+
+!!! Tip
+    If deployed with `staging` or `prod`, they become `/genu/staging.json` and `/genu/prod.json` respectively.  
 
 ![parameter-store-01](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-01.png)
 
@@ -45,14 +46,19 @@ The parameter content is stored in JSON format as follows:
 }
 ```
 
-Here's an example of the management console screen:  
+Here's an example of the management console screen (turn on `Show decrypted value` to see the values):  
 ![parameter-store-02](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-02.png)
 
 Using this JSON data, you can check and change parameters by applying them to the corresponding environment section in the following steps.
 
 ## Set Up Development Environment with SageMaker Code Editor
-To update the GenU environment, we use SageMaker Code Editor. Create it using CloudFormation from the following link. If you intentionally changed the GenU deployment region from the default Tokyo, also change the SageMaker Code Editor deployment destination region. If you haven't changed it intentionally, please deploy to the Tokyo region from the URL below.  
-Regarding pricing, when running the default ml.t3.medium in the Tokyo region, $0.065 per hour is charged. Code Editor automatically stops when no operations are performed for a certain period, providing cost optimization.
+To update the GenU environment, we use SageMaker Code Editor. Create it using CloudFormation from the following link.
+
+!!! Tip
+    If you intentionally changed the GenU deployment region from the default Tokyo, also change the SageMaker Code Editor deployment destination region. If you haven't changed it intentionally, please deploy to the Tokyo region from the URL below.  
+
+!!! Warning
+    Regarding pricing, when running the default ml.t3.medium in the Tokyo region, $0.065 per hour is charged. Code Editor automatically stops when no operations are performed for a certain period, providing cost optimization.
 
 [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home?region=ap-northeast-1#/stacks/quickcreate?stackName=CodeEditorStack&templateURL=https://ws-assets-prod-iad-r-nrt-2cb4b4649d0e0f94.s3.ap-northeast-1.amazonaws.com/9748a536-3a71-4f0e-a6cd-ece16c0e3487/cloudformation/CodeEditorStack.template.yaml&param_UseDefaultVpc=true&param_EbsSizeInGb=20&param_InstanceType=ml.t3.medium&param_AutoStopIdleTimeInMinutes=180) 
 
@@ -98,11 +104,10 @@ cd /home/sagemaker-user/generative-ai-use-cases/
 ```
 
 Edit the `parameter.ts` file using the Parameter Store values confirmed in the previous step.  
-For environments using the default dev, automatic configuration using commands is possible.  
-Look at the Parameter Store names (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) and if using `dev`, execute the following commands.  
-If using environments other than `dev`, manually copy and paste the Parameter Store values to directly edit the `parameter.ts` file.
+For environments using the default dev, automatic configuration using commands is possible.
 
-If using `dev`, retrieve data from Parameter Store and store it in the variable PARAMS.  
+!!! Tip
+    If using environments other than `dev`, manually copy the Parameter Store values to directly edit the `parameter.ts` file.  
 
 ```shell
 PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --with-decryption --query "Parameter.Value" --output text)
@@ -257,7 +262,8 @@ After opening SageMaker Code Editor, open the GenU directory with Open Folder.
 
 ![genu-update-repeat-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-01.png)
 
-Open `packages/cdk/parameter.ts` and note down the values of `dev`, `staging`, and `prod`. **Be careful not to forget to take notes, as recovery is difficult if lost!**  
+!!! Warning
+    Open `packages/cdk/parameter.ts` and note down the values of `dev`, `staging`, and `prod`. **Be careful not to forget to take notes, as recovery is difficult if lost!**  
 
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
