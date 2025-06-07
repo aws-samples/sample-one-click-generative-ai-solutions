@@ -46,7 +46,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
       <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> is an application with various pre-integrated generative AI use cases. It's ideal for organizations looking to establish a safe and user-friendly environment to promote the adoption of generative AI.
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
         <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
