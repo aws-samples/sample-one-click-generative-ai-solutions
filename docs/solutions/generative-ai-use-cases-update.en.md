@@ -12,7 +12,6 @@ In one-click deployment, the parameters used during GenU deployment are stored i
 
 Open the [AWS Systems Manager Parameter Store console](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters) and check the parameters. By default, they are created in the Tokyo region, but if you changed it, check in the destination region.
 
-
 The following parameters are stored with the Environment name specified during deployment (default is dev)  
 - `/genu/dev.json` - All parameters for dev environment stored in JSON format  
 - `/genu/staging.json` - Parameters for staging environment (if deployed)  
@@ -36,9 +35,11 @@ The parameter content is stored in JSON format as follows:
     "us.amazon.nova-lite-v1:0",
     "us.amazon.nova-micro-v1:0"
   ],
-  "ragKnowledgeBaseEnabled": false,
+  "ragKnowledgeBaseEnabled": true,
   "selfSignUpEnabled": false,
-  "allowedSignUpEmailDomains": null,
+  "allowedSignUpEmailDomains": [
+    "gmail.com"
+  ],
   "allowedIpV4AddressRanges": null,
   "allowedIpV6AddressRanges": null
 }
@@ -88,18 +89,26 @@ Press Yes, I trust the authors.
 Open `packages/cdk/parameter.ts`.  
 ![genu-update-05](../assets/images/solutions/generative-ai-use-cases-update/genu-update-05.png)
 
-Set parameters in SageMaker Code Editor based on the parameter content confirmed from Parameter Store in the previous step.
-Look at the Parameter Store names (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) to identify the section to edit.
+Again, press New Terminal to open the Terminal.  
+![genu-update-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-01.png)
 
-By default, dev is used. Edit the dev parameters to the values from parameter store `/genu/dev.json`. (around line 23)
+Move to the directory where GenU was cloned.  
+```shell
+cd /home/sagemaker-user/generative-ai-use-cases/
+```
 
-First, retrieve data from Parameter Store and store it in the variable PARAMS.
+Edit the `parameter.ts` file using the Parameter Store values confirmed in the previous step.  
+For environments using the default dev, automatic configuration using commands is possible.  
+Look at the Parameter Store names (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) and if using `dev`, execute the following commands.  
+If using environments other than `dev`, manually copy and paste the Parameter Store values to directly edit the `parameter.ts` file.
+
+If using `dev`, retrieve data from Parameter Store and store it in the variable PARAMS.  
 
 ```shell
 PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --query "Parameter.Value" --output text)
 ```
 
-Next, use the following command to edit the `parameter.ts` file.
+Next, execute the following command to edit the `parameter.ts` file.  
 
 ```shell
 node -e "
@@ -108,13 +117,18 @@ const params = $PARAMS;
 let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
 const devStart = content.indexOf('dev: {');
 const devEnd = content.indexOf('},', devStart) + 2;
-const newDevSection = 'dev: ' + JSON.stringify(params, null, 4) + ',';
+const jsonString = JSON.stringify(params, null, 2);
+const indentedJson = jsonString.split('\n').map((line, index) => {
+  if (index === 0) return line;
+  return '  ' + line;
+}).join('\n');
+const newDevSection = 'dev: ' + indentedJson + ',';
 content = content.substring(0, devStart) + newDevSection + content.substring(devEnd);
 fs.writeFileSync('packages/cdk/parameter.ts', content);
 "
 ```
 
-The dev file content should be edited as follows:
+The dev file content should be edited as follows:  
 
 ```ts
   dev: {
@@ -130,11 +144,19 @@ The dev file content should be edited as follows:
       "us.amazon.nova-lite-v1:0",
       "us.amazon.nova-micro-v1:0"
     ],
-    "ragKnowledgeBaseEnabled": false,
+    "ragKnowledgeBaseEnabled": true,
     "selfSignUpEnabled": false,
-    "allowedSignUpEmailDomains": null,
+    "allowedSignUpEmailDomains": [
+      "gmail.com"
+    ],
     "allowedIpV4AddressRanges": null,
     "allowedIpV6AddressRanges": null
+  },
+  staging: {
+    // Parameters for staging environment
+  },
+  prod: {
+    // Parameters for production environment
   },
 ```
 
@@ -144,26 +166,12 @@ This is an example of the screen after editing.
 Let's change the parameters. In this procedure, we will change the models to use.  
 ![genu-update-07](../assets/images/solutions/generative-ai-use-cases-update/genu-update-07.png)
 
-Open the Terminal again.  
-![genu-update-08](../assets/images/solutions/generative-ai-use-cases-update/genu-update-08.png)
-
-Execute the following command:
-```shell
-cd /home/sagemaker-user/generative-ai-use-cases/
-```
-
-Execution example:
-```shell
-sagemaker-user@default:~$ cd /home/sagemaker-user/generative-ai-use-cases/
-sagemaker-user@default:~/generative-ai-use-cases$ 
-```
-
-Resolve dependencies:
+Resolve dependencies.  
 ```shell
 npm ci
 ```
 
-Execution example:
+Execution example  
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm ci
 npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
@@ -197,13 +205,13 @@ npm notice
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.
+Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.  
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev
 ```
 
-Execution example:
+Execution example  
 
 ```shell
 sagemaker-user@default:~/generative-ai-use-cases$ npm run cdk:deploy:quick -- -c env=dev
@@ -231,7 +239,7 @@ found 0 vulnerabilities
 
 ```
 
-After some time, deployment is complete. The original GenU has been updated.
+After some time, deployment is complete. The original GenU has been updated.  
 
 ```shell
 GenerativeAiUseCasesStackdev.WebUrl = https://xxxxxxxxx.cloudfront.net
@@ -244,16 +252,16 @@ sagemaker-user@default:~/generative-ai-use-cases$
 ```
 
 ## Steps for Updating GenU from the Second Time Onwards {#second-time-update}
-This section introduces the steps for updating GenU from the second time onwards using SageMaker Code Editor. While the first time used git clone, the second time onwards has different steps since it's already cloned.
+This section introduces the steps for updating GenU from the second time onwards using SageMaker Code Editor. While the first time used git clone, the second time onwards has different steps since it's already cloned.  
 After opening SageMaker Code Editor, open the GenU directory with Open Folder.
 
 ![genu-update-repeat-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-01.png)
 
-Open `packages/cdk/parameter.ts` and note down the values of `dev`, `staging`, and `prod`. **Be careful not to forget to take notes, as recovery is difficult if lost!**
+Open `packages/cdk/parameter.ts` and note down the values of `dev`, `staging`, and `prod`. **Be careful not to forget to take notes, as recovery is difficult if lost!**  
 
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
-Move to the git cloned directory.
+Move to the git cloned directory.  
 
 ```shell
 cd /home/sagemaker-user/generative-ai-use-cases/
@@ -280,7 +288,7 @@ npm ci
 Edit the `parameter.ts` file. Restore the previously saved values of `dev`, `staging`, and `prod`.  
 ![genu-update-repeat-02](../assets/images/solutions/generative-ai-use-cases-update/genu-update-repeat-02.png)
 
-Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.
+Update GenU. The `env=dev` parameter specifies the Environment name you want to deploy. The default is dev.  
 
 ```shell
 npm run cdk:deploy:quick -- -c env=dev

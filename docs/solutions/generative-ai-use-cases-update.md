@@ -91,19 +91,26 @@ Yes, I trust the authors を押します。
 `packages/cdk/parameter.ts` を開きます。  
 ![genu-update-05](../assets/images/solutions/generative-ai-use-cases-update/genu-update-05.png)
 
+再び、New Terminal を押して、Terminal を開きます。  
+![genu-update-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-01.png)
 
-前の手順で Parameter Store から確認した パラメーターの内容を参考に、SageMaker Code Editor でパラメータを設定します。　　
-Parameter Store の名前 (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) を見て、編集する箇所を特定します。 
+GenU を clone したディレクトリに移動します。  
+```shell
+cd /home/sagemaker-user/generative-ai-use-cases/
+```
 
-デフォルトでは、dev を利用しています。dev のパタメーターを、parameter store の `/genu/dev.json` の値に編集します。(23 行目付近)    
+前の手順で確認した Parameter Store の値を利用して、`parameter.ts` のファイルを編集していきます。  
+Environment でデフォルトの dev を利用している場合は、コマンドを利用した自動設定が可能です。  
+Parameter Store の名前 (`/genu/dev.json`, `/genu/staging.json`, `/genu/prod.json`) を見て、`dev` を利用している場合は、以下のコマンドを実行していきます。  
+`dev` 以外を利用している場合は、Parameter Store の値を手動でコピペしていき、`parameter.ts` のファイルを直接編集します。　　
 
-まず、Parameter Store からデータを取得して、変数 PARAMS に格納します。  
+`dev` を利用している場合、Parameter Store からデータを取得して、変数 PARAMS に格納します。  
 
 ```shell
 PARAMS=$(aws ssm get-parameter --name "/genu/dev.json" --query "Parameter.Value" --output text)
 ```
 
-次に以下のコマンドをつかって、`parameter.ts` ファイルを編集します。  
+次に以下のコマンドを発行して、`parameter.ts` ファイルを編集します。  
 
 ```shell
 node -e "
@@ -112,7 +119,12 @@ const params = $PARAMS;
 let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
 const devStart = content.indexOf('dev: {');
 const devEnd = content.indexOf('},', devStart) + 2;
-const newDevSection = 'dev: ' + JSON.stringify(params, null, 4) + ',';
+const jsonString = JSON.stringify(params, null, 2);
+const indentedJson = jsonString.split('\n').map((line, index) => {
+  if (index === 0) return line;
+  return '  ' + line;
+}).join('\n');
+const newDevSection = 'dev: ' + indentedJson + ',';
 content = content.substring(0, devStart) + newDevSection + content.substring(devEnd);
 fs.writeFileSync('packages/cdk/parameter.ts', content);
 "
@@ -134,11 +146,19 @@ fs.writeFileSync('packages/cdk/parameter.ts', content);
       "us.amazon.nova-lite-v1:0",
       "us.amazon.nova-micro-v1:0"
     ],
-    "ragKnowledgeBaseEnabled": false,
+    "ragKnowledgeBaseEnabled": true,
     "selfSignUpEnabled": false,
-    "allowedSignUpEmailDomains": null,
+    "allowedSignUpEmailDomains": [
+      "gmail.com"
+    ],
     "allowedIpV4AddressRanges": null,
     "allowedIpV6AddressRanges": null
+  },
+  staging: {
+    // Parameters for staging environment
+  },
+  prod: {
+    // Parameters for production environment
   },
 ```
 
@@ -147,20 +167,6 @@ fs.writeFileSync('packages/cdk/parameter.ts', content);
 
 パラメーターを変更してみましょう。今回の手順では、利用するモデルを変更します。  
 ![genu-update-07](../assets/images/solutions/generative-ai-use-cases-update/genu-update-07.png)
-
-再び Terminal を開きます。  
-![genu-update-08](../assets/images/solutions/generative-ai-use-cases-update/genu-update-08.png)
-
-以下のコマンドを実行します。  
-```shell
-cd /home/sagemaker-user/generative-ai-use-cases/
-```
-
-実行例  
-```shell
-sagemaker-user@default:~$ cd /home/sagemaker-user/generative-ai-use-cases/
-sagemaker-user@default:~/generative-ai-use-cases$ 
-```
 
 依存関係を解決します。  
 ```shell
