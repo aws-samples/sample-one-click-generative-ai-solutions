@@ -11,12 +11,6 @@
 - **API公開**: カスタマイズしたボットをスタンドアロンAPIとして公開可能
 - **管理機能**: API管理、ボットの分析、必須ボットの設定など
 
-## デプロイ方法
-
-以下のボタンをクリックして、CloudFormation スタックを作成します。
-
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml)
-
 ### パラメータ設定
 
 デプロイ時に以下のパラメータを設定できます：

@@ -157,21 +157,6 @@
 }
 
 /* Deployment button */
-.deployment-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.75rem 1.5rem;
-  font-weight: 600;
-  gap: 0.5rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  text-decoration: none;
-}
-
-.deployment-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
 
 .detail-button {
   display: inline-flex;
@@ -192,6 +177,41 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
+/* Deployment container and region selector */
+.deployment-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: 1rem;
+}
+
+.region-selector {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.region-selector:hover {
+  border-color: var(--md-primary-fg-color);
+}
+
+.region-selector:focus {
+  outline: none;
+  border-color: var(--md-primary-fg-color);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.region-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
 /* Responsive design */
 @media screen and (max-width: 768px) {
   .hero h1 {
@@ -204,5 +224,11 @@
   
   .solution-card__actions {
     flex-direction: column;
+  }
+  
+  .deployment-container {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
   }
 }

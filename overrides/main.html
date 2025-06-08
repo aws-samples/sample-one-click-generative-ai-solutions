@@ -11,4 +11,43 @@
 
   gtag('config', 'G-2FHDMP8T1L');
 </script>
+
+<!-- Region selector script -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Function to update deployment URL based on selected region
+    function updateDeploymentUrl(deploymentContainer, region) {
+      const deploymentLink = deploymentContainer.querySelector('.deployment-button');
+      if (deploymentLink) {
+        const currentHref = deploymentLink.getAttribute('href');
+        // Replace region in URL
+        const newHref = currentHref.replace(/https:\/\/[^.]+\.console\.aws\.amazon\.com/, 
+          `https://${region}.console.aws.amazon.com`);
+        deploymentLink.setAttribute('href', newHref);
+      }
+    }
+
+    // Initialize region selectors
+    const deploymentContainers = document.querySelectorAll('.deployment-container');
+    deploymentContainers.forEach(function(container) {
+      const selector = container.querySelector('.region-selector');
+      if (selector) {
+        // Set initial region based on current URL
+        const deploymentLink = container.querySelector('.deployment-button');
+        if (deploymentLink) {
+          const currentHref = deploymentLink.getAttribute('href');
+          const regionMatch = currentHref.match(/https:\/\/([^.]+)\.console\.aws\.amazon\.com/);
+          if (regionMatch) {
+            selector.value = regionMatch[1];
+          }
+        }
+
+        // Add change event listener
+        selector.addEventListener('change', function() {
+          updateDeploymentUrl(container, this.value);
+        });
+      }
+    });
+  });
+</script>
 {% endblock %}

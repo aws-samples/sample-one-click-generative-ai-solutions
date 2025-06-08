@@ -10,12 +10,6 @@
 - **Multi-model Support**: Ability to utilize various models from Amazon Bedrock
 - **Customizable**: Create and share your own use cases using the use case builder
 
-## Deployment Method
-
-Click the button below to create a CloudFormation stack:
-
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
-
 ### Parameter Settings
 
 You can configure the following parameters during deployment:
