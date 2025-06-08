@@ -318,7 +318,7 @@ Resources:
           artifacts:
             files:
               - deployment-info.txt
-      TimeoutInMinutes: 30
+      TimeoutInMinutes: 120
 
   # Custom Resource to trigger CodeBuild
   DeploymentTrigger:
