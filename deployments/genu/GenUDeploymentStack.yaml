@@ -26,7 +26,7 @@ Parameters:
   
   NotificationEmailAddress:
     Type: String
-    Description: Email address to receive deployment notifications
+    Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
     AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     ConstraintDescription: Must be a valid email address
   
@@ -56,12 +56,12 @@ Parameters:
   AllowedSignUpEmailDomains:
     Type: String
     Default: ""
-    Description: Allowed email domains for signup (comma separated)
+    Description: 'Allowed email domains for signup (Example: example1.co.jp, example2.co.jp)'
   
   AllowedIpV4AddressRanges:
     Type: String
     Default: ""
-    Description: Allowed IPv4 address ranges for access
+    Description: 'Allowed IPv4 address ranges for access (Example: 10.0.0.100/32, 192.168.0.0/24). Find your current Public IP address here: https://checkip.amazonaws.com/'
   
   AllowedIpV6AddressRanges:
     Type: String
@@ -318,7 +318,7 @@ Resources:
           artifacts:
             files:
               - deployment-info.txt
-      TimeoutInMinutes: 30
+      TimeoutInMinutes: 120
 
   # Custom Resource to trigger CodeBuild
   DeploymentTrigger:
