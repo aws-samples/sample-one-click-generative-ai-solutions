@@ -34,7 +34,7 @@
 
 ## 2. Choose & Click
 
-AWS のソリューションを選んで Quick Launch を Click します。詳細が知りたい場合、 View Details を参照ください。
+使いたい AWS のソリューションを決めたら、リージョンを選択し Deploy を Click します。デプロイのオプションについての説明などガイドが必要な場合は Deploy Guide を参照ください。
 
 <div class="solution-card">
   <div class="solution-card__image">
@@ -46,12 +46,20 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
     </div>
     <div class="solution-card__actions">
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button" target="_blank">
-        <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
-      </a>
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
+          <option value="ap-northeast-3">大阪</option>
+          <option value="us-east-1">バージニア</option>
+          <option value="us-west-2">オレゴン</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        View Details
+        Deploy Guide
       </a>
     </div>
   </div>
@@ -67,12 +75,20 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://dify.ai/jp" target="_blank">Dify</a> は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては <a href="https://github.com/aws-samples/" target="_blank">dify-self-hosted-on-aws</a>を使うことで容易に配置できます。
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button" target="_blank">
-        <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
-      </a>
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
+          <option value="ap-northeast-3">大阪</option>
+          <option value="us-east-1">バージニア</option>
+          <option value="us-west-2">オレゴン</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
       <a href="solutions/dify/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        View Details
+        Deploy Guide
       </a>
     </div>
   </div>
@@ -88,12 +104,20 @@ AWS のソリューションを選んで Quick Launch を Click します。詳�
       <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。
     </div>
     <div class="solution-card__actions">
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button" target="_blank">
-        <img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"/>
-      </a>
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
+          <option value="ap-northeast-3">大阪</option>
+          <option value="us-east-1">バージニア</option>
+          <option value="us-west-2">オレゴン</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
       <a href="solutions/brchat/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        View Details
+        Deploy Guide
       </a>
     </div>
   </div>

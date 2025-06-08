@@ -10,12 +10,6 @@
 - **マルチモデル対応**: Amazon Bedrock の様々なモデルを利用できます
 - **カスタマイズ可能**: ユースケースビルダーを用い、独自のユースケースを追加・共有できます
 
-## デプロイ方法
-
-以下のボタンをクリックして、CloudFormation スタックを作成します。
-
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml)
-
 ### パラメータ設定
 
 デプロイ時に以下のパラメータを設定できます：

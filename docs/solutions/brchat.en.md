@@ -11,12 +11,6 @@
 - **API Publishing**: Publish customized bots as standalone APIs
 - **Administrative Features**: API management, bot analytics, essential bot settings, and more
 
-## Deployment Method
-
-Click the button below to create a CloudFormation stack:
-
-[![Launch Stack](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml)
-
 ### Parameter Settings
 
 You can configure the following parameters during deployment:
