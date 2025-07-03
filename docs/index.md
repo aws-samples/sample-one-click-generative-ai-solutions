@@ -72,7 +72,7 @@
   <div class="solution-card__content">
     <div class="solution-card__title">Dify</div>
     <div class="solution-card__description">
-      <a href="https://dify.ai/jp" target="_blank">Dify</a> は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては <a href="https://github.com/aws-samples/" target="_blank">dify-self-hosted-on-aws</a>を使うことで容易に配置できます。
+      <a href="https://dify.ai/jp" target="_blank">Dify</a> は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては <a href="https://github.com/aws-samples/dify-self-hosted-on-aws" target="_blank">dify-self-hosted-on-aws</a>を使うことで容易に配置できます。
     </div>
     <div class="solution-card__actions">
       <div class="deployment-container">
