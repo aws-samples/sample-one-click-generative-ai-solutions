@@ -72,7 +72,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
   <div class="solution-card__content">
     <div class="solution-card__title">Dify</div>
     <div class="solution-card__description">
-      <a href="https://dify.ai" target="_blank">Dify</a> allows you to create chatbots and workflows using generative AI through a GUI. It's perfect for implementing multi-step generative AI processes. For AWS deployment, you can easily set it up using <a href="https://github.com/aws-samples/" target="_blank">dify-self-hosted-on-aws</a>.
+      <a href="https://dify.ai" target="_blank">Dify</a> allows you to create chatbots and workflows using generative AI through a GUI. It's perfect for implementing multi-step generative AI processes. For AWS deployment, you can easily set it up using <a href="https://github.com/aws-samples/dify-self-hosted-on-aws" target="_blank">dify-self-hosted-on-aws</a>.
     </div>
     <div class="solution-card__actions">
       <div class="deployment-container">

@@ -41,7 +41,7 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 
 ## Dify on AWS
 
-[Dify](https://dify.ai/jp) は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては [dify-self-hosted-on-aws](https://github.com/aws-samples/dify-self-hosted-on-aws) を使うことで容易に配置できます。
+[Dify](https://dify.ai/jp) は、LLMアプリケーション開発プラットフォームで、生成AIを用いたチャットボットやワークフローをGUIで簡単に作成できます。複数ステップにまたがる生成AIの処理等を実装したい時に最適です。AWSへのデプロイには [dify-self-hosted-on-aws](https://github.com/aws-samples/dify-self-hosted-on-aws) を使うことで、マネージドサービスを活用した安全で拡張性のある環境を容易に構築できます。
 
  [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml)
 
