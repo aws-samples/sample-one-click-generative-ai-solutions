@@ -11,15 +11,15 @@
 - **マルチステップワークフロー**: 複雑なAIワークフローの視覚的な構築
 - **セルフホスティング**: AWSマネージドサービスを活用した安全な環境構築
 
-## Parameters
+## デプロイパラメータ
 
 * NotificationEmailAddress
-    * Email address for receiving notifications about deployment start and completion.
+    * デプロイの開始・終了を通知するメールアドレスです。
 * Region
-    * The region where the deployment will occur.
+    * デプロイするAWSリージョンです。
 * AutoPause
-    * Toggles automatic database pausing ON/OFF. Recovery after automatic pause takes approximately 10 seconds.
+    * データベースの自動停止をON/OFFにします。自動停止後は復旧に約10秒かかります。
 * AllowedIpV4Ciders
-    * Allowed IPv4 CIDR ranges for connections (e.g., 0.0.0.0/1).
+    * 接続を許可するIPv4 CIDRレンジを指定します（例：0.0.0.0/1）。
 * AllowedIpV6Ciders
-    * Allowed IPv6 CIDR ranges for connections (e.g., ::/1).
+    * 接続を許可するIPv6 CIDRレンジを指定します（例：::/1）。
