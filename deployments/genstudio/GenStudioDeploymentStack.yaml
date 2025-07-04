@@ -1,0 +1,351 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'GenAI Design Studio one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "GenAI Design Studio Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - BedrockRegion
+          - SelfSignUp
+          - AllowedSignUpEmailDomains
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  BedrockRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues: [us-east-1, us-west-2]
+    Description: AWS region for Amazon Bedrock Nova models (us-east-1 or us-west-2)
+  
+  SelfSignUp:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Enable self-signup functionality (CAUTION: Carefully consider when you allow public access)'
+  
+  AllowedSignUpEmailDomains:
+    Type: String
+    Default: ""
+    Description: 'Allowed email domains for signup (Example: example1.co.jp, example2.co.jp)'
+  
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: ""
+    Description: 'Allowed IPv4 address ranges for access (Example: 10.0.0.100/32, 192.168.0.0/24). Find your current Public IP address here: https://checkip.amazonaws.com/'
+  
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv6 address ranges for access
+
+Resources:
+
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: GenAI Design Studio Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GenStudioDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GenStudioDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  GenStudioDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys GenAI Design Studio'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: BedrockRegion
+            Value: !Ref BedrockRegion
+          - Name: SelfSignUp
+            Value: !Ref SelfSignUp
+          - Name: AllowedSignUpEmailDomains
+            Value: !Ref AllowedSignUpEmailDomains
+          - Name: AllowedIpV4AddressRanges
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: AllowedIpV6AddressRanges
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+                python: 3.12
+              commands:
+                - echo "Starting GenAI Design Studio deployment"
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "GenAI Design Studio Deployment Started" --message "Deployment of GenAI Design Studio has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/sample-one-click-generative-ai-solutions.git
+                - cd sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                - cd cdk && npm ci
+                - cd ../frontend && npm ci
+
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                - cp cdk/cdk.json cdk/cdk.json.backup
+                
+                # Update cdk.json with parameters
+                - |
+                  cat > update-cdk-config.js << 'EOF'
+                  const fs = require('fs');
+                  
+                  const cdkJsonPath = 'cdk/cdk.json';
+                  const cdkJson = JSON.parse(fs.readFileSync(cdkJsonPath, 'utf8'));
+                  
+                  // Update context with parameters
+                  cdkJson.context.selfSignUpEnabled = process.env.SelfSignUp === 'true';
+                  
+                  if (process.env.AllowedSignUpEmailDomains) {
+                    cdkJson.context.allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim());
+                  }
+                  
+                  if (process.env.AllowedIpV4AddressRanges) {
+                    cdkJson.context.allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim());
+                  } else {
+                    cdkJson.context.allowedIpV4AddressRanges = ["0.0.0.0/1", "128.0.0.0/1"];
+                  }
+                  
+                  if (process.env.AllowedIpV6AddressRanges) {
+                    cdkJson.context.allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim());
+                  } else {
+                    cdkJson.context.allowedIpV6AddressRanges = ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"];
+                  }
+                  
+                  fs.writeFileSync(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
+                  console.log('Updated cdk.json with deployment parameters');
+                  EOF
+                  
+                  node update-cdk-config.js
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                
+                # Check if bootstrap is needed
+                - |
+                  BOOTSTRAP_STACK_NAME="CDKToolkit"
+                  BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
+                  
+                  if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
+                    echo "Running CDK bootstrap..."
+                    cd cdk && npx cdk bootstrap
+                  fi
+                
+                # Deploy the stack
+                - cd cdk && npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
+                
+                # Get deployment information
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  cd sample-one-click-generative-ai-solutions/sample-genai-design-studio/cdk
+                  
+                  if [ -f .cdk-outputs.json ]; then
+                    APP_URL=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('CloudFrontDistributionUrl', '') for v in data.values() if 'CloudFrontDistributionUrl' in v), ''))")
+                    USER_POOL_ID=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('UserPoolId', '') for v in data.values() if 'UserPoolId' in v), ''))")
+                  else
+                    echo "Warning: CDK outputs file not found"
+                    APP_URL="Check CloudFormation outputs"
+                    USER_POOL_ID="Check CloudFormation outputs"
+                  fi
+                  
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                  USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+
+                  cat << EOF > deployment-info.txt
+                  GenAI Design Studio Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Application URL: ${APP_URL}
+
+                  Important Next Steps:
+                  1. Please enable Nova model access on Amazon Bedrock:
+                     https://${AWS_ACCOUNT_ID}.${BedrockRegion}.console.aws.amazon.com/bedrock/home?region=${BedrockRegion}#/modelaccess
+                     Required models: Nova Canvas, Nova Micro, Nova Lite
+                  
+                  2. Please create a user in the Cognito User Pool to access the application (if self-signup disabled):
+                     ${USER_CREATION_URL}
+
+                  Configuration:
+                  Bedrock Region: ${BedrockRegion}
+                  Self-Signup Enabled: ${SelfSignUp}
+                  Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
+                  Allowed IPv4 Address Ranges: ${AllowedIpV4AddressRanges}
+                  Allowed IPv6 Address Ranges: ${AllowedIpV6AddressRanges}
+
+                  Features:
+                  - Model Generation: Generate virtual model images with text prompts
+                  - Virtual Try-On: Try on clothing using Amazon Nova Canvas
+                  - Background Replacement: Replace backgrounds with text descriptions
+
+                  Region: ${AWS_DEFAULT_REGION}
+
+                  EOF
+
+            post_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/
+                - aws sns publish --topic-arn "${SNSTopicArn}" --subject "GenAI Design Studio Deployment Complete" --message file://deployment-info.txt
+                - rm -rf sample-one-click-generative-ai-solutions
+          artifacts:
+            files:
+              - deployment-info.txt
+      TimeoutInMinutes: 120
+
+  # Custom Resource to trigger CodeBuild
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref GenStudioDeploymentProject
+      ServiceTimeout: 600
+
+  # Lambda function for the Custom Resource
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  # IAM Role for Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codebuild:StartBuild
+                Resource: !GetAtt GenStudioDeploymentProject.Arn
+
+Outputs:
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref GenStudioDeploymentProject
+  
+  CodeBuildLogGroup:
+    Description: CloudWatch Logs group for CodeBuild logs
+    Value: !Sub '/aws/codebuild/${GenStudioDeploymentProject}'
+  
+  DeploymentStatus:
+    Description: Deployment status information
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmailAddress} when the deployment is complete."
