@@ -146,14 +146,14 @@ Resources:
               commands:
                 - echo "Starting GenAI Design Studio deployment"
                 - aws sns publish --topic-arn ${SNSTopicArn} --subject "GenAI Design Studio Deployment Started" --message "Deployment of GenAI Design Studio has started. You will receive another notification when deployment is complete."
-                - git clone https://github.com/aws-samples/sample-one-click-generative-ai-solutions.git
-                - cd sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                - git clone https://github.com/aws-samples/sample-genai-design-studio.git
+                - cd sample-genai-design-studio
                 - cd cdk && npm ci
                 - cd ../frontend && npm ci
 
             pre_build:
               commands:
-                - cd $CODEBUILD_SRC_DIR/sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio
                 - cp cdk/cdk.json cdk/cdk.json.backup
                 
                 # Update cdk.json with parameters
@@ -191,7 +191,7 @@ Resources:
 
             build:
               commands:
-                - cd $CODEBUILD_SRC_DIR/sample-one-click-generative-ai-solutions/sample-genai-design-studio
+                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio
                 
                 # Check if bootstrap is needed
                 - |
@@ -209,7 +209,7 @@ Resources:
                 # Get deployment information
                 - cd $CODEBUILD_SRC_DIR/
                 - |
-                  cd sample-one-click-generative-ai-solutions/sample-genai-design-studio/cdk
+                  cd sample-genai-design-studio/cdk
                   
                   if [ -f .cdk-outputs.json ]; then
                     APP_URL=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('CloudFrontDistributionUrl', '') for v in data.values() if 'CloudFrontDistributionUrl' in v), ''))")
@@ -257,7 +257,7 @@ Resources:
               commands:
                 - cd $CODEBUILD_SRC_DIR/
                 - aws sns publish --topic-arn "${SNSTopicArn}" --subject "GenAI Design Studio Deployment Complete" --message file://deployment-info.txt
-                - rm -rf sample-one-click-generative-ai-solutions
+                - rm -rf sample-genai-design-studio
           artifacts:
             files:
               - deployment-info.txt
