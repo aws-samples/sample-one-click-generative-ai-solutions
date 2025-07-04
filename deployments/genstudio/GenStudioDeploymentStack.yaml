@@ -30,7 +30,7 @@ Parameters:
   SelfSignUp:
     Type: String
     AllowedValues: [true, false]
-    Default: false
+    Default: true
     Description: 'Enable self-signup functionality (CAUTION: Carefully consider when you allow public access)'
   
   AllowedSignUpEmailDomains:
@@ -40,12 +40,12 @@ Parameters:
   
   AllowedIpV4AddressRanges:
     Type: String
-    Default: ""
+    Default: "0.0.0.0/1,128.0.0.0/1"
     Description: 'Allowed IPv4 address ranges for access (Example: 10.0.0.100/32, 192.168.0.0/24). Find your current Public IP address here: https://checkip.amazonaws.com/'
   
   AllowedIpV6AddressRanges:
     Type: String
-    Default: ""
+    Default: "0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1"
     Description: Allowed IPv6 address ranges for access
 
 Resources:
@@ -166,9 +166,12 @@ Resources:
                   
                   // Update context with parameters
                   cdkJson.context.selfSignUpEnabled = process.env.SelfSignUp === 'true';
+                  cdkJson.context.autoJoinUserGroups = ["admin"];
                   
                   if (process.env.AllowedSignUpEmailDomains) {
                     cdkJson.context.allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim());
+                  } else {
+                    cdkJson.context.allowedSignUpEmailDomains = [];
                   }
                   
                   if (process.env.AllowedIpV4AddressRanges) {
@@ -206,10 +209,9 @@ Resources:
                 # Deploy the stack
                 - cd cdk && npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
                 
-                # Get deployment information
-                - cd $CODEBUILD_SRC_DIR/
+                # Get deployment information and create notification file
                 - |
-                  cd sample-genai-design-studio/cdk
+                  cd $CODEBUILD_SRC_DIR/sample-genai-design-studio/cdk
                   
                   if [ -f .cdk-outputs.json ]; then
                     APP_URL=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('CloudFrontDistributionUrl', '') for v in data.values() if 'CloudFrontDistributionUrl' in v), ''))")
@@ -223,7 +225,7 @@ Resources:
                   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                   USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
 
-                  cat << EOF > deployment-info.txt
+                  cat << EOF > $CODEBUILD_SRC_DIR/deployment-info.txt
                   GenAI Design Studio Deployment Completed Successfully!
                   Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
 
