@@ -36,7 +36,7 @@ Parameters:
   AllowedSignUpEmailDomains:
     Type: String
     Default: ""
-    Description: 'Allowed email domains for signup (Example: example1.co.jp, example2.co.jp)'
+    Description: 'Allowed email domains for signup (Example: @gmail.com, @example.co.jp)'
   
   AllowedIpV4AddressRanges:
     Type: String
@@ -164,30 +164,16 @@ Resources:
                   const cdkJsonPath = 'cdk/cdk.json';
                   const cdkJson = JSON.parse(fs.readFileSync(cdkJsonPath, 'utf8'));
                   
-                  // Update context with parameters
+                  // Update context with parameters (following GenU pattern)
                   cdkJson.context.selfSignUpEnabled = process.env.SelfSignUp === 'true';
                   cdkJson.context.autoJoinUserGroups = ["admin"];
-                  
-                  if (process.env.AllowedSignUpEmailDomains) {
-                    cdkJson.context.allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim());
-                  } else {
-                    cdkJson.context.allowedSignUpEmailDomains = [];
-                  }
-                  
-                  if (process.env.AllowedIpV4AddressRanges) {
-                    cdkJson.context.allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim());
-                  } else {
-                    cdkJson.context.allowedIpV4AddressRanges = ["0.0.0.0/1", "128.0.0.0/1"];
-                  }
-                  
-                  if (process.env.AllowedIpV6AddressRanges) {
-                    cdkJson.context.allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim());
-                  } else {
-                    cdkJson.context.allowedIpV6AddressRanges = ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"];
-                  }
+                  cdkJson.context.allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : [];
+                  cdkJson.context.allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : ["0.0.0.0/1", "128.0.0.0/1"];
+                  cdkJson.context.allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"];
                   
                   fs.writeFileSync(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
                   console.log('Updated cdk.json with deployment parameters');
+                  console.log('Email domains:', JSON.stringify(cdkJson.context.allowedSignUpEmailDomains));
                   EOF
                   
                   node update-cdk-config.js
