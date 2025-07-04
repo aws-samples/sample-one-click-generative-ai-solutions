@@ -70,13 +70,13 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
    * デプロイの開始・終了を通知するメールアドレスです。
 * BedrockRegion (default: us-east-1)
    * Amazon Bedrock Nova モデルを利用するリージョンです（us-east-1, us-west-2）
-* SelfSignUp (default: false)
+* SelfSignUp (default: true)
    * セルフサインアップの有効 / 無効を切り替えます。
 * AllowedSignUpEmailDomains
-   * カンマ区切りで利用可能なメールドメインを設定します
-* AllowedIpV4AddressRanges
+   * カンマ区切りで利用可能なメールドメインを設定します（例: example.co.jp）
+* AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
    * アクセス可能な IP アドレスを指定 (IPv4)
-* AllowedIpV6AddressRanges
+* AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
    * アクセス可能な IP アドレスを指定 (IPv6)
 
 ### 機能
