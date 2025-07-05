@@ -58,6 +58,33 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * AllowedIpV6Ciders
    * 接続可能な IpV6 Cider です (::/1 など)
 
+## GenAI Design Studio
+
+[GenAI Design Studio](https://github.com/aws-samples/sample-genai-design-studio) は、Amazon Nova Canvas を活用したバーチャル試着ソリューションです。アパレル業界やECサービスにおいて、服飾デザインから実際のモデル着用撮影まで、様々なプロセスの効率化を目指します。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+   * デプロイの開始・終了を通知するメールアドレスです。
+* BedrockRegion (default: us-east-1)
+   * Amazon Bedrock Nova モデルを利用するリージョンです（us-east-1, us-west-2）
+* SelfSignUp (default: true)
+   * セルフサインアップの有効 / 無効を切り替えます。
+* AllowedSignUpEmailDomains
+   * カンマ区切りで利用可能なメールドメインを設定します（例: example.co.jp）
+* AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
+   * アクセス可能な IP アドレスを指定 (IPv4)
+* AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
+   * アクセス可能な IP アドレスを指定 (IPv6)
+
+### 機能
+
+* **モデル生成**: テキストプロンプトでバーチャルモデル画像を生成
+* **バーチャル試着**: Amazon Nova Canvas を使用した服の試着機能
+* **背景置換**: テキスト記述による背景の自然な置き換え
+
 ## Bedrock Chat (BrChat)
 
 [Bedrock Chat](https://github.com/aws-samples/bedrock-chat) は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。生成 AI の特性を理解し、実践的に活用したい場合に最適です。
