@@ -193,20 +193,14 @@ Resources:
                   fi
                 
                 # Deploy the stack
-                - cd cdk && npx cdk deploy --all --require-approval never --outputs-file ./.cdk-outputs.json
+                - cd cdk && npx cdk deploy --all --require-approval never --asset-parallelism --asset-prebuild=false --concurrency 2 --method=direct
                 
-                # Get deployment information and create notification file
+                # Get deployment information using CloudFormation outputs
+                - cd $CODEBUILD_SRC_DIR/
                 - |
-                  cd $CODEBUILD_SRC_DIR/sample-genai-design-studio/cdk
-                  
-                  if [ -f .cdk-outputs.json ]; then
-                    APP_URL=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('CloudFrontDistributionUrl', '') for v in data.values() if 'CloudFrontDistributionUrl' in v), ''))")
-                    USER_POOL_ID=$(cat .cdk-outputs.json | python3 -c "import sys, json; data=json.load(sys.stdin); print(next((v.get('UserPoolId', '') for v in data.values() if 'UserPoolId' in v), ''))")
-                  else
-                    echo "Warning: CDK outputs file not found"
-                    APP_URL="Check CloudFormation outputs"
-                    USER_POOL_ID="Check CloudFormation outputs"
-                  fi
+                  STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'VtoAppStack')].StackName" --output text)
+                  APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text)
+                  USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'UserPoolId')].OutputValue" --output text)
                   
                   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                   USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
