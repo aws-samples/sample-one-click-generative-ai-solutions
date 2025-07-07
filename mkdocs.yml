@@ -87,4 +87,5 @@ nav:
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
+    - 'ComfyUI': 'solutions/comfyui.md'
 #  - License: 'general/license.md'

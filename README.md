@@ -83,6 +83,26 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * Version (default: v3)
    * デプロイする Bedrock Chat のバージョンを指定します
 
+## ComfyUI on AWS
+
+[ComfyUI](https://github.com/comfyanonymous/ComfyUI) は、ノードベースの生成AI画像生成ツールで、Stable Diffusion や様々なモデルを組み合わせて高品質な画像を生成できます。複雑なワークフローを視覚的に構築し、画像生成プロセスを細かく制御したい場合に最適です。AWSへのデプロイには [cost-effective-aws-deployment-of-comfyui](https://github.com/aws-samples/cost-effective-aws-deployment-of-comfyui) を使用して、スケーラブルで費用対効果の高い環境を構築できます。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml)
+
+### Parameters
+
+* Environment (default: dev)
+   * デプロイする環境の種別です
+* NotificationEmailAddress
+   * デプロイの開始・終了を通知するメールアドレスです
+* SelfSignUp (default: false)
+   * セルフサインアップの有効 / 無効を切り替えます（注意：パブリックアクセスを許可する場合は慎重に検討してください）
+* AllowedSignUpEmailDomains
+   * カンマ区切りで利用可能なメールドメインを設定します（例: example1.co.jp, example2.co.jp）
+* AllowedIpV4AddressRanges
+   * アクセス可能な IPv4 アドレス範囲を指定します（例: 10.0.0.100/32, 192.168.0.0/24）。現在のパブリック IP アドレスは https://checkip.amazonaws.com/ で確認できます
+* AllowedIpV6AddressRanges
+   * アクセス可能な IPv6 アドレス範囲を指定します
 
 ## Technical Background
 
