@@ -15,21 +15,21 @@
 You can configure the following parameters during deployment:
 
 * **Environment** (default: dev)
-   * The type of environment to deploy. It's the environment specified in `packages/cdk/parameter.ts`. By switching the Environment value, you can deploy multiple GenU environments.
+    * The type of environment to deploy. It's the environment specified in `packages/cdk/parameter.ts`. By switching the Environment value, you can deploy multiple GenU environments.
 * **NotificationEmailAddress**
-   * Email address for receiving notifications about deployment start and completion
+    * Email address for receiving notifications about deployment start and completion
 * **ModelRegion**
-   * The region where Amazon Bedrock models will be used
+    * The region where Amazon Bedrock models will be used
 * **RAGEnabled** (default: false)
-   * Enables RAG (Retrieval-Augmented Generation) for Knowledge Base
+    * Enables RAG (Retrieval-Augmented Generation) for Knowledge Base
 * **SelfSignUp** (default: false)
-   * Toggles self-signup functionality on/off
+    * Toggles self-signup functionality on/off
 * **AllowedSignUpEmailDomains**
-   * Sets permitted email domains separated by commas
+    * Sets permitted email domains separated by commas
 * **AllowedIpV4AddressRanges**
-   * Specifies accessible IP addresses (IPv4)
+    * Specifies accessible IP addresses (IPv4)
 * **AllowedIpV6AddressRanges**
-   * Specifies accessible IP addresses (IPv6)
+    * Specifies accessible IP addresses (IPv6)
 
 ## Security Considerations
 

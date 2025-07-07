@@ -96,11 +96,38 @@ The BuildSpec should follow this standard structure:
 3. **Build Phase**:
    - Check if CDK bootstrap is needed and run if required
    - Deploy the application stack
-   - Collect deployment outputs and information
+   - **Extract deployment information using CloudFormation outputs** (recommended approach)
 
 4. **Post-build Phase**:
    - Send completion notification with application details
    - Clean up temporary resources
+
+#### Build Phase Best Practice : Parameter Extraction
+
+**✅ RECOMMENDED: CloudFormation Outputs Approach**
+```bash
+# Get deployment information using CloudFormation outputs
+STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'AppStackPattern')].StackName" --output text)
+APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text)
+USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'UserPoolId')].OutputValue" --output text)
+```
+
+**❌ NOT RECOMMENDED: Temporary File Parsing**
+```bash
+# Avoid this approach - unreliable and hard to debug
+if [ -f .cdk-outputs.json ]; then
+  APP_URL=$(cat .cdk-outputs.json | python3 -c "complex parsing logic")
+else
+  APP_URL="Check CloudFormation outputs"  # This creates poor user experience
+fi
+```
+
+**Why CloudFormation Outputs Approach is Superior:**
+- **Reliability**: Direct API calls vs. dependency on temporary files
+- **Debuggability**: Can be tested independently outside CodeBuild
+- **Flexibility**: `contains()` queries handle CDK-generated random suffixes
+- **Consistency**: Same pattern across all deployment solutions
+- **Maintainability**: Simpler, more straightforward implementation
 
 ### 5. Security Best Practices
 
@@ -138,6 +165,19 @@ The BuildSpec should follow this standard structure:
 - **CodeBuild**:
    - Include error handling in scripts
    - Capture and report meaningful error messages
+
+- **Parameter Extraction Debugging**:
+   - **Blank Variables in Notifications**: Most commonly caused by incorrect stack name patterns or output key matching
+   - **Test queries independently** before embedding in BuildSpec:
+     ```bash
+     # Test stack identification
+     aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'YourAppPattern')].StackName" --output text
+     
+     # Test parameter extraction
+     aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text
+     ```
+   - **Use flexible `contains()` queries** to handle CDK-generated random suffixes
+   - **Verify output key patterns** by examining actual CloudFormation outputs first
 
 ## Implementation Examples
 
@@ -254,40 +294,91 @@ When adapting this pattern for new applications, follow these comprehensive step
 
 ### Commands for development
 
-Deployment
-(`--parameters` depends on tool)
+#### Deployment
 
+**Important**: Parameter format matters significantly. Use JSON format for reliability, especially when dealing with comma-separated values.
+
+**Recommended JSON Format** (most reliable):
 ```bash
 aws cloudformation create-stack \
   --stack-name XXXX \
   --template-body file://XXXX.yaml \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  --parameters \
-      ParameterKey=NotificationEmailAddress,ParameterValue=example@example.co.jp \
-      ParameterKey=Environment,ParameterValue=dev \
-      ParameterKey=RAGEnabled,ParameterValue=false \
-      ParameterKey=SelfSignUp,ParameterValue=true
+  --parameters '[
+    {
+      "ParameterKey": "NotificationEmailAddress",
+      "ParameterValue": "example@example.co.jp"
+    },
+    {
+      "ParameterKey": "Environment",
+      "ParameterValue": "dev"
+    },
+    {
+      "ParameterKey": "RAGEnabled",
+      "ParameterValue": "false"
+    },
+    {
+      "ParameterKey": "AllowedSignUpEmailDomains",
+      "ParameterValue": "example.com,example.co.jp"
+    }
+  ]'
 ```
 
-Monitoring
+**Alternative Single-line Format** (for simple parameters without commas):
+```bash
+aws cloudformation create-stack \
+  --stack-name XXXX \
+  --template-body file://XXXX.yaml \
+  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+  --parameters ParameterKey=NotificationEmailAddress,ParameterValue=example@example.co.jp ParameterKey=Environment,ParameterValue=dev
+```
 
+**⚠️ Common Pitfalls to Avoid**:
+- Multi-line parameter format with backslashes often fails with comma-separated values
+- AWS CLI may interpret comma-separated values as lists, causing type validation errors
+- Always use JSON format when parameters contain commas or complex values
+
+#### Monitoring and Status Checking
+
+**Check deployment status:**
 ```bash
 aws cloudformation describe-stacks --stack-name XXXX
 aws cloudformation describe-stack-events --stack-name XXXX
 ```
 
-Delete Stack
+**Monitor CodeBuild execution:**
+```bash
+# Follow CodeBuild logs in real-time
+aws logs tail /aws/codebuild/<PROJECT_NAME> --region <REGION> --follow
+
+# Check specific log streams
+aws logs describe-log-streams --log-group-name /aws/codebuild/<PROJECT_NAME> --region <REGION>
+```
+
+**Debug parameter extraction:**
+```bash
+# List application stacks
+aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --query "StackSummaries[?contains(StackName, 'YourAppPattern')].StackName"
+
+# Examine all outputs
+aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[*].{Key:OutputKey,Value:OutputValue}"
+
+# Test specific parameter queries
+aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text
+```
+
+#### Delete Stack
 
 ```bash
 aws cloudformation delete-stack --stack-name XXXX
 ```
 
-Validate template:
+#### Validate template:
 ```bash
 aws cloudformation validate-template --template-body file://XXXX.yaml
 ```
 
-Test
+#### Test
 
 Verify stack resources and outputs:
 ```bash

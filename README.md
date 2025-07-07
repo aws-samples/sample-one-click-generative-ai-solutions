@@ -83,6 +83,33 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * Version (default: v3)
    * デプロイする Bedrock Chat のバージョンを指定します
 
+## GenAI Design Studio
+
+[GenAI Design Studio](https://github.com/aws-samples/sample-genai-design-studio) は、Amazon Nova Canvas を活用したバーチャル試着ソリューションです。アパレル業界やECサービスにおいて、服飾デザインから実際のモデル着用撮影まで、様々なプロセスの効率化を目指します。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+   * デプロイの開始・終了を通知するメールアドレスです。
+* BedrockRegion (default: us-east-1)
+   * Amazon Bedrock Nova モデルを利用するリージョンです（us-east-1, us-west-2）
+* SelfSignUp (default: true)
+   * セルフサインアップの有効 / 無効を切り替えます。
+* AllowedSignUpEmailDomains
+   * カンマ区切りで利用可能なメールドメインを設定します（例: example.co.jp）
+* AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
+   * アクセス可能な IP アドレスを指定 (IPv4)
+* AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
+   * アクセス可能な IP アドレスを指定 (IPv6)
+
+### 機能
+
+* **モデル生成**: テキストプロンプトでバーチャルモデル画像を生成
+* **バーチャル試着**: Amazon Nova Canvas を使用した服の試着機能
+* **背景置換**: テキスト記述による背景の自然な置き換え
+
 ## ComfyUI on AWS
 
 [ComfyUI](https://github.com/comfyanonymous/ComfyUI) は、ノードベースの生成AI画像生成ツールで、Stable Diffusion や様々なモデルを組み合わせて高品質な画像を生成できます。複雑なワークフローを視覚的に構築し、画像生成プロセスを細かく制御したい場合に最適です。AWSへのデプロイには [cost-effective-aws-deployment-of-comfyui](https://github.com/aws-samples/cost-effective-aws-deployment-of-comfyui) を使用して、スケーラブルで費用対効果の高い環境を構築できます。

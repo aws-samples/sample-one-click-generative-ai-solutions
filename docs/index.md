@@ -125,6 +125,35 @@
 
 <div class="solution-card">
   <div class="solution-card__image">
+    <!-- <img src="/assets/images/genai-design-studio.png" alt="GenAI Design Studio Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">GenAI Design Studio</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> は、Amazon Nova Canvas を活用したバーチャル試着ソリューションです。アパレル業界やECサービスにおいて、服飾デザインから実際のモデル着用撮影まで、様々なプロセスの効率化を目指します。
+    </div>
+    <div class="solution-card__actions">
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
+          <option value="ap-northeast-3">大阪</option>
+          <option value="us-east-1">バージニア</option>
+          <option value="us-west-2">オレゴン</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
+      <a href="solutions/genai-design-studio/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Deploy Guide
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card">
+  <div class="solution-card__image">
     <!-- <img src="/assets/images/comfyui.png" alt="ComfyUI Screenshot"> -->
   </div>
   <div class="solution-card__content">
