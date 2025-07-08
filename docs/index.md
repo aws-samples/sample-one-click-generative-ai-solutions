@@ -123,64 +123,6 @@
   </div>
 </div>
 
-<div class="solution-card">
-  <div class="solution-card__image">
-    <!-- <img src="/assets/images/genai-design-studio.png" alt="GenAI Design Studio Screenshot"> -->
-  </div>
-  <div class="solution-card__content">
-    <div class="solution-card__title">GenAI Design Studio</div>
-    <div class="solution-card__description">
-      <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> は、Amazon Nova Canvas を活用したバーチャル試着ソリューションです。アパレル業界やECサービスにおいて、服飾デザインから実際のモデル着用撮影まで、様々なプロセスの効率化を目指します。
-    </div>
-    <div class="solution-card__actions">
-      <div class="deployment-container">
-        <select class="region-selector">
-          <option value="ap-northeast-1">東京</option>
-          <option value="ap-northeast-3">大阪</option>
-          <option value="us-east-1">バージニア</option>
-          <option value="us-west-2">オレゴン</option>
-        </select>
-        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-          <i class="fa-solid fa-rocket"></i>　Deploy
-        </a>
-      </div>
-      <a href="solutions/genai-design-studio/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="solution-card">
-  <div class="solution-card__image">
-    <!-- <img src="/assets/images/comfyui.png" alt="ComfyUI Screenshot"> -->
-  </div>
-  <div class="solution-card__content">
-    <div class="solution-card__title">ComfyUI</div>
-    <div class="solution-card__description">
-      <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">ComfyUI</a> は、ノードベースの生成AI画像生成ツールで、Stable Diffusion や様々なモデルを組み合わせて高品質な画像を生成できます。複雑なワークフローを視覚的に構築し、画像生成プロセスを細かく制御したい場合に最適です。AWSへのデプロイには <a href="https://github.com/aws-samples/cost-effective-aws-deployment-of-comfyui" target="_blank">cost-effective-aws-deployment-of-comfyui</a> を使用して、スケーラブルで費用対効果の高い環境を構築できます。
-    </div>
-    <div class="solution-card__actions">
-      <div class="deployment-container">
-        <select class="region-selector">
-          <option value="ap-northeast-1">東京</option>
-          <option value="ap-northeast-3">大阪</option>
-          <option value="us-east-1">バージニア</option>
-          <option value="us-west-2">オレゴン</option>
-        </select>
-        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-          <i class="fa-solid fa-rocket"></i>　Deploy
-        </a>
-      </div>
-      <a href="solutions/comfyui/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
-      </a>
-    </div>
-  </div>
-</div>
-
 ## 3. Start Journey
 
 Generative AI Use Cases については、次のワークショップを進めることで使い方を学ぶことが出来ます。

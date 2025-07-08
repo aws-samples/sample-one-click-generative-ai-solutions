@@ -84,9 +84,8 @@ nav:
   - Supported Solutions:
     - 'Generative AI Use Cases': 
       - 'Overview': 'solutions/generative-ai-use-cases.md'
+      - 'Ready-to-Use Usecases': 'solutions/generative-ai-use-cases-ready-to-use.md'
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
-    - 'GenAI Design Studio': 'solutions/genai-design-studio.md'
-    - 'ComfyUI': 'solutions/comfyui.md'
 #  - License: 'general/license.md'

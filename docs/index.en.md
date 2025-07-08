@@ -123,64 +123,6 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
   </div>
 </div>
 
-<div class="solution-card">
-  <div class="solution-card__image">
-    <!-- <img src="/assets/images/genai-design-studio.png" alt="GenAI Design Studio Screenshot"> -->
-  </div>
-  <div class="solution-card__content">
-    <div class="solution-card__title">GenAI Design Studio</div>
-    <div class="solution-card__description">
-      <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> is a virtual try-on solution powered by Amazon Nova Canvas. It aims to streamline various processes in the apparel industry and e-commerce services, from fashion design to actual model photography.
-    </div>
-    <div class="solution-card__actions">
-      <div class="deployment-container">
-        <select class="region-selector">
-          <option value="us-east-1">Virginia</option>
-          <option value="us-west-2">Oregon</option>
-          <option value="ap-northeast-1">Tokyo</option>
-          <option value="ap-northeast-3">Osaka</option>
-        </select>
-        <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-          <i class="fa-solid fa-rocket"></i> Deploy
-        </a>
-      </div>
-      <a href="solutions/genai-design-studio/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="solution-card">
-  <div class="solution-card__image">
-    <!-- <img src="/assets/images/comfyui.png" alt="ComfyUI Screenshot"> -->
-  </div>
-  <div class="solution-card__content">
-    <div class="solution-card__title">ComfyUI</div>
-    <div class="solution-card__description">
-      <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">ComfyUI</a> is a node-based generative AI image generation tool that combines stable diffusion and various models to generate high-quality images. It's ideal for visually building complex workflows and having fine-grained control over the image generation process. For AWS deployment, you can build a scalable and cost-effective environment using <a href="https://github.com/aws-samples/cost-effective-aws-deployment-of-comfyui" target="_blank">cost-effective-aws-deployment-of-comfyui</a>.
-    </div>
-    <div class="solution-card__actions">
-      <div class="deployment-container">
-        <select class="region-selector">
-          <option value="us-east-1">Virginia</option>
-          <option value="us-west-2">Oregon</option>
-          <option value="ap-northeast-1">Tokyo</option>
-          <option value="ap-northeast-3">Osaka</option>
-        </select>
-        <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-          <i class="fa-solid fa-rocket"></i> Deploy
-        </a>
-      </div>
-      <a href="solutions/comfyui/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
-      </a>
-    </div>
-  </div>
-</div>
-
 ## 3. Start Journey
 
 For Generative AI Use Cases, you can learn how to use it by following this workshop:
