@@ -181,6 +181,29 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
   </div>
 </div>
 
+<div class="solution-card">
+  <div class="solution-card__image">
+    <!-- <img src="/assets/images/bedrock-engineer.png" alt="Bedrock Engineer Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Bedrock Engineer</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/bedrock-engineer" target="_blank">Bedrock Engineer</a> is an autonomous software development agent application powered by Amazon Bedrock. It offers various customizable features including file creation/editing, command execution, web search, knowledge base utilization, multi-agent collaboration, and image generation. As it operates as a client application, CloudFormation deployment is not required - you can download and use it directly.
+    </div>
+    <div class="solution-card__actions">
+      <div class="download-container">
+        <a href="https://github.com/aws-samples/bedrock-engineer/releases/latest" class="download-button md-button" target="_blank">
+          <i class="fa-solid fa-download"></i> Download
+        </a>
+      </div>
+      <a href="solutions/bedrock-engineer/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        User Guide
+      </a>
+    </div>
+  </div>
+</div>
+
 ## 3. Start Journey
 
 For Generative AI Use Cases, you can learn how to use it by following this workshop:
