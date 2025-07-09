@@ -43,9 +43,9 @@ Parameters:
 
   RAGEnabled:
     Type: String
-    AllowedValues: [true, false]
-    Default: false
-    Description: Enable RAG capabilities with Knowledge Base
+    AllowedValues: ["None", "Knowledge-Bases", "Kendra", "Kendra-Enterprise", "Both", "Both-Enterprise"]
+    Default: "None"
+    Description: 'Select RAG capabilities: Amazon Bedrock Knowledge Bases, Kendra, Kendra Enterprise Edition, or combinations of them.'
   
   SelfSignUp:
     Type: String
@@ -201,10 +201,12 @@ Resources:
                     : [];
 
                   const envName = process.env.Environment;
+                  const isKendraEnterprise = process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both-Enterprise';
                   const params = {
                     modelRegion: process.env.ModelRegion,
                     modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
-                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'true',
+                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'Knowledge-Bases' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
+                    ragEnabled: process.env.RAGEnabled === 'Kendra' || process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
                     selfSignUpEnabled: process.env.SelfSignUp === 'true',
                     allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
@@ -254,6 +256,23 @@ Resources:
                   aws ssm get-parameter --name "/genu/${Environment}.json" --query 'Parameter.Name' || exit 1
                   
                   echo "Parameters stored successfully in Parameter Store as /genu/${Environment}.json"
+                  
+                  # Modify rag.ts if Enterprise Edition is selected
+                  if [[ "${RAGEnabled}" == *"Enterprise"* ]]; then
+                    echo "Configuring Kendra Enterprise Edition..."
+                    RAG_FILE="packages/cdk/lib/construct/rag.ts"
+                    if [ -f "$RAG_FILE" ]; then
+                      # Create backup
+                      cp "$RAG_FILE" "${RAG_FILE}.backup"
+                      # Replace DEVELOPER_EDITION with ENTERPRISE_EDITION
+                      sed -i 's/edition: .DEVELOPER_EDITION.,/edition: '\''ENTERPRISE_EDITION'\'',/g' "$RAG_FILE"
+                      echo "Updated Kendra edition to ENTERPRISE_EDITION in $RAG_FILE"
+                      # Verify the change
+                      grep -n "edition:" "$RAG_FILE"
+                    else
+                      echo "Warning: Could not find $RAG_FILE to update Kendra edition"
+                    fi
+                  fi
 
             build:
               commands:
@@ -299,6 +318,7 @@ Resources:
                   Environment: ${Environment}
                   Model Region: ${ModelRegion}
                   RAG Enabled: ${RAGEnabled}
+                  Kendra Edition: $([[ "${RAGEnabled}" == *"Enterprise"* ]] && echo "Enterprise" || echo "Developer")
                   Self-Signup Enabled: ${SelfSignUp}
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
                   Allowed IpV4 Address Ranges: ${AllowedIpV4AddressRanges}
