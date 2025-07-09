@@ -8,6 +8,13 @@
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/"/>
     </url>
     <url>
+        <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/</loc>
+        <lastmod>2025-07-09</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/"/>
+    </url>
+    <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/brchat/</loc>
         <lastmod>2025-07-09</lastmod>
         <changefreq>daily</changefreq>
@@ -62,6 +69,13 @@
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/"/>
+    </url>
+    <url>
+        <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/</loc>
+        <lastmod>2025-07-09</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/brchat/</loc>
