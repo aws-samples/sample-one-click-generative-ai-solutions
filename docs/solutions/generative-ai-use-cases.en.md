@@ -20,8 +20,8 @@ You can configure the following parameters during deployment:
     * Email address for receiving notifications about deployment start and completion
 * **ModelRegion**
     * The region where Amazon Bedrock models will be used
-* **RAGEnabled** (default: false)
-    * Enables RAG (Retrieval-Augmented Generation) for Knowledge Base
+* **RAGEnabled** (default: None)
+    * Select RAG capabilities to enable. "Knowledge-Bases" uses Amazon Bedrock Knowledge Bases, "Kendra" uses Amazon Kendra, and "Both" uses both
 * **SelfSignUp** (default: false)
     * Toggles self-signup functionality on/off
 * **AllowedSignUpEmailDomains**

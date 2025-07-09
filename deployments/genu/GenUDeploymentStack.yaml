@@ -43,9 +43,9 @@ Parameters:
 
   RAGEnabled:
     Type: String
-    AllowedValues: [true, false]
-    Default: false
-    Description: Enable RAG capabilities with Knowledge Base
+    AllowedValues: ["None", "Knowledge-Bases", "Kendra", "Both"]
+    Default: "None"
+    Description: Select RAG capabilities to enable (Knowledge-Bases uses Amazon Bedrock Knowledge Bases, Kendra uses Amazon Kendra)
   
   SelfSignUp:
     Type: String
@@ -204,7 +204,8 @@ Resources:
                   const params = {
                     modelRegion: process.env.ModelRegion,
                     modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
-                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'true',
+                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'Knowledge-Bases' || process.env.RAGEnabled === 'Both',
+                    ragEnabled: process.env.RAGEnabled === 'Kendra' || process.env.RAGEnabled === 'Both',
                     selfSignUpEnabled: process.env.SelfSignUp === 'true',
                     allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                     allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,

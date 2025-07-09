@@ -20,8 +20,8 @@
     * デプロイの開始・終了を通知するメールアドレスです
 * **ModelRegion**
     * Amazon Bedrock のモデルを利用するリージョンです
-* **RAGEnabled** (デフォルト: false)
-    * Knowledge Base での RAG を有効化します
+* **RAGEnabled** (デフォルト: None)
+    * RAG の設定を選択します。"Knowledge-Bases" は Amazon Bedrock Knowledge Bases を使用、"Kendra" は Amazon Kendra を使用、"Both" は両方を使用します
 * **SelfSignUp** (デフォルト: false)
     * セルフサインアップの有効 / 無効を切り替えます
 * **AllowedSignUpEmailDomains**
