@@ -131,6 +131,14 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * AllowedIpV6AddressRanges
    * アクセス可能な IPv6 アドレス範囲を指定します
 
+## Bedrock Engineer
+
+[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。クライアントアプリケーションとして動作するため、CloudFormationによるデプロイは不要で、直接ダウンロードして使用できます。
+
+### ダウンロード
+
+[![GitHub Release](https://img.shields.io/github/v/release/aws-samples/bedrock-engineer)](https://github.com/aws-samples/bedrock-engineer/releases/latest)
+
 ## Technical Background
 
 AWS で動く多くのアプリケーションは [AWS CDK](https://aws.amazon.com/jp/cdk/) で開発されています。CDK で構築されたアプリケーションを動かすには AWS 環境への接続設定や Node.js のセットアップなど開発に関する知識が必要で、技術的知見がない方が生成 AI を試すために設定するのは困難でした。そのため、こちらのリポジトリでは AWS アカウントさえあれば 1 click 、難しい場合でも 1 command でデプロイ・検証できる体験を提供します。

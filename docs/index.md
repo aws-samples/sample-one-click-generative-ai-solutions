@@ -181,6 +181,29 @@
   </div>
 </div>
 
+<div class="solution-card">
+  <div class="solution-card__image">
+    <!-- <img src="/assets/images/bedrock-engineer.png" alt="Bedrock Engineer Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Bedrock Engineer</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/bedrock-engineer" target="_blank">Bedrock Engineer</a> は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web 検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。クライアントアプリケーションとして動作するため、直接ダウンロードして使用できます。
+    </div>
+    <div class="solution-card__actions">
+      <div class="download-container">
+        <a href="https://github.com/aws-samples/bedrock-engineer/releases/latest" class="download-button md-button" target="_blank">
+          <i class="fa-solid fa-download"></i>　Download Latest Release
+        </a>
+      </div>
+      <a href="solutions/bedrock-engineer/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Deploy Guide
+      </a>
+    </div>
+  </div>
+</div>
+
 ## 3. Start Journey
 
 Generative AI Use Cases については、次のワークショップを進めることで使い方を学ぶことが出来ます。
