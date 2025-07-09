@@ -16,7 +16,7 @@
 
 ![ユースケースのインポート方法](../assets/images/solutions/generative-ai-use-cases-use-case-builder/import-usecase.png)
 
-### すぐに使えるユースケース
+## すぐに使えるユースケース
 
 以下のユースケースは自由にダウンロードし、ご自身の環境にインポートしてお試しいただけます。
 
