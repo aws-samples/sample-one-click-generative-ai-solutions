@@ -84,7 +84,7 @@ nav:
   - Supported Solutions:
     - 'Generative AI Use Cases': 
       - 'Overview': 'solutions/generative-ai-use-cases.md'
-      - 'Ready-to-use Usec Cses': 'solutions/generative-ai-use-cases-ready-to-use.md'
+      - 'Usec Case Builder': 'solutions/generative-ai-use-cases-ready-to-use.md'
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
