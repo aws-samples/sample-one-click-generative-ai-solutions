@@ -21,7 +21,7 @@ You can configure the following parameters during deployment:
 * **ModelRegion**
     * The region where Amazon Bedrock models will be used
 * **RAGEnabled** (default: None)
-    * Select RAG capabilities to enable. "Knowledge-Bases" uses Amazon Bedrock Knowledge Bases, "Kendra" uses Amazon Kendra, and "Both" uses both
+    * Select RAG capabilities to enable. "Knowledge-Bases" uses Amazon Bedrock Knowledge Bases, "Kendra" uses Amazon Kendra Developer Edition, and "Both" uses both. Options with "Enterprise" suffix (like "Kendra-Enterprise") use Kendra Enterprise Edition
 * **SelfSignUp** (default: false)
     * Toggles self-signup functionality on/off
 * **AllowedSignUpEmailDomains**

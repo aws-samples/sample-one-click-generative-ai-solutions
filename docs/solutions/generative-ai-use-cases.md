@@ -21,7 +21,7 @@
 * **ModelRegion**
     * Amazon Bedrock のモデルを利用するリージョンです
 * **RAGEnabled** (デフォルト: None)
-    * RAG の設定を選択します。"Knowledge-Bases" は Amazon Bedrock Knowledge Bases を使用、"Kendra" は Amazon Kendra を使用、"Both" は両方を使用します
+    * RAG の設定を選択します。"Knowledge-Bases" は Amazon Bedrock Knowledge Bases 、"Kendra" は Amazon Kendra Developer Edition 、"Both" は両方使用します。"Kendra-Enterprise" のように "Enterprise" では Enterprise Edition を使用します
 * **SelfSignUp** (デフォルト: false)
     * セルフサインアップの有効 / 無効を切り替えます
 * **AllowedSignUpEmailDomains**
