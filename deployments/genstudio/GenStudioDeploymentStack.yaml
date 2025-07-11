@@ -163,6 +163,11 @@ Resources:
                   cdkJson.context.allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : ["0.0.0.0/1", "128.0.0.0/1"];
                   cdkJson.context.allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"];
                   
+                  // Update deployment region to match the CodeBuild execution region
+                  const currentRegion = process.env.AWS_DEFAULT_REGION;
+                  console.log(`Setting deployment region to CodeBuild execution region: ${currentRegion}`);
+                  cdkJson.context.deploymentRegion = currentRegion;
+                  
                   fs.writeFileSync(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
                   console.log('Updated cdk.json with deployment parameters');
                   console.log('Email domains:', JSON.stringify(cdkJson.context.allowedSignUpEmailDomains));
