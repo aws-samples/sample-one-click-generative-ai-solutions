@@ -180,7 +180,7 @@ Resources:
 
             build:
               commands:
-                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio
+                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio/cdk
                 
                 # Check if bootstrap is needed
                 - |
@@ -189,11 +189,11 @@ Resources:
                   
                   if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
                     echo "Running CDK bootstrap..."
-                    cd cdk && npx cdk bootstrap
+                    npx cdk bootstrap
                   fi
                 
                 # Deploy the stack
-                - cd cdk && npx cdk deploy --all --require-approval never --asset-parallelism --asset-prebuild=false --concurrency 2 --method=direct
+                - npx cdk deploy --all --require-approval never --asset-parallelism --asset-prebuild=false --concurrency 2 --method=direct
                 
                 # Get deployment information using CloudFormation outputs
                 - cd $CODEBUILD_SRC_DIR/
