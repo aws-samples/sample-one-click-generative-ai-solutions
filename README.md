@@ -93,8 +93,6 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 
 * NotificationEmailAddress
    * デプロイの開始・終了を通知するメールアドレスです。
-* BedrockRegion (default: us-east-1)
-   * Amazon Bedrock Nova モデルを利用するリージョンです（us-east-1, us-west-2）
 * SelfSignUp (default: true)
    * セルフサインアップの有効 / 無効を切り替えます。
 * AllowedSignUpEmailDomains
@@ -185,8 +183,9 @@ graph TD
 aws-generative-ai-asset-box/
 ├── build/           # CloudFormation templates and scripts for deployment
 │   ├── genu/        
-│   ├── bedrock-cc/  # Comming Soon
-│   └── dify/        # Comming Soon
+│   ├── bedrock-cc/  
+│   └── dify/       
+│   ├── genstudio/  　
 ├── tests/           # Test for scripts
 ├── .venv/           # Python virtual environment (created by uv)
 ├── pyproject.toml   # Python project configuration
