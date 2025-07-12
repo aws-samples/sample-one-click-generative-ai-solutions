@@ -204,6 +204,35 @@
   </div>
 </div>
 
+<div class="solution-card">
+  <div class="solution-card__image">
+    <!-- <img src="/assets/images/remote-swe-agents.png" alt="Remote SWE Agents Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Remote SWE Agents</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/remote-swe-agents" target="_blank">Remote SWE Agents</a> は、AI による自律型のソフトウェア開発エージェントの実装例です。このエージェントはタスクごとに専用の開発環境内で動作し、ユーザーの PC に依存することなく開発作業を行います。
+    </div>
+    <div class="solution-card__actions">
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="us-west-2">オレゴン</option>
+          <option value="us-east-1">バージニア</option>
+          <option value="ap-northeast-1">東京</option>
+          <option value="ap-northeast-3">大阪</option>
+        </select>
+        <a href="https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
+      <a href="solutions/remote-swe-agents/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Deploy Guide
+      </a>
+    </div>
+  </div>
+</div>
+
 ## 3. Start Journey
 
 Generative AI Use Cases については、次のワークショップを進めることで使い方を学ぶことが出来ます。
