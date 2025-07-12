@@ -1,4 +1,4 @@
-# GenU Updates and Parameter Changes
+# How to Update, Change Parameters, and Delete GenU
 This guide explains how to update GenU and change parameters after deploying with one-click deployment. For detailed parameters supported by GenU, please refer to the [GenU Documentation](https://aws-samples.github.io/generative-ai-use-cases/en/ABOUT.html).
 
 The following steps will be performed:  
@@ -301,3 +301,19 @@ npm run cdk:deploy:quick -- -c env=dev
 ```
 
 The update is now complete!
+
+## How to Delete GenU {#genu-delete}
+
+This section explains how to delete GenU using SageMaker Code Editor.
+
+After opening SageMaker Code Editor, open the GenU directory with Open Folder. Navigate to the git cloned directory in the terminal.  
+
+```shell
+cd /home/sagemaker-user/generative-ai-use-cases/
+```
+
+Delete GenU. The `env=dev` parameter specifies the Environment name you want to delete. The default is dev.  
+
+```shell
+npm run cdk:destroy -- -c env=dev
+```

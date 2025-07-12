@@ -1,4 +1,5 @@
-# GenU のアップデートやパラメーター変更
+# GenU のアップデート、パラメーター変更、削除の方法
+
 GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
 
 以下のステップを行います。  
@@ -306,3 +307,19 @@ npm run cdk:deploy:quick -- -c env=dev
 ```
 
 これでアップデートが完了です！
+
+## GenU を削除する手順 {#genu-delete}
+
+SageMaker Code Editor を利用して、GenU を削除する手順を紹介します。
+
+SageMaker Code Editor を開いたあと、Open Folder で GenU のディレクトリを開きます。ターミナルで git clone をしたディレクトリに移動します。  
+
+```shell
+cd /home/sagemaker-user/generative-ai-use-cases/
+```
+
+GenU を削除します。`env=dev` のパラメーターは、デプロイしたい Environent 名を指定します。デフォルトでは dev です。  
+
+```shell
+npm run cdk:destroy -- -c env=dev
+```
