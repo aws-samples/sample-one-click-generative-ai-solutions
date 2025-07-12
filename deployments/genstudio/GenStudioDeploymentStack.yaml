@@ -8,7 +8,6 @@ Metadata:
           default: "GenAI Design Studio Deployment Parameters"
         Parameters:
           - NotificationEmailAddress
-          - BedrockRegion
           - SelfSignUp
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
@@ -21,12 +20,7 @@ Parameters:
     AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     ConstraintDescription: Must be a valid email address
   
-  BedrockRegion:
-    Type: String
-    Default: us-east-1
-    AllowedValues: [us-east-1, us-west-2]
-    Description: AWS region for Amazon Bedrock Nova models (us-east-1 or us-west-2)
-  
+
   SelfSignUp:
     Type: String
     AllowedValues: [true, false]
@@ -121,8 +115,6 @@ Resources:
         Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
         PrivilegedMode: true
         EnvironmentVariables:
-          - Name: BedrockRegion
-            Value: !Ref BedrockRegion
           - Name: SelfSignUp
             Value: !Ref SelfSignUp
           - Name: AllowedSignUpEmailDomains
@@ -171,6 +163,11 @@ Resources:
                   cdkJson.context.allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : ["0.0.0.0/1", "128.0.0.0/1"];
                   cdkJson.context.allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : ["0000:0000:0000:0000:0000:0000:0000:0000/1", "8000:0000:0000:0000:0000:0000:0000:0000/1"];
                   
+                  // Update deployment region to match the CodeBuild execution region
+                  const currentRegion = process.env.AWS_DEFAULT_REGION;
+                  console.log(`Setting deployment region to CodeBuild execution region: ${currentRegion}`);
+                  cdkJson.context.deploymentRegion = currentRegion;
+                  
                   fs.writeFileSync(cdkJsonPath, JSON.stringify(cdkJson, null, 2));
                   console.log('Updated cdk.json with deployment parameters');
                   console.log('Email domains:', JSON.stringify(cdkJson.context.allowedSignUpEmailDomains));
@@ -180,7 +177,7 @@ Resources:
 
             build:
               commands:
-                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio
+                - cd $CODEBUILD_SRC_DIR/sample-genai-design-studio/cdk
                 
                 # Check if bootstrap is needed
                 - |
@@ -189,11 +186,11 @@ Resources:
                   
                   if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
                     echo "Running CDK bootstrap..."
-                    cd cdk && npx cdk bootstrap
+                    npx cdk bootstrap
                   fi
                 
                 # Deploy the stack
-                - cd cdk && npx cdk deploy --all --require-approval never --asset-parallelism --asset-prebuild=false --concurrency 2 --method=direct
+                - npx cdk deploy --all --require-approval never --asset-parallelism --asset-prebuild=false --concurrency 2 --method=direct
                 
                 # Get deployment information using CloudFormation outputs
                 - cd $CODEBUILD_SRC_DIR/
@@ -213,14 +210,13 @@ Resources:
 
                   Important Next Steps:
                   1. Please enable Nova model access on Amazon Bedrock:
-                     https://${AWS_ACCOUNT_ID}.${BedrockRegion}.console.aws.amazon.com/bedrock/home?region=${BedrockRegion}#/modelaccess
+                     https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_DEFAULT_REGION}#/modelaccess
                      Required models: Nova Canvas, Nova Micro, Nova Lite
                   
                   2. Please create a user in the Cognito User Pool to access the application (if self-signup disabled):
                      ${USER_CREATION_URL}
 
                   Configuration:
-                  Bedrock Region: ${BedrockRegion}
                   Self-Signup Enabled: ${SelfSignUp}
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
                   Allowed IPv4 Address Ranges: ${AllowedIpV4AddressRanges}
