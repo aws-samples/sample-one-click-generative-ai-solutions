@@ -30,7 +30,7 @@ Parameters:
   AllowedSignUpEmailDomains:
     Type: String
     Default: ""
-    Description: 'Allowed email domains for signup (Example: @gmail.com, @example.co.jp)'
+    Description: 'Allowed email domains for signup without the "@" symbol (Example: gmail.com, example.co.jp)'
   
   AllowedIpV4AddressRanges:
     Type: String

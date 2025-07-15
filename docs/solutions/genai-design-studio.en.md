@@ -23,7 +23,7 @@ You can configure the following parameters during deployment:
 
 * **NotificationEmailAddress**: Email address to receive deployment start/completion notifications
 * **SelfSignUp** (default: true): Enable/disable self-signup functionality
-* **AllowedSignUpEmailDomains**: Allowed email domains for signup (comma-separated, e.g., example.co.jp)
+* **AllowedSignUpEmailDomains**: Allowed email domains for signup without the "@" symbol (comma-separated, e.g., example.co.jp)
 * **AllowedIpV4AddressRanges** (default: 0.0.0.0/1,128.0.0.0/1): Allowed IPv4 address ranges for access
 * **AllowedIpV6AddressRanges** (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1): Allowed IPv6 address ranges for access
 
