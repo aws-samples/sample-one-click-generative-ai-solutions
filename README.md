@@ -96,7 +96,7 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * SelfSignUp (default: true)
    * セルフサインアップの有効 / 無効を切り替えます。
 * AllowedSignUpEmailDomains
-   * カンマ区切りで利用可能なメールドメインを設定します（例: example.co.jp）
+   * カンマ区切りで利用可能なメールドメインを設定します。メールドメインは「@」を含めずに指定してください。（例: example.co.jp）
 * AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
    * アクセス可能な IP アドレスを指定 (IPv4)
 * AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)

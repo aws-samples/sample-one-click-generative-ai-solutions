@@ -23,7 +23,7 @@
 
 * **NotificationEmailAddress**: デプロイの開始・終了を通知するメールアドレス
 * **SelfSignUp** (デフォルト: true): セルフサインアップの有効/無効を切り替えます
-* **AllowedSignUpEmailDomains**: サインアップを許可するメールドメイン（カンマ区切り、例: example.co.jp）
+* **AllowedSignUpEmailDomains**: サインアップを許可するメールドメイン。メールドメインは「@」を含めずに指定してください。（例: example.co.jp）
 * **AllowedIpV4AddressRanges** (デフォルト: 0.0.0.0/1,128.0.0.0/1): アクセスを許可するIPv4アドレス範囲
 * **AllowedIpV6AddressRanges** (デフォルト: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1): アクセスを許可するIPv6アドレス範囲
 
