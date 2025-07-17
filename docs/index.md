@@ -216,10 +216,9 @@
     <div class="solution-card__actions">
       <div class="deployment-container">
         <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
           <option value="us-west-2">オレゴン</option>
           <option value="us-east-1">バージニア</option>
-          <option value="ap-northeast-1">東京</option>
-          <option value="ap-northeast-3">大阪</option>
         </select>
         <a href="https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
           <i class="fa-solid fa-rocket"></i>　Deploy

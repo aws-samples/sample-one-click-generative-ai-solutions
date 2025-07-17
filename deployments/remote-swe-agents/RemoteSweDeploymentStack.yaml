@@ -47,11 +47,9 @@ Parameters:
     Default: ''
 
 Resources:
-  # SSM Parameters (with RETAIN removal policy)
+  # SSM Parameters
   SlackBotTokenParameter:
     Type: AWS::SSM::Parameter
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       Name: '/remote-swe/slack/bot-token'
       Type: String
@@ -60,8 +58,6 @@ Resources:
 
   SlackSigningSecretParameter:
     Type: AWS::SSM::Parameter
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       Name: '/remote-swe/slack/signing-secret'
       Type: String
@@ -70,8 +66,6 @@ Resources:
 
   GitHubPersonalAccessTokenParameter:
     Type: AWS::SSM::Parameter
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
     Properties:
       Name: '/remote-swe/github/personal-access-token'
       Type: String
