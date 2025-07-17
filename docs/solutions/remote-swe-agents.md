@@ -19,6 +19,8 @@ AWS 上でセルフホスト型OSSソリューションとして提供され、D
     - デプロイの開始・終了を通知するメールアドレスです。このアドレスは初期ウェブアプリユーザーとしても設定されます。
 - **GitHubAccessTokenValue**
     - GitHub の個人アクセストークン（PAT）で、エージェントが GitHub リポジトリにアクセスするために使用します。
+    - 作成方法：[GitHub Personal Access Tokenの作成](https://docs.github.com/ja/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+    - 必要なスコープ：`repo`, `workflow`, `read:org`
 - **TargetEnv** (デフォルト: Prod)
     - 環境名の設定です。複数の環境をデプロイしたい場合は、この値を環境ごとにユニークな値に設定してください。
 - **AllowedIpV4AddressRanges**

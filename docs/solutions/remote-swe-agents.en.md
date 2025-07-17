@@ -19,6 +19,8 @@ This is a self-hosted, fully open-source solution on AWS that offers a similar e
     - Email address to receive deployment notifications. This address will also be used as the initial webapp user.
 - **GitHubAccessTokenValue**
     - GitHub Personal Access Token (PAT) used by the agent to access GitHub repositories.
+    - Creation guide: [Creating a GitHub Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+    - Required scopes: `repo`, `workflow`, `read:org`
 - **TargetEnv** (default: Prod)
     - Environment name for deployment. If you want to deploy multiple environments, set a unique value for each environment.
 - **AllowedIpV4AddressRanges**
