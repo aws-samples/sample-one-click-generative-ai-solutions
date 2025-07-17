@@ -1,0 +1,322 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Remote SWE Agents - Autonomous software development AI agent deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: 'Remote SWE Agents Deployment Parameters'
+        Parameters:
+          - NotificationEmailAddress
+          - GitHubAccessTokenValue
+          - TargetEnv
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+          - WorkerAdditionalPolicies
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications and for initial webapp user (Example: test@example.co.jp)'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+
+  GitHubAccessTokenValue:
+    Type: String
+    Description: 'GitHub Personal Access Token (with repo, workflow, read:org scopes)'
+    NoEcho: true
+
+  TargetEnv:
+    Type: String
+    Default: Prod
+    Description: 'Environment name for deployment. If you want to deploy multiple environments, set a unique value for each environment.'
+
+  AllowedIpV4AddressRanges:
+    Type: String
+    Description: 'Comma-separated list of IPv4 CIDRs allowed to access the webapp (e.g., 10.0.0.0/8,192.168.0.0/16)'
+    Default: '0.0.0.0/1,128.0.0.0/1'
+
+  AllowedIpV6AddressRanges:
+    Type: String
+    Description: 'Comma-separated list of IPv6 CIDRs allowed to access the webapp'
+    Default: '0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1'
+
+  WorkerAdditionalPolicies:
+    Type: String
+    Description: 'Comma-separated list of additional IAM managed policies to attach to worker instance'
+    Default: ''
+
+Resources:
+  # SSM Parameters
+  SlackBotTokenParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: '/remote-swe/slack/bot-token'
+      Type: String
+      Value: 'placeholder'
+      Description: 'Placeholder for Slack bot token (required by Remote SWE Agents)'
+
+  SlackSigningSecretParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: '/remote-swe/slack/signing-secret'
+      Type: String
+      Value: 'placeholder'
+      Description: 'Placeholder for Slack signing secret (required by Remote SWE Agents)'
+
+  GitHubPersonalAccessTokenParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: '/remote-swe/github/personal-access-token'
+      Type: String
+      Value: !Ref GitHubAccessTokenValue
+      Description: 'GitHub Personal Access Token for Remote SWE Agents'
+
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Remote SWE Agents Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess'
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RemoteSweDeploymentProject}:*'
+              - !Sub 'arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RemoteSweDeploymentProject}'
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+          - Action:
+              - ssm:GetParameter
+              - ssm:GetParameters
+              - ssm:PutParameter
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/remote-swe/*'
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project for Remote SWE Agents deployment
+  RemoteSweDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'RemoteSweDeployment-${AWS::StackName}'
+      Description: 'Deploys Remote SWE Agents with CDK'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: ARM_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: INITIAL_WEBAPP_USER_EMAIL
+            Value: !Ref NotificationEmailAddress
+          - Name: WORKER_ADDITIONAL_POLICIES
+            Value: !Ref WorkerAdditionalPolicies
+          - Name: ALLOWED_IPV4_CIDRS
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: ALLOWED_IPV6_CIDRS
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+          - Name: TARGET_ENV
+            Value: !Ref TargetEnv
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting Remote SWE Agents deployment"
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "Remote SWE Agents Deployment Started" --message "Deployment of Remote SWE Agents has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/remote-swe-agents.git
+                - cd remote-swe-agents
+
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/remote-swe-agents
+                - echo "Pre-build setup completed at $(date)"
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/remote-swe-agents/cdk
+                - npm ci
+                
+                # Run CDK bootstrap
+                - echo "Running CDK bootstrap..."
+                - npx cdk bootstrap
+                
+                # Deploy the stack
+                - npx cdk deploy --all --require-approval never
+                - echo "CDK deployment completed at $(date)"
+                
+                # Get the application URL
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  STACK_NAME="RemoteSweStack-${TARGET_ENV}"
+                  APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='FrontendDomainName'].OutputValue" --output text)
+                  SLACK_BOLT_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey,\`SlackBoltEndpointUrl\`)].OutputValue" --output text)
+
+                  cat << EOF > deployment-info.txt
+                  Remote SWE Agents Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Login URL: ${APP_URL}
+
+                  Important Next Steps:
+                  1. Please ensure Bedrock Claude Sonnet 3.7 model is enabled in us-west-2 region:
+                    https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess
+
+                  2. Please use the login credentials sent to your email address to access the webapp.
+
+                  3. To set up Slack integration, follow the deployment instruction. Use this API endpoint for webhook configuration: ${SLACK_BOLT_URL}
+
+                  Configuration:
+                  - GitHub PAT is stored in SSM Parameter Store
+                  - Initial user email: ${INITIAL_WEBAPP_USER_EMAIL}
+                  - IP restrictions: ${ALLOWED_IPV4_CIDRS}, ${ALLOWED_IPV6_CIDRS}
+                  EOF
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "Remote SWE Agents Deployment Completed" --message "$(cat deployment-info.txt)"
+
+            post_build:
+              commands:
+                - echo "Deployment completed at $(date)"
+      TimeoutInMinutes: 60
+      Tags:
+        - Key: Purpose
+          Value: 'Remote SWE Agents Deployment'
+
+  # Lambda role for triggering deployment
+  TriggerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt RemoteSweDeploymentProject.Arn
+
+  # Lambda function to trigger the deployment
+  TriggerLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerLambdaRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 60
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+                console.log("CodeBuild started:", JSON.stringify(result.build));
+              } else {
+                console.log("Delete request, no action needed for the CodeBuild project");
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+          }
+
+  # Custom resource to trigger the deployment
+  TriggerDeployment:
+    Type: Custom::TriggerDeployment
+    DependsOn: RemoteSweDeploymentProject
+    Properties:
+      ServiceToken: !GetAtt TriggerLambda.Arn
+      ProjectName: !Ref RemoteSweDeploymentProject
+      ServiceTimeout: 60
+
+Outputs:
+  NotificationTopicArn:
+    Description: 'The ARN of the SNS topic for deployment notifications'
+    Value: !Ref DeploymentNotificationTopic
+
+  DeploymentProjectName:
+    Description: 'The name of the CodeBuild project for deployment'
+    Value: !Ref RemoteSweDeploymentProject
+
+  DeploymentStatus:
+    Description: 'The status of the deployment'
+    Value: 'In progress. Check your email for deployment notifications.'

@@ -129,6 +129,27 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * AllowedIpV6AddressRanges
    * アクセス可能な IPv6 アドレス範囲を指定します
 
+## Remote SWE Agents
+
+[Remote SWE Agents](https://github.com/aws-samples/remote-swe-agents) は、AI による自律型のソフトウェア開発エージェントの実装例です。このエージェントはタスクごとに専用の開発環境内で動作し、ユーザーの PC に依存することなく開発作業を行います。
+
+[![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+  + デプロイの開始・終了を通知するメールアドレスです。このアドレスは初期ウェブアプリユーザーとしても設定されます。
+* GitHubAccessTokenValue
+  + GitHub の個人アクセストークン（PAT）で、エージェントが GitHub リポジトリにアクセスするために使用します。
+  + 作成方法：[GitHub Personal Access Tokenの作成](https://docs.github.com/ja/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+  + 必要なスコープ：`repo`, `workflow`, `read:org`
+* AllowedIpV4AddressRanges
+  + ウェブアプリにアクセス可能な IPv4 CIDR 範囲を指定します。
+* AllowedIpV6AddressRanges
+  + ウェブアプリにアクセス可能な IPv6 CIDR 範囲を指定します。
+* WorkerAdditionalPolicies
+  + ワーカーインスタンスに追加で付与する IAM マネージドポリシーを指定します。
+
 ## Bedrock Engineer
 
 [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。クライアントアプリケーションとして動作するため、CloudFormationによるデプロイは不要で、直接ダウンロードして使用できます。

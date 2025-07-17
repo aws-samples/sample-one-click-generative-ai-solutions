@@ -43,6 +43,16 @@ GitHub provides additional document on [forking a repository](https://help.githu
 ## Finding contributions to work on
 Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.
 
+## Running document server locally
+
+To preview the documents, you can run the document server locally by the following commands:
+
+```sh
+uv sync
+uv run mkdocs serve
+```
+
+Then open the URL shown in the console. You may need to install additional dependencies such as libcairo depending on your environment.
 
 ## Code of Conduct
 This project has adopted the [Amazon Open Source Code of Conduct](https://aws.github.io/code-of-conduct).
