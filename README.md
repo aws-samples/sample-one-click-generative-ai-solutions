@@ -93,10 +93,12 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 
 * NotificationEmailAddress
    * デプロイの開始・終了を通知するメールアドレスです。
+* BedrockRegion (default: us-east-1)
+   * Amazon Bedrock Nova モデルを利用するリージョンです（us-east-1, us-west-2）
 * SelfSignUp (default: true)
    * セルフサインアップの有効 / 無効を切り替えます。
 * AllowedSignUpEmailDomains
-   * カンマ区切りで利用可能なメールドメインを設定します。メールドメインは「@」を含めずに指定してください。（例: example.co.jp）
+   * カンマ区切りで利用可能なメールドメインを設定します（例: example.co.jp）
 * AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
    * アクセス可能な IP アドレスを指定 (IPv4)
 * AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
@@ -128,6 +130,27 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
    * アクセス可能な IPv4 アドレス範囲を指定します（例: 10.0.0.100/32, 192.168.0.0/24）。現在のパブリック IP アドレスは https://checkip.amazonaws.com/ で確認できます
 * AllowedIpV6AddressRanges
    * アクセス可能な IPv6 アドレス範囲を指定します
+
+## Remote SWE Agents
+
+[Remote SWE Agents](https://github.com/aws-samples/remote-swe-agents) は、AI による自律型のソフトウェア開発エージェントの実装例です。このエージェントはタスクごとに専用の開発環境内で動作し、ユーザーの PC に依存することなく開発作業を行います。
+
+[![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+  + デプロイの開始・終了を通知するメールアドレスです。このアドレスは初期ウェブアプリユーザーとしても設定されます。
+* GitHubAccessTokenValue
+  + GitHub の個人アクセストークン（PAT）で、エージェントが GitHub リポジトリにアクセスするために使用します。
+  + 作成方法：[GitHub Personal Access Tokenの作成](https://docs.github.com/ja/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+  + 必要なスコープ：`repo`, `workflow`, `read:org`
+* AllowedIpV4AddressRanges
+  + ウェブアプリにアクセス可能な IPv4 CIDR 範囲を指定します。
+* AllowedIpV6AddressRanges
+  + ウェブアプリにアクセス可能な IPv6 CIDR 範囲を指定します。
+* WorkerAdditionalPolicies
+  + ワーカーインスタンスに追加で付与する IAM マネージドポリシーを指定します。
 
 ## Bedrock Engineer
 
@@ -183,9 +206,8 @@ graph TD
 aws-generative-ai-asset-box/
 ├── build/           # CloudFormation templates and scripts for deployment
 │   ├── genu/        
-│   ├── bedrock-cc/  
-│   └── dify/       
-│   ├── genstudio/  　
+│   ├── bedrock-cc/  # Comming Soon
+│   └── dify/        # Comming Soon
 ├── tests/           # Test for scripts
 ├── .venv/           # Python virtual environment (created by uv)
 ├── pyproject.toml   # Python project configuration
