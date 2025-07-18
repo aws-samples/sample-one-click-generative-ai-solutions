@@ -43,7 +43,7 @@ Parameters:
 
   WorkerAdditionalPolicies:
     Type: String
-    Description: 'Comma-separated list of additional IAM managed policies to attach to worker instance'
+    Description: '(optional) Comma-separated list of additional IAM managed policies to attach to worker instance'
     Default: ''
 
 Resources:
@@ -297,7 +297,6 @@ Resources:
               await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
             }
           };
-          }
 
   # Custom resource to trigger the deployment
   TriggerDeployment:
