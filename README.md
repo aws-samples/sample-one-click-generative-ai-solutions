@@ -150,6 +150,47 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * WorkerAdditionalPolicies
   + ワーカーインスタンスに追加で付与する IAM マネージドポリシーを指定します。
 
+## Review & Assessment Powered by Intelligent Documentation (RAPID)
+
+[RAPID](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation) は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。チェックリストの構造化から AI による審査、そして人間の最終判断までの一連のプロセスをサポートし、審査時間の短縮と品質向上を実現します。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+   * デプロイの開始・終了を通知するメールアドレスです。
+* AllowedIpV4AddressRanges
+   * アクセス可能な IPv4 アドレス範囲を指定します（JSON配列形式）
+* AllowedIpV6AddressRanges
+   * アクセス可能な IPv6 アドレス範囲を指定します（JSON配列形式）
+* DisableIpv6 (default: false)
+   * IPv6 サポートを無効にするかどうかを設定します
+* AutoMigrate (default: true)
+   * デプロイ時に自動的にデータベースマイグレーションを実行するかどうかを設定します
+* CognitoSelfSignUpEnabled (default: true)
+   * Cognito User Pool のセルフサインアップ機能を有効にするかどうかを設定します
+* CognitoUserPoolId
+   * 既存の Cognito User Pool ID（空の場合は新規作成）
+* CognitoUserPoolClientId
+   * 既存の Cognito User Pool Client ID（空の場合は新規作成）
+* CognitoDomainPrefix
+   * Cognito ドメインのプレフィックス（空の場合は自動生成）
+* McpAdmin (default: false)
+   * MCP ランタイム Lambda 関数に管理者権限を付与するかどうかを設定します
+* RepoUrl
+   * デプロイするリポジトリの URL
+* Branch (default: main)
+   * デプロイするブランチ名
+* GitTag
+   * デプロイする Git タグ名（指定した場合はブランチより優先）
+
+### 主なユースケース
+
+* **製品仕様書の要件適合レビュー**: 製品開発における仕様書が、要求仕様や業界標準を満たしているかを効率的に確認
+* **技術マニュアルの品質確認**: 複雑な技術マニュアルが社内ガイドラインや業界標準に準拠しているかを確認
+* **調達文書のコンプライアンス確認**: 調達文書や提案書が必要な要件を満たしているかをチェック
+
 ## Bedrock Engineer
 
 [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。クライアントアプリケーションとして動作するため、CloudFormationによるデプロイは不要で、直接ダウンロードして使用できます。

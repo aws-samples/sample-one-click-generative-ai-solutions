@@ -1,0 +1,49 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'pyproject.toml'
+      - 'overrides/**'
+      - '.github/workflows/deploy-docs.yml'
+
+  # Allow manual triggering
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Ensure only one documentation deployment runs at a time
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Fetch full history for git info plugin
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+    
+    - name: Install dependencies
+      run: uv sync
+    
+    - name: Deploy documentation
+      run: uv run mkdocs gh-deploy --force
