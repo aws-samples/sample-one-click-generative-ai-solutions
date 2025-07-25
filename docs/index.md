@@ -182,6 +182,34 @@
 
 <div class="solution-card">
   <div class="solution-card__image">
+    <!-- <img src="/assets/images/rapid.png" alt="RAPID Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Review & Assessment Powered by Intelligent Documentation (RAPID)</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation" target="_blank">RAPID</a> は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。
+    </div>
+    <div class="solution-card__actions">
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="ap-northeast-1">東京</option>
+          <option value="us-west-2">オレゴン</option>
+          <option value="us-east-1">バージニア</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i>　Deploy
+        </a>
+      </div>
+      <a href="solutions/rapid/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Deploy Guide
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card">
+  <div class="solution-card__image">
     <!-- <img src="/assets/images/bedrock-engineer.png" alt="Bedrock Engineer Screenshot"> -->
   </div>
   <div class="solution-card__content">
@@ -230,6 +258,8 @@
     </div>
   </div>
 </div>
+
+
 
 ## 3. Start Journey
 

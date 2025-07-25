@@ -1,0 +1,467 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Review & Assessment Powered by Intelligent Documentation (RAPID) one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "RAPID Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+          - DisableIpv6
+          - AutoMigrate
+          - CognitoSelfSignUpEnabled
+          - CognitoUserPoolId
+          - CognitoUserPoolClientId
+          - CognitoDomainPrefix
+          - McpAdmin
+          - RepoUrl
+          - Branch
+          - GitTag
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: '["0.0.0.0/1","128.0.0.0/1"]'
+    Description: 'Allowed IPv4 address ranges for frontend WAF (JSON array format). Find your current Public IP address here: https://checkip.amazonaws.com/'
+
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: '["0000:0000:0000:0000:0000:0000:0000:0000/1","8000:0000:0000:0000:0000:0000:0000:0000/1"]'
+    Description: 'Allowed IPv6 address ranges for frontend WAF (JSON array format)'
+
+  DisableIpv6:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: 'Whether to disable IPv6 support'
+
+  AutoMigrate:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: 'Whether to automatically run database migration during deployment'
+
+  CognitoSelfSignUpEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: 'Enable self-signup functionality for Cognito User Pool (CAUTION: Carefully consider when you allow public access)'
+
+  CognitoUserPoolId:
+    Type: String
+    Default: ""
+    Description: 'Existing Cognito User Pool ID (leave empty to create new one)'
+
+  CognitoUserPoolClientId:
+    Type: String
+    Default: ""
+    Description: 'Existing Cognito User Pool Client ID (leave empty to create new one)'
+
+  CognitoDomainPrefix:
+    Type: String
+    Default: ""
+    Description: 'Cognito domain prefix (leave empty for auto-generation)'
+
+  McpAdmin:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: 'Whether to grant administrator privileges to MCP runtime Lambda function'
+
+  RepoUrl:
+    Type: String
+    Default: "https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation.git"
+    Description: 'Repository URL to deploy'
+
+  Branch:
+    Type: String
+    Default: "main"
+    Description: 'Branch name to deploy'
+
+  GitTag:
+    Type: String
+    Default: ""
+    Description: 'Git tag name to deploy (takes priority over branch if specified)'
+
+Resources:
+
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: RAPID Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RapidDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RapidDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  RapidDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys Review & Assessment Powered by Intelligent Documentation (RAPID)'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: ARM_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/amazonlinux-aarch64-standard:3.0
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: ALLOWED_IPV4_RANGES
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: ALLOWED_IPV6_RANGES
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: DISABLE_IPV6
+            Value: !Ref DisableIpv6
+          - Name: AUTO_MIGRATE
+            Value: !Ref AutoMigrate
+          - Name: COGNITO_SELF_SIGNUP_ENABLED
+            Value: !Ref CognitoSelfSignUpEnabled
+          - Name: COGNITO_USER_POOL_ID
+            Value: !Ref CognitoUserPoolId
+          - Name: COGNITO_USER_POOL_CLIENT_ID
+            Value: !Ref CognitoUserPoolClientId
+          - Name: COGNITO_DOMAIN_PREFIX
+            Value: !Ref CognitoDomainPrefix
+          - Name: MCP_ADMIN
+            Value: !Ref McpAdmin
+          - Name: REPO_URL
+            Value: !Ref RepoUrl
+          - Name: BRANCH
+            Value: !Ref Branch
+          - Name: GIT_TAG
+            Value: !Ref GitTag
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting RAPID deployment"
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "RAPID Deployment Started" --message "Deployment of Review & Assessment Powered by Intelligent Documentation (RAPID) has started. You will receive another notification when deployment is complete."
+                - npm install -g npm@latest
+
+            pre_build:
+              commands:
+                - echo 'Cloning repository...'
+                - |
+                  if [ ! -z "$GIT_TAG" ]; then
+                    git clone $REPO_URL rapid
+                    cd rapid
+                    git checkout $GIT_TAG
+                    cd ..
+                  else
+                    git clone --branch $BRANCH $REPO_URL rapid
+                  fi
+                - cd rapid
+                - echo 'Setting up parameters...'
+                
+                # Create parameter generation script
+                - |
+                  cat > generate-parameters.js << 'EOF'
+                  const fs = require('fs');
+                  
+                  // Parse environment variables
+                  const ipv4Ranges = process.env.ALLOWED_IPV4_RANGES ? 
+                    JSON.parse(process.env.ALLOWED_IPV4_RANGES) : [];
+                  const ipv6Ranges = process.env.ALLOWED_IPV6_RANGES ? 
+                    JSON.parse(process.env.ALLOWED_IPV6_RANGES) : [];
+                  
+                  // Build parameters object
+                  const params = {
+                    // WAF IP restriction settings
+                    allowedIpV4AddressRanges: ipv4Ranges,
+                    allowedIpV6AddressRanges: ipv6Ranges,
+                    
+                    // Prisma migration settings
+                    autoMigrate: process.env.AUTO_MIGRATE === 'true',
+                    
+                    // Cognito settings
+                    cognitoSelfSignUpEnabled: process.env.COGNITO_SELF_SIGNUP_ENABLED === 'true',
+                  };
+                  
+                  // Add optional Cognito parameters if provided
+                  if (process.env.COGNITO_USER_POOL_ID) {
+                    params.cognitoUserPoolId = process.env.COGNITO_USER_POOL_ID;
+                  }
+                  if (process.env.COGNITO_USER_POOL_CLIENT_ID) {
+                    params.cognitoUserPoolClientId = process.env.COGNITO_USER_POOL_CLIENT_ID;
+                  }
+                  if (process.env.COGNITO_DOMAIN_PREFIX) {
+                    params.cognitoDomainPrefix = process.env.COGNITO_DOMAIN_PREFIX;
+                  }
+                  
+                  // MCP settings
+                  params.mcpAdmin = process.env.MCP_ADMIN === 'true';
+                  
+                  // Generate TypeScript file content
+                  const tsContent = `/**
+                   * CDK deployment custom parameter configuration file
+                   *
+                   * This file is used to customize parameters for CDK deployment.
+                   * Auto-generated by deployment script.
+                   */
+                  
+                  export const parameters = ${JSON.stringify(params, null, 2)};
+                  `;
+                  
+                  // Write to file
+                  fs.writeFileSync('cdk/lib/parameter.ts', tsContent);
+                  console.log('Parameter file created successfully');
+                  console.log(tsContent);
+                  EOF
+                
+                # Run the parameter generation script
+                - node generate-parameters.js
+
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/rapid
+                - echo 'Preparing backend...'
+                - cd backend
+                - npm ci
+                - npm run prisma:generate
+                - npm run build
+                - cd ../cdk
+                - echo 'Preparing CDK deployment...'
+                - npm ci
+                - echo 'Running CDK deployment...'
+                
+                # Bootstrap CDK if needed
+                - npx cdk bootstrap || true
+                
+                # Deploy the stack
+                - npx cdk deploy --all --require-approval never
+                
+                # Get deployment information
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  # Find the deployed stack
+                  STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'RapidStack')].StackName" --output text)
+                  
+                  # Get outputs from the stack
+                  if [ ! -z "$STACK_NAME" ]; then
+                    FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='FrontendURL'].OutputValue" --output text)
+                    API_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
+                    USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
+                  fi
+                  
+                  # Get AWS account info
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                  
+                  # Build Cognito console URL if we have a User Pool ID
+                  if [ ! -z "$USER_POOL_ID" ] && [ "$USER_POOL_ID" != "None" ]; then
+                    USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+                  else
+                    USER_CREATION_URL="Check Cognito console for user pool management"
+                  fi
+
+                  cat > deployment-info.txt << EOF
+                  RAPID Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Application URL: ${FRONTEND_URL}
+                  API URL: ${API_URL}
+
+                  Important Next Steps:
+                  1. Please enable model access on Amazon Bedrock at us-west-2 region:
+                     - Anthropic Claude 3.7 Sonnet
+                     - Amazon Nova Premier
+                     https://${AWS_ACCOUNT_ID}.us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/modelaccess
+                  
+                  2. Create a user in the Cognito User Pool to access the application (if self-signup disabled):
+                     ${USER_CREATION_URL}
+
+                  Configuration:
+                  Auto Migration: ${AUTO_MIGRATE}
+                  Self-Signup Enabled: ${COGNITO_SELF_SIGNUP_ENABLED}
+                  MCP Admin: ${MCP_ADMIN}
+                  IPv6 Disabled: ${DISABLE_IPV6}
+                  Allowed IPv4 Ranges: ${ALLOWED_IPV4_RANGES}
+                  Allowed IPv6 Ranges: ${ALLOWED_IPV6_RANGES}
+
+                  Stack Details:
+                  Stack Name: ${STACK_NAME}
+                  Region: ${AWS_DEFAULT_REGION}
+
+                  For more information, visit: https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation
+                  EOF
+
+            post_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/
+                - echo 'Deployment completed!'
+                - "echo Frontend URL: $FRONTEND_URL"
+                - "echo API URL: $API_URL"
+                - aws sns publish --topic-arn "${SNSTopicArn}" --subject "RAPID Deployment Complete" --message file://deployment-info.txt
+                - rm -rf rapid
+          artifacts:
+            files:
+              - deployment-info.txt
+      TimeoutInMinutes: 120
+
+  # Custom Resource to trigger CodeBuild
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref RapidDeploymentProject
+      ServiceTimeout: 600
+
+  # Lambda function for the Custom Resource
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs20.x
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  # IAM Role for Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: codebuild:StartBuild
+                Resource: !GetAtt RapidDeploymentProject.Arn
+
+Outputs:
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  CodeBuildProjectName:
+    Description: Name of the CodeBuild project
+    Value: !Ref RapidDeploymentProject
+  
+  CodeBuildLogGroup:
+    Description: CloudWatch Logs group for CodeBuild logs
+    Value: !Sub '/aws/codebuild/${RapidDeploymentProject}'
+  
+  DeploymentStatus:
+    Description: Deployment status information
+    Value: !Sub "Deployment has been initiated. You will receive an email notification at ${NotificationEmailAddress} when the deployment is complete."
+
+  RepositoryUrl:
+    Description: Repository URL being deployed
+    Value: !Ref RepoUrl
+
+  DeploymentBranch:
+    Description: Branch or tag being deployed
+    Value: !If 
+      - HasGitTag
+      - !Sub "Tag: ${GitTag}"
+      - !Sub "Branch: ${Branch}"
+
+Conditions:
+  HasGitTag: !Not [!Equals [!Ref GitTag, ""]]

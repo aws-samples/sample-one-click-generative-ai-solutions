@@ -183,6 +183,35 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
 
 <div class="solution-card">
   <div class="solution-card__image">
+    <!-- <img src="/assets/images/rapid.png" alt="RAPID Screenshot"> -->
+  </div>
+  <div class="solution-card__content">
+    <div class="solution-card__title">Review & Assessment Powered by Intelligent Documentation (RAPID)</div>
+    <div class="solution-card__description">
+      <a href="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation" target="_blank">RAPID</a> is a document review solution powered by generative AI (Amazon Bedrock). It streamlines review processes involving extensive documents and complex checklists using a Human in the Loop approach.
+    </div>
+    <div class="solution-card__actions">
+      <div class="deployment-container">
+        <select class="region-selector">
+          <option value="us-west-2">Oregon</option>
+          <option value="us-east-1">Virginia</option>
+          <option value="ap-northeast-1">Tokyo</option>
+          <option value="ap-northeast-3">Osaka</option>
+        </select>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-rocket"></i> Deploy
+        </a>
+      </div>
+      <a href="solutions/rapid/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Deploy Guide
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card">
+  <div class="solution-card__image">
     <!-- <img src="/assets/images/bedrock-engineer.png" alt="Bedrock Engineer Screenshot"> -->
   </div>
   <div class="solution-card__content">
@@ -232,6 +261,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
     </div>
   </div>
 </div>
+
 
 ## 3. Start Journey
 
