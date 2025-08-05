@@ -179,6 +179,8 @@ Resources:
             Value: !Ref UsePreviousDeploymentParameter
           - Name: SNSTopicArn
             Value: !Ref DeploymentNotificationTopic
+          - Name: DEPLOYMENT_STACK_NAME
+            Value: !Ref AWS::StackName
       Source:
         Type: NO_SOURCE
         BuildSpec: |
@@ -203,7 +205,8 @@ Resources:
                 # Check for existing GenUDeploymentStack and retrieve parameters
                 - |
                   echo "Checking for existing GenUDeploymentStack..."
-                  CURRENT_STACK_NAME="${AWS::StackName}"
+                  CURRENT_STACK_NAME="$DEPLOYMENT_STACK_NAME"
+                  echo "Current deployment stack name: $CURRENT_STACK_NAME"
                   
                   # Get the most recently created existing deployment stack (excluding current)
                   EXISTING_STACK=$(aws cloudformation describe-stacks \
@@ -247,10 +250,10 @@ Resources:
                   }
 
                   const getParamValue = (paramName) => {
-                    if (!usePreviousParams || !existingParamMap[paramName]) {
-                      return process.env[paramName];
+                    if (usePreviousParams) {
+                      return existingParamMap[paramName];
                     }
-                    return existingParamMap[paramName];
+                    return process.env[paramName];
                   };
 
                   const modelRegion = getParamValue('ModelRegion');
@@ -390,7 +393,8 @@ Resources:
                 # Cleanup all other GenUDeploymentStack instances except current one
                 - |
                   echo "Cleaning up other GenUDeploymentStack instances..."
-                  CURRENT_STACK_NAME="${AWS::StackName}"
+                  CURRENT_STACK_NAME="$DEPLOYMENT_STACK_NAME"
+                  echo "Current deployment stack name: $CURRENT_STACK_NAME"
                   
                   # Get all GenUDeploymentStack instances except the current one, only in COMPLETE states to avoid race conditions
                   OTHER_STACKS=$(aws cloudformation describe-stacks \
