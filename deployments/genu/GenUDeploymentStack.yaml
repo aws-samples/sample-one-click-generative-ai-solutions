@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Generative AI Use Cases (GenU) one click deployment'
+Description: 'Generative AI Use Cases (GenU) one click deployment with automatic update support'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -16,6 +16,10 @@ Metadata:
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
           - AllowedIpV6AddressRanges
+      - Label:
+          default: "Update Configuration"
+        Parameters:
+          - UsePreviousDeploymentParameter
 
 Parameters:
   Environment:
@@ -67,6 +71,12 @@ Parameters:
     Type: String
     Default: ""
     Description: Allowed IPv6 address ranges for access
+
+  UsePreviousDeploymentParameter:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Use parameters from previous deployment when available (set to false to use current parameter values)'
 
 Resources:
 
@@ -165,6 +175,8 @@ Resources:
             Value: !Ref AllowedIpV4AddressRanges
           - Name: AllowedIpV6AddressRanges
             Value: !Ref AllowedIpV6AddressRanges
+          - Name: UsePreviousDeploymentParameter
+            Value: !Ref UsePreviousDeploymentParameter
           - Name: SNSTopicArn
             Value: !Ref DeploymentNotificationTopic
       Source:
@@ -188,54 +200,95 @@ Resources:
                 - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
                 - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
 
+                # Check for existing GenUDeploymentStack and retrieve parameters
+                - |
+                  echo "Checking for existing GenUDeploymentStack..."
+                  CURRENT_STACK_NAME="${AWS::StackName}"
+                  
+                  # Get the most recently created existing deployment stack (excluding current)
+                  EXISTING_STACK=$(aws cloudformation describe-stacks \
+                    --query "Stacks[?starts_with(StackName, 'GenUDeploymentStack') && StackName != '$CURRENT_STACK_NAME'] | sort_by(@, &CreationTime) | [-1].StackName" \
+                    --output text)
+                  
+                  if [ ! -z "$EXISTING_STACK" ] && [ "$EXISTING_STACK" != "None" ] && [ "$EXISTING_STACK" != "null" ]; then
+                    echo "Found existing deployment stack: $EXISTING_STACK"
+                    echo "Retrieving parameters from existing stack..."
+                    
+                    # Get parameters from existing stack with error handling
+                    if aws cloudformation describe-stacks --stack-name "$EXISTING_STACK" \
+                      --query 'Stacks[0].Parameters' \
+                      --output json > existing-deployment-params.json 2>/dev/null; then
+                      echo "Parameters retrieved from existing stack:"
+                      cat existing-deployment-params.json
+                    else
+                      echo "Warning: Could not retrieve parameters from existing stack $EXISTING_STACK. Using current parameters."
+                      echo "[]" > existing-deployment-params.json
+                    fi
+                  else
+                    echo "No existing GenUDeploymentStack found or this is the same stack. Proceeding with new deployment."
+                    echo "[]" > existing-deployment-params.json
+                  fi
+
                 # Create and run unified parameter script (updates parameter.ts and creates JSON for Parameter Store)
                 - |
                   cat > update-params.js << 'EOF'
                   const fs = require('fs');
 
-                  // Read the existing cdk.json file
                   const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
 
-                  const additionalModelIds = process.env.AdditionalModels ? 
-                    process.env.AdditionalModels.split(',').map(id => id.trim()) 
+                  let existingParamMap = {};
+                  const usePreviousParams = process.env.UsePreviousDeploymentParameter === 'true';
+                  
+                  if (usePreviousParams) {
+                      const existingParams = JSON.parse(fs.readFileSync('existing-deployment-params.json', 'utf8'));
+                      existingParams.forEach(param => {
+                        existingParamMap[param.ParameterKey] = param.ParameterValue;
+                      });
+                  }
+
+                  const getParamValue = (paramName) => {
+                    if (!usePreviousParams || !existingParamMap[paramName]) {
+                      return process.env[paramName];
+                    }
+                    return existingParamMap[paramName];
+                  };
+
+                  const modelRegion = getParamValue('ModelRegion');
+                  const additionalModelsStr = getParamValue('AdditionalModels');
+                  const ragEnabled = getParamValue('RAGEnabled');
+                  const selfSignUp = getParamValue('SelfSignUp');
+                  const allowedSignUpEmailDomains = getParamValue('AllowedSignUpEmailDomains');
+                  const allowedIpV4AddressRanges = getParamValue('AllowedIpV4AddressRanges');
+                  const allowedIpV6AddressRanges = getParamValue('AllowedIpV6AddressRanges');
+
+                  const additionalModelIds = additionalModelsStr ? 
+                    additionalModelsStr.split(',').map(id => id.trim()) 
                     : [];
 
                   const envName = process.env.Environment;
-                  const isKendraEnterprise = process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both-Enterprise';
                   const params = {
-                    modelRegion: process.env.ModelRegion,
+                    modelRegion: modelRegion,
                     modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
-                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'Knowledge-Bases' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
-                    ragEnabled: process.env.RAGEnabled === 'Kendra' || process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
-                    selfSignUpEnabled: process.env.SelfSignUp === 'true',
-                    allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
-                    allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
-                    allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
+                    ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                    ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                    selfSignUpEnabled: selfSignUp === 'true',
+                    allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
+                    allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
+                    allowedIpV6AddressRanges: allowedIpV6AddressRanges ? allowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
                   };
 
-                  // Update parameter.ts file
-                  try {
-                    let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
-                    const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
-                    
-                    if (content.match(envRegex)) {
-                      const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
-                      const updatedContent = content.replace(envRegex, envReplacement);
-                      fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
-                      console.log(`Updated ${envName} environment in parameter.ts`);
-                    } else {
-                      console.error(`Could not find ${envName} environment in parameter.ts`);
-                      process.exit(1);
-                    }
-                  } catch (error) {
-                    console.error('Error updating parameter.ts:', error);
+                  let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
+                  const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
+                  
+                  if (content.match(envRegex)) {
+                    const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
+                    const updatedContent = content.replace(envRegex, envReplacement);
+                    fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
+                  } else {
                     process.exit(1);
                   }
 
-                  // Create JSON file for Parameter Store
                   fs.writeFileSync('env-params.json', JSON.stringify(params, null, 2));
-                  console.log('Environment parameters JSON created:');
-                  console.log(JSON.stringify(params, null, 2));
                   EOF
                   
                   node update-params.js
@@ -333,6 +386,53 @@ Resources:
             post_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR/
+                
+                # Cleanup all other GenUDeploymentStack instances except current one
+                - |
+                  echo "Cleaning up other GenUDeploymentStack instances..."
+                  CURRENT_STACK_NAME="${AWS::StackName}"
+                  
+                  # Get all GenUDeploymentStack instances except the current one, only in COMPLETE states to avoid race conditions
+                  OTHER_STACKS=$(aws cloudformation describe-stacks \
+                    --query "Stacks[?starts_with(StackName, 'GenUDeploymentStack') && StackName != '$CURRENT_STACK_NAME' && (StackStatus == 'CREATE_COMPLETE' || StackStatus == 'UPDATE_COMPLETE')].StackName" \
+                    --output text)
+                  
+                  if [ ! -z "$OTHER_STACKS" ] && [ "$OTHER_STACKS" != "None" ]; then
+                    echo "Found other GenUDeploymentStack instances to delete: $OTHER_STACKS"
+                    
+                    # Convert space-separated list to array and delete each stack                    
+                    for TARGET_STACK in $OTHER_STACKS; do
+                      echo "Deleting stack: $TARGET_STACK"
+                      if aws cloudformation delete-stack --stack-name "$TARGET_STACK" 2>/dev/null; then
+                        echo "Deletion initiated successfully for stack: $TARGET_STACK"
+                        DELETED_STACKS="$DELETED_STACKS $TARGET_STACK"
+                      else
+                        echo "Warning: Failed to initiate deletion for stack: $TARGET_STACK"
+                      fi
+                    done
+                    
+                    # Add cleanup information to deployment message
+                    cat << EOF >> deployment-info.txt
+                    
+                  Cleanup Information:
+                  The following previous GenUDeploymentStack instances have been deleted:
+                  $OTHER_STACKS
+                  
+                  This ensures only the current deployment stack remains active.
+                  
+                  EOF
+                  else
+                    echo "No other GenUDeploymentStack instances found to delete."
+                    
+                    # Add information that no cleanup was needed
+                    cat << EOF >> deployment-info.txt
+                    
+                  Cleanup Information:
+                  No other GenUDeploymentStack instances were found, so no cleanup was necessary.
+                  
+                  EOF
+                  fi
+                
                 - aws sns publish --topic-arn "${SNSTopicArn}" --subject "GenU Deployment Complete" --message file://deployment-info.txt
                 - rm -rf generative-ai-use-cases
           artifacts:
