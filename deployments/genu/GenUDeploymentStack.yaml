@@ -185,7 +185,6 @@ Resources:
         Type: NO_SOURCE
         BuildSpec: |
           version: 0.2
-
           phases:
             install:
               runtime-versions:
@@ -196,90 +195,66 @@ Resources:
                 - git clone https://github.com/aws-samples/generative-ai-use-cases.git
                 - cd generative-ai-use-cases
                 - npm ci
-
             pre_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
                 - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
-
-                # Check for existing GenUDeploymentStack and retrieve parameters
                 - |
-                  echo "Checking for existing GenUDeploymentStack..."
-                  CURRENT_STACK_NAME="$DEPLOYMENT_STACK_NAME"
-                  echo "Current deployment stack name: $CURRENT_STACK_NAME"
+                  # Check Parameter Store for existing parameters
+                  PARAM_STORE_KEY="/genu/${Environment}.json"
+                  echo "Checking Parameter Store for existing parameters: $PARAM_STORE_KEY"
                   
-                  # Get the most recently created existing deployment stack (excluding current)
-                  EXISTING_STACK=$(aws cloudformation describe-stacks \
-                    --query "Stacks[?starts_with(StackName, 'GenUDeploymentStack') && StackName != '$CURRENT_STACK_NAME'] | sort_by(@, &CreationTime) | [-1].StackName" \
-                    --output text)
-                  
-                  if [ ! -z "$EXISTING_STACK" ] && [ "$EXISTING_STACK" != "None" ] && [ "$EXISTING_STACK" != "null" ]; then
-                    echo "Found existing deployment stack: $EXISTING_STACK"
-                    echo "Retrieving parameters from existing stack..."
-                    
-                    # Get parameters from existing stack with error handling
-                    if aws cloudformation describe-stacks --stack-name "$EXISTING_STACK" \
-                      --query 'Stacks[0].Parameters' \
-                      --output json > existing-deployment-params.json 2>/dev/null; then
-                      echo "Parameters retrieved from existing stack:"
-                      cat existing-deployment-params.json
-                    else
-                      echo "Warning: Could not retrieve parameters from existing stack $EXISTING_STACK. Using current parameters."
-                      echo "[]" > existing-deployment-params.json
-                    fi
+                  if [ "$UsePreviousDeploymentParameter" = "true" ] && aws ssm get-parameter --name "$PARAM_STORE_KEY" --with-decryption --output json > stored-params.json 2>/dev/null; then
+                    echo "Found existing parameters in Parameter Store"
+                    # Extract the parameter value (which is the JSON string) and save it
+                    jq -r '.Parameter.Value' stored-params.json > existing-env-params.json
+                    echo "DEBUG - Retrieved parameters from Parameter Store:"
+                    cat existing-env-params.json
                   else
-                    echo "No existing GenUDeploymentStack found or this is the same stack. Proceeding with new deployment."
-                    echo "[]" > existing-deployment-params.json
+                    echo "No existing parameters found in Parameter Store or UsePreviousDeploymentParameter=false. Using current parameters."
                   fi
 
-                # Create and run unified parameter script (updates parameter.ts and creates JSON for Parameter Store)
+                # Create and run unified parameter script
                 - |
                   cat > update-params.js << 'EOF'
                   const fs = require('fs');
 
                   const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
-
-                  let existingParamMap = {};
-                  const usePreviousParams = process.env.UsePreviousDeploymentParameter === 'true';
+                  const envName = process.env.Environment;
                   
-                  if (usePreviousParams) {
-                      const existingParams = JSON.parse(fs.readFileSync('existing-deployment-params.json', 'utf8'));
-                      existingParams.forEach(param => {
-                        existingParamMap[param.ParameterKey] = param.ParameterValue;
-                      });
+                  // Read parameter mode
+                  const usingExistingParams = process.env.UsePreviousDeploymentParameter === 'true';
+                  
+                  let params;
+                  
+                  if (usingExistingParams) {
+                    params = JSON.parse(fs.readFileSync('existing-env-params.json', 'utf8'));
+                  } else {                    
+                    const modelRegion = process.env.ModelRegion;
+                    const additionalModelsStr = process.env.AdditionalModels;
+                    const ragEnabled = process.env.RAGEnabled;
+                    const selfSignUp = process.env.SelfSignUp;
+                    const allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains;
+                    const allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges;
+                    const allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges;
+
+                    const additionalModelIds = additionalModelsStr ? 
+                      additionalModelsStr.split(',').map(id => id.trim()) 
+                      : [];
+
+                    params = {
+                      modelRegion: modelRegion,
+                      modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
+                      ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      selfSignUpEnabled: selfSignUp === 'true',
+                      allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
+                      allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
+                      allowedIpV6AddressRanges: allowedIpV6AddressRanges ? allowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
+                    };
                   }
 
-                  const getParamValue = (paramName) => {
-                    if (usePreviousParams) {
-                      return existingParamMap[paramName];
-                    }
-                    return process.env[paramName];
-                  };
-
-                  const modelRegion = getParamValue('ModelRegion');
-                  const additionalModelsStr = getParamValue('AdditionalModels');
-                  const ragEnabled = getParamValue('RAGEnabled');
-                  const selfSignUp = getParamValue('SelfSignUp');
-                  const allowedSignUpEmailDomains = getParamValue('AllowedSignUpEmailDomains');
-                  const allowedIpV4AddressRanges = getParamValue('AllowedIpV4AddressRanges');
-                  const allowedIpV6AddressRanges = getParamValue('AllowedIpV6AddressRanges');
-
-                  const additionalModelIds = additionalModelsStr ? 
-                    additionalModelsStr.split(',').map(id => id.trim()) 
-                    : [];
-
-                  const envName = process.env.Environment;
-                  const params = {
-                    modelRegion: modelRegion,
-                    modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
-                    ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
-                    ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
-                    selfSignUpEnabled: selfSignUp === 'true',
-                    allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
-                    allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
-                    allowedIpV6AddressRanges: allowedIpV6AddressRanges ? allowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
-                  };
-
+                  // Update parameter.ts with the params
                   let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
                   const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
                   
@@ -287,11 +262,15 @@ Resources:
                     const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
                     const updatedContent = content.replace(envRegex, envReplacement);
                     fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
+                    console.log('Successfully updated parameter.ts');
                   } else {
+                    console.error('Could not find environment section in parameter.ts');
                     process.exit(1);
                   }
 
+                  // Save params for Parameter Store update
                   fs.writeFileSync('env-params.json', JSON.stringify(params, null, 2));
+                  console.log('DEBUG - Final params:', JSON.stringify(params, null, 2));
                   EOF
                   
                   node update-params.js
