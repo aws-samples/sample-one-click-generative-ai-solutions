@@ -1,0 +1,64 @@
+{
+  "name": "development",
+  "description": "One Click CloudFormation Development Agent",
+  "mcpServers": {
+    "AWS Core MCP Server": {
+      "command": "uvx",
+      "args": [
+        "awslabs.core-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR"
+      },
+      "timeout": 60000
+    },
+    "AWS Documentation MCP Server": {
+      "command": "uvx",
+      "args": [
+        "awslabs.aws-documentation-mcp-server@latest"
+      ],
+      "env": {
+        "FASTMCP_LOG_LEVEL": "ERROR",
+        "AWS_DOCUMENTATION_PARTITION": "aws"
+      },
+      "timeout": 60000
+    },
+    "GitHub MCP Server": {
+      "command": "npx",
+      "envFile": "${workspaceFolder}/.env",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-github"
+      ]
+    }
+  },
+  "tools": [
+    "*"
+  ],
+  "allowedTools": [
+    "fsRead",
+    "fsReplace",
+    "listDirectory",
+    "fileSearch"
+  ],
+  "toolsSettings": {
+    "execute_bash": {
+      "alwaysAllow": [
+        {
+          "preset": "readOnly"
+        }
+      ]
+    },
+    "use_aws": {
+      "alwaysAllow": [
+        {
+          "preset": "readOnly"
+        }
+      ]
+    }
+  },
+  "resources": [
+    "file://README.md",
+    "file://.amazonq/rules/development.md"
+  ]
+}
