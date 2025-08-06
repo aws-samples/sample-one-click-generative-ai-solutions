@@ -212,6 +212,12 @@
   color: #6b7280;
 }
 
+.deployment-help{
+  font-size: 0.70rem;
+  color: #6b7280;
+  margin-top: 1rem;
+}
+
 /* Responsive design */
 @media screen and (max-width: 768px) {
   .hero h1 {
@@ -231,4 +237,5 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
+
 }

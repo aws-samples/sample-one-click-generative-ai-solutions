@@ -2,17 +2,34 @@
 
 GenU を 1 click でデプロイしたあとに、アップデートやパラメーター変更を行う方法を紹介します。GenU でサポートしている詳細なパラメーターは、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html)をご確認ください。
 
-以下のステップを行います。  
-- 1 click デプロイで自動生成したパラメータを [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) から確認
-- [Amazon SageMaker Studio Code Editor](https://docs.aws.amazon.com/ja_jp/sagemaker/latest/dg/code-editor.html) で開発環境を準備
-- CDK を使って、アップデートやパラメーター変更
+## 2つのアップデート方法
 
-## 1 click デプロイで自動生成したパラメータを確認
+GenU のアップデートには以下の2つの方法があります：
 
-1 click デプロイでは、GenU デプロイ時に利用したパラメータが Parameter Store に JSON 形式で保存されます。
+### 🚀 **方法1: 1 click アップデート（推奨）**
+- **更新方法**: ブラウザから 1 click で前回のデプロイ設定を引き継いで更新できます
+- **用途**: 設定を変更せずに、GenU だけ最新バージョンに更新したい場合 (※)
+- **メリット**: 開発環境の準備は不要
 
-[Parameter Store のマネジメントコンソール画面 (※東京リージョン (`ap-northeast-1`) の画面です)](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters
-)を開き、パラメータを確認します。東京リージョン以外にデプロイした場合は、デプロイ先のリージョンで確認しましょう (`us-east-1` など)。
+※パラメーター名などに変更があった場合、設定がうまく反映されない可能性があります。事前に前回の設定を保存している [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) の内容と、[GenU のドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/ABOUT.html) を確認することを推奨します。
+
+### 🛠️ **方法2: SageMaker Studio Code Editor（上級者向け）**
+- **更新方法**: SageMaker Studio Code Editor に開発環境を用意し GenU を更新します
+- **用途**: 1 click でサポートしていないパラメーターの変更や、独自のユースケース開発を行う場合
+- **メリット**: パラメーターを変更してカスタマイズしたい場合、Git で更新履歴を管理したい場合
+
+---
+
+## 方法1: 1 click アップデート
+
+最も簡単な方法です。前回のデプロイ設定を自動で引き継いで、GenUを最新バージョンに更新できます。
+
+### 現在のパラメーターの確認
+
+
+1 click デプロイでは、GenU デプロイ時に利用したパラメータが [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) に JSON 形式で保存されます。
+
+[Parameter Store のマネジメントコンソール画面 (※東京リージョン (`ap-northeast-1`) の画面です)](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters)を開き、パラメータを確認します。東京リージョン以外にデプロイした場合は、デプロイ先のリージョンで確認しましょう (`us-east-1` など)。
 
 デプロイしたときに指定した Environment 名 (デフォルトは `dev`) で、以下のパラメータが保存されています  
 - `/genu/dev.json` - dev 環境のすべてのパラメータをJSON形式で保存  
@@ -50,10 +67,39 @@ GenU を 1 click でデプロイしたあとに、アップデートやパラメ
 マネジメントコンソールの画面例です (`Show decrypted value` をオンにすると値を参照できます)。  
 ![parameter-store-02](../assets/images/solutions/generative-ai-use-cases-update/parameter-store-02.png)
 
-この JSON データを使って、後述の手順で該当環境セクションに適用することで、パラメータの確認や変更が可能です。
+この JSON データを使って、後述の手順でパラメータの確認や変更が可能です (方法 1、方法 2 いずれでも使用します)。
 
+### 手順
 
-## SageMaker Code Editor で開発環境を準備
+1. **[GenU デプロイページ](../../)** にアクセス
+2. **リージョンを選択** (前回デプロイしたリージョンと同じものを選択)
+3. **Parameter Store の内容が問題なければ「Update」ボタンをクリック**
+4. CloudFormation画面で以下を確認：
+    - `UsePreviousDeploymentParameter` が `true` になっていることを確認
+    - `Environment` を前回と同じ値に設定 (通常は `dev`)
+    - `NotificationEmailAddress` にメールアドレスを入力
+5. **「Create stack」をクリック**
+
+### パラメーターを変更して更新したい場合
+
+GenU で利用可能なモデルが増えた場合、modelRegion の制約で使用可能なモデルが想定と異なっていた場合などがあります。
+
+この際、Parameter Store の内容を変更することで、変更を反映したデプロイを行うことができます (図中 ・・・ となっている Value の箇所は、クリックすると内容が表示されます)。
+![genu-update-click-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-click-01.png)
+
+GenU が対応しているモデルは[ドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/DEPLOY_OPTION.html#amazon-bedrock-%E3%81%AE%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E5%A4%89%E6%9B%B4%E3%81%99%E3%82%8B)を参照してください。
+
+## 方法2: SageMaker Studio Code Editor でのアップデート
+
+詳細なパラメーター変更やカスタマイズが必要な場合は、この方法をご利用ください。
+
+以下のステップを行います :
+
+* 1 click デプロイで自動生成したパラメータを [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) から確認
+* [Amazon SageMaker Studio Code Editor](https://docs.aws.amazon.com/ja_jp/sagemaker/latest/dg/code-editor.html) で開発環境を準備
+* CDK を使って、アップデートやパラメーター変更
+
+### SageMaker Code Editor で開発環境を準備
 GenU 環境を更新するために、SageMaker Code Editor を利用します。以下のリンクから、CloudFormation を利用して作成をします。
 
 !!! Tip
@@ -77,7 +123,7 @@ Code Editor を開き、Open を押します。Stop していた場合、Start �
 ![codeeditor-setup-04](../assets/images/solutions/generative-ai-use-cases-update/codeeditor-setup-04.png)
 
 
-## CDK を使って、アップデートやパラメーター変更
+### CDK を使って、アップデートやパラメーター変更
 SageMaker Code Editor の画面を開けました。New Terminal を押します。  
 ![genu-update-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-01.png)
 
@@ -262,7 +308,7 @@ arn:aws:cloudformation:us-east-1:xxxxxxxxxx:stack/GenerativeAiUseCasesStackdev/8
 sagemaker-user@default:~/generative-ai-use-cases$ 
 ```
 
-## 2 回目以降に GenU をアップデートする手順 {#second-time-update}
+### 2 回目以降に GenU をアップデートする手順 {#second-time-update}
 SageMaker Code Editor を利用して、2 回目以降に GenU をアップデートする手順を紹介します。1 回目では git clone を利用していたのに対して、2 回目は既に clone 済みなので手順がが変わります。  
 SageMaker Code Editor を開いたあと、Open Folder で GenU のディレクトリを開きます。
 
@@ -307,6 +353,8 @@ npm run cdk:deploy:quick -- -c env=dev
 ```
 
 これでアップデートが完了です！
+
+---
 
 ## GenU を削除する手順 {#genu-delete}
 

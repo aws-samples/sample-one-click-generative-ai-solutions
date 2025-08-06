@@ -14,7 +14,20 @@
 
 <!-- Region selector script -->
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {    
+    // Function to generate timestamp suffix for stack names
+    function generateTimestampSuffix() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      // Format: -yyyyMMddTHHmmss (using hyphen before timestamp and T as separator)
+      return `-${year}${month}${day}T${hours}${minutes}${seconds}`;
+    }
+
     // Function to update deployment URL based on selected region
     function updateDeploymentUrl(deploymentContainer, region) {
       const deploymentLink = deploymentContainer.querySelector('.deployment-button');
@@ -30,6 +43,7 @@
     // Initialize region selectors
     const deploymentContainers = document.querySelectorAll('.deployment-container');
     deploymentContainers.forEach(function(container) {
+
       const selector = container.querySelector('.region-selector');
       if (selector) {
         // Set initial region based on current URL
@@ -47,7 +61,37 @@
           updateDeploymentUrl(container, this.value);
         });
       }
+
+      const buttons = container.querySelectorAll('.deployment-button');
+      if (buttons.length > 0) {
+        buttons.forEach(function(button) {
+          button.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent default navigation
+              
+            const currentHref = this.getAttribute('href');
+            const timestamp = generateTimestampSuffix();
+            
+            // Check if URL contains stackName parameter
+            if (currentHref.includes('stackName=')) {
+              // Replace stackName value with timestamp appended
+              const updatedHref = currentHref.replace(
+                /stackName=([^&]+)/,
+                function(match, stackName) {
+                  return `stackName=${stackName}${timestamp}`;
+                }
+              );
+                        
+              // Open the updated URL in a new tab
+              window.open(updatedHref, '_blank');
+            } else {
+              // If no stackName parameter, just open as is
+              console.log('No stackName parameter found, opening as is');
+              window.open(currentHref, '_blank');
+            }
+          });
+        });
+      }
     });
   });
-</script>
+  </script>
 {% endblock %}

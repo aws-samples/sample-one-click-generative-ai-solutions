@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Generative AI Use Cases (GenU) one click deployment'
+Description: 'Generative AI Use Cases (GenU) one click deployment with automatic update support'
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -16,6 +16,10 @@ Metadata:
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
           - AllowedIpV6AddressRanges
+      - Label:
+          default: "Update Configuration"
+        Parameters:
+          - UsePreviousDeploymentParameter
 
 Parameters:
   Environment:
@@ -38,7 +42,7 @@ Parameters:
 
   AdditionalModels:
     Type: String
-    Default: us.anthropic.claude-sonnet-4-20250514-v1:0,us.anthropic.claude-opus-4-20250514-v1:0,us.deepseek.r1-v1:0
+    Default: ""
     Description: Additional models to be added to the deployment (comma separated)
 
   RAGEnabled:
@@ -67,6 +71,12 @@ Parameters:
     Type: String
     Default: ""
     Description: Allowed IPv6 address ranges for access
+
+  UsePreviousDeploymentParameter:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Use parameters from previous deployment when available (set to false to use current parameter values)'
 
 Resources:
 
@@ -165,13 +175,16 @@ Resources:
             Value: !Ref AllowedIpV4AddressRanges
           - Name: AllowedIpV6AddressRanges
             Value: !Ref AllowedIpV6AddressRanges
+          - Name: UsePreviousDeploymentParameter
+            Value: !Ref UsePreviousDeploymentParameter
           - Name: SNSTopicArn
             Value: !Ref DeploymentNotificationTopic
+          - Name: DEPLOYMENT_STACK_NAME
+            Value: !Ref AWS::StackName
       Source:
         Type: NO_SOURCE
         BuildSpec: |
           version: 0.2
-
           phases:
             install:
               runtime-versions:
@@ -182,60 +195,82 @@ Resources:
                 - git clone https://github.com/aws-samples/generative-ai-use-cases.git
                 - cd generative-ai-use-cases
                 - npm ci
-
             pre_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR/generative-ai-use-cases
                 - cp packages/cdk/parameter.ts packages/cdk/parameter.ts.backup
+                - |
+                  # Check Parameter Store for existing parameters
+                  PARAM_STORE_KEY="/genu/${Environment}.json"
+                  echo "Checking Parameter Store for existing parameters: $PARAM_STORE_KEY"
+                  
+                  if [ "$UsePreviousDeploymentParameter" = "true" ] && aws ssm get-parameter --name "$PARAM_STORE_KEY" --with-decryption --output json > stored-params.json 2>/dev/null; then
+                    echo "Found existing parameters in Parameter Store"
+                    # Extract the parameter value (which is the JSON string) and save it
+                    jq -r '.Parameter.Value' stored-params.json > existing-env-params.json
+                    echo "DEBUG - Retrieved parameters from Parameter Store:"
+                    cat existing-env-params.json
+                  else
+                    echo "No existing parameters found in Parameter Store or UsePreviousDeploymentParameter=false. Using current parameters."
+                  fi
 
-                # Create and run unified parameter script (updates parameter.ts and creates JSON for Parameter Store)
+                # Create and run unified parameter script
                 - |
                   cat > update-params.js << 'EOF'
                   const fs = require('fs');
 
-                  // Read the existing cdk.json file
                   const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
-
-                  const additionalModelIds = process.env.AdditionalModels ? 
-                    process.env.AdditionalModels.split(',').map(id => id.trim()) 
-                    : [];
-
                   const envName = process.env.Environment;
-                  const isKendraEnterprise = process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both-Enterprise';
-                  const params = {
-                    modelRegion: process.env.ModelRegion,
-                    modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
-                    ragKnowledgeBaseEnabled: process.env.RAGEnabled === 'Knowledge-Bases' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
-                    ragEnabled: process.env.RAGEnabled === 'Kendra' || process.env.RAGEnabled === 'Kendra-Enterprise' || process.env.RAGEnabled === 'Both' || process.env.RAGEnabled === 'Both-Enterprise',
-                    selfSignUpEnabled: process.env.SelfSignUp === 'true',
-                    allowedSignUpEmailDomains: process.env.AllowedSignUpEmailDomains ? process.env.AllowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
-                    allowedIpV4AddressRanges: process.env.AllowedIpV4AddressRanges ? process.env.AllowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
-                    allowedIpV6AddressRanges: process.env.AllowedIpV6AddressRanges ? process.env.AllowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
-                  };
+                  
+                  // Read parameter mode
+                  const usingExistingParams = process.env.UsePreviousDeploymentParameter === 'true';
+                  
+                  let params;
+                  
+                  if (usingExistingParams) {
+                    params = JSON.parse(fs.readFileSync('existing-env-params.json', 'utf8'));
+                  } else {                    
+                    const modelRegion = process.env.ModelRegion;
+                    const additionalModelsStr = process.env.AdditionalModels;
+                    const ragEnabled = process.env.RAGEnabled;
+                    const selfSignUp = process.env.SelfSignUp;
+                    const allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains;
+                    const allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges;
+                    const allowedIpV6AddressRanges = process.env.AllowedIpV6AddressRanges;
 
-                  // Update parameter.ts file
-                  try {
-                    let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
-                    const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
-                    
-                    if (content.match(envRegex)) {
-                      const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
-                      const updatedContent = content.replace(envRegex, envReplacement);
-                      fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
-                      console.log(`Updated ${envName} environment in parameter.ts`);
-                    } else {
-                      console.error(`Could not find ${envName} environment in parameter.ts`);
-                      process.exit(1);
-                    }
-                  } catch (error) {
-                    console.error('Error updating parameter.ts:', error);
+                    const additionalModelIds = additionalModelsStr ? 
+                      additionalModelsStr.split(',').map(id => id.trim()) 
+                      : [];
+
+                    params = {
+                      modelRegion: modelRegion,
+                      modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
+                      ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      selfSignUpEnabled: selfSignUp === 'true',
+                      allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
+                      allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
+                      allowedIpV6AddressRanges: allowedIpV6AddressRanges ? allowedIpV6AddressRanges.split(',').map(r => r.trim()) : null
+                    };
+                  }
+
+                  // Update parameter.ts with the params
+                  let content = fs.readFileSync('packages/cdk/parameter.ts', 'utf8');
+                  const envRegex = new RegExp(`(${envName}\\s*:\\s*{)[^}]*(})`, 'g');
+                  
+                  if (content.match(envRegex)) {
+                    const envReplacement = `${envName}: ${JSON.stringify(params, null, 2)}`;
+                    const updatedContent = content.replace(envRegex, envReplacement);
+                    fs.writeFileSync('packages/cdk/parameter.ts', updatedContent);
+                    console.log('Successfully updated parameter.ts');
+                  } else {
+                    console.error('Could not find environment section in parameter.ts');
                     process.exit(1);
                   }
 
-                  // Create JSON file for Parameter Store
+                  // Save params for Parameter Store update
                   fs.writeFileSync('env-params.json', JSON.stringify(params, null, 2));
-                  console.log('Environment parameters JSON created:');
-                  console.log(JSON.stringify(params, null, 2));
+                  console.log('DEBUG - Final params:', JSON.stringify(params, null, 2));
                   EOF
                   
                   node update-params.js
@@ -323,16 +358,66 @@ Resources:
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
                   Allowed IpV4 Address Ranges: ${AllowedIpV4AddressRanges}
                   Allowed IpV6 Address Ranges: ${AllowedIpV6AddressRanges}
+                  Detail (Parameter Store): https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/systems-manager/parameters/%252Fgenu%252F${Environment}.json/description?region=${AWS_DEFAULT_REGION}
 
                   Stack Details:
                   Stack Name: ${STACK_NAME}
                   Region: ${AWS_DEFAULT_REGION}
+                  CodeBuild Logs: https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/codesuite/codebuild/projects/CodeBuild-for-${DEPLOYMENT_STACK_NAME}/history?region=${AWS_DEFAULT_REGION}
 
                   EOF
 
             post_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR/
+                
+                # Cleanup all other GenUDeploymentStack instances except current one
+                - |
+                  echo "Cleaning up other GenUDeploymentStack instances..."
+                  CURRENT_STACK_NAME="$DEPLOYMENT_STACK_NAME"
+                  echo "Current deployment stack name: $CURRENT_STACK_NAME"
+                  
+                  # Get all GenUDeploymentStack instances except the current one, only in COMPLETE states to avoid race conditions
+                  OTHER_STACKS=$(aws cloudformation describe-stacks \
+                    --query "Stacks[?starts_with(StackName, 'GenUDeploymentStack') && StackName != '$CURRENT_STACK_NAME' && (StackStatus == 'CREATE_COMPLETE' || StackStatus == 'UPDATE_COMPLETE')].StackName" \
+                    --output text)
+                  
+                  if [ ! -z "$OTHER_STACKS" ] && [ "$OTHER_STACKS" != "None" ]; then
+                    echo "Found other GenUDeploymentStack instances to delete: $OTHER_STACKS"
+                    
+                    # Convert space-separated list to array and delete each stack                    
+                    for TARGET_STACK in $OTHER_STACKS; do
+                      echo "Deleting stack: $TARGET_STACK"
+                      if aws cloudformation delete-stack --stack-name "$TARGET_STACK" 2>/dev/null; then
+                        echo "Deletion initiated successfully for stack: $TARGET_STACK"
+                        DELETED_STACKS="$DELETED_STACKS $TARGET_STACK"
+                      else
+                        echo "Warning: Failed to initiate deletion for stack: $TARGET_STACK"
+                      fi
+                    done
+                    
+                    # Add cleanup information to deployment message
+                    cat << EOF >> deployment-info.txt
+                    
+                  Cleanup Information:
+                  The following previous GenUDeploymentStack instances have been deleted:
+                  $OTHER_STACKS
+                  
+                  This ensures only the current deployment stack remains active.
+                  
+                  EOF
+                  else
+                    echo "No other GenUDeploymentStack instances found to delete."
+                    
+                    # Add information that no cleanup was needed
+                    cat << EOF >> deployment-info.txt
+                    
+                  Cleanup Information:
+                  No other GenUDeploymentStack instances were found, so no cleanup was necessary.
+                  
+                  EOF
+                  fi
+                
                 - aws sns publish --topic-arn "${SNSTopicArn}" --subject "GenU Deployment Complete" --message file://deployment-info.txt
                 - rm -rf generative-ai-use-cases
           artifacts:

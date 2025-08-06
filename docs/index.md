@@ -56,11 +56,18 @@
         <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
           <i class="fa-solid fa-rocket"></i>　Deploy
         </a>
+        <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml&UsePreviousDeploymentParameter=true" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-sync"></i>　Update
+        </a>
       </div>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Deploy Guide
       </a>
+    </div>
+    <div class="deployment-help">
+      <strong>初回デプロイ:</strong> Deploy ボタンを使用してください。<br>
+      <strong>デプロイ後の更新:</strong> Update ボタンにより Environment、NotificationEmailAddress のみの入力 (他はデフォルト値のままで可) で前回の設定を引き継げます。(<a href="solutions/generative-ai-use-cases-update/" target="_blank">詳細な方法を確認</a>)
     </div>
   </div>
 </div>

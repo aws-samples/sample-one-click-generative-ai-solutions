@@ -56,11 +56,18 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
         <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
           <i class="fa-solid fa-rocket"></i> Deploy
         </a>
+        <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml&UsePreviousDeploymentParameter=true" class="deployment-button md-button" target="_blank">
+          <i class="fa-solid fa-sync"></i> Update
+        </a>
       </div>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Deploy Guide
       </a>
+    </div>
+    <div class="deployment-help">
+      <strong>First deployment:</strong> Use Deploy button.<br>
+      <strong>Post-deployment updates:</strong> Use the Update button to inherit previous settings. Only Environment and NotificationEmailAddress fields are required; all other parameters can retain their default values (as inherited from previous configurations).(<a href="solutions/generative-ai-use-cases-update/" target="_blank">Confirm Detail</a>)
     </div>
   </div>
 </div>
