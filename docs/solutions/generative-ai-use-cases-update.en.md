@@ -69,7 +69,7 @@ Using this JSON data, you can check and modify parameters in the following proce
 
 ### Steps
 
-1. **Access the [GenU deployment page](../../)**
+1. **Access the [GenU deployment page](../)**
 2. **Select region** (choose the same region as your previous deployment)
 3. **If Parameter Store content looks good, click the "Update" button**
 4. Confirm the following in the CloudFormation screen:
