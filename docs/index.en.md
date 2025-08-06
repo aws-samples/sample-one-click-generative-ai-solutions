@@ -67,7 +67,7 @@ Select an AWS solution and click Quick Launch. For more details, please refer to
     </div>
     <div class="deployment-help">
       <strong>First deployment:</strong> Use Deploy button.<br>
-      <strong>Post-deployment updates:</strong> Use the Update button to inherit previous settings. Only Environment and NotificationEmailAddress fields are required; all other parameters can retain their default values (as inherited from previous configurations).
+      <strong>Post-deployment updates:</strong> Use the Update button to inherit previous settings. Only Environment and NotificationEmailAddress fields are required; all other parameters can retain their default values (as inherited from previous configurations).(<a href="solutions/generative-ai-use-cases-update/" target="_blank">Confirm Detail</a>)
     </div>
   </div>
 </div>

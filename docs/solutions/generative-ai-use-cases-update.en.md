@@ -78,9 +78,14 @@ Using this JSON data, you can check and modify parameters in the following proce
     - Enter your email address in `NotificationEmailAddress`
 5. **Click "Create stack"**
 
-!!! Tip
-    You can also deploy with changes by modifying the Parameter Store content (the Value section shown as "..." in the figure can be displayed by clicking).
-    ![genu-update-click-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-click-01.png)
+### When you want to change parameters and update
+
+There are cases when new models become available in GenU, or when available models differ from expectations due to modelRegion constraints.
+
+In such cases, you can deploy with changes by modifying the Parameter Store content (the Value section shown as "..." in the figure can be displayed by clicking).
+![genu-update-click-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-click-01.png)
+
+For models supported by GenU, please refer to the [documentation](https://aws-samples.github.io/generative-ai-use-cases/en/DEPLOY_OPTION.html#changing-amazon-bedrock-models).
 
 ## Method 2: SageMaker Studio Code Editor Update
 

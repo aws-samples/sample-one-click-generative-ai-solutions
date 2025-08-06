@@ -67,7 +67,7 @@
     </div>
     <div class="deployment-help">
       <strong>初回デプロイ:</strong> Deploy ボタンを使用してください。<br>
-      <strong>デプロイ後の更新:</strong> Update ボタンにより Environment、NotificationEmailAddress のみの入力 (他はデフォルト値のままで可) で前回の設定を引き継げます。
+      <strong>デプロイ後の更新:</strong> Update ボタンにより Environment、NotificationEmailAddress のみの入力 (他はデフォルト値のままで可) で前回の設定を引き継げます。(<a href="solutions/generative-ai-use-cases-update/" target="_blank">詳細な方法を確認</a>)
     </div>
   </div>
 </div>

@@ -80,10 +80,14 @@ GenU のアップデートには以下の2つの方法があります：
     - `NotificationEmailAddress` にメールアドレスを入力
 5. **「Create stack」をクリック**
 
-!!! Tip
-    Parameter Store の内容を変更することで、変更を反映したデプロイを行うこともできます (図中 ・・・ となっている Value の箇所は、クリックすると内容が表示されます)。
-    ![genu-update-click-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-click-01.png)
+### パラメーターを変更して更新したい場合
 
+GenU で利用可能なモデルが増えた場合、modelRegion の制約で使用可能なモデルが想定と異なっていた場合などがあります。
+
+この際、Parameter Store の内容を変更することで、変更を反映したデプロイを行うことができます (図中 ・・・ となっている Value の箇所は、クリックすると内容が表示されます)。
+![genu-update-click-01](../assets/images/solutions/generative-ai-use-cases-update/genu-update-click-01.png)
+
+GenU が対応しているモデルは[ドキュメント](https://aws-samples.github.io/generative-ai-use-cases/ja/DEPLOY_OPTION.html#amazon-bedrock-%E3%81%AE%E3%83%A2%E3%83%87%E3%83%AB%E3%82%92%E5%A4%89%E6%9B%B4%E3%81%99%E3%82%8B)を参照してください。
 
 ## 方法2: SageMaker Studio Code Editor でのアップデート
 
