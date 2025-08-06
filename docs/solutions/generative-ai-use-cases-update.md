@@ -26,7 +26,6 @@ GenU のアップデートには以下の2つの方法があります：
 
 ### 現在のパラメーターの確認
 
-
 1 click デプロイでは、GenU デプロイ時に利用したパラメータが [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/ja_jp/systems-manager/latest/userguide/systems-manager-parameter-store.html) に JSON 形式で保存されます。
 
 [Parameter Store のマネジメントコンソール画面 (※東京リージョン (`ap-northeast-1`) の画面です)](https://ap-northeast-1.console.aws.amazon.com/systems-manager/parameters)を開き、パラメータを確認します。東京リージョン以外にデプロイした場合は、デプロイ先のリージョンで確認しましょう (`us-east-1` など)。
