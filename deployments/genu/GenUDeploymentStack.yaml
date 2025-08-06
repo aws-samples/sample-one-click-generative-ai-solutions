@@ -42,6 +42,7 @@ Parameters:
 
   AdditionalModels:
     Type: String
+    Default: ""
     Description: Additional models to be added to the deployment (comma separated)
 
   RAGEnabled:
@@ -357,10 +358,12 @@ Resources:
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
                   Allowed IpV4 Address Ranges: ${AllowedIpV4AddressRanges}
                   Allowed IpV6 Address Ranges: ${AllowedIpV6AddressRanges}
+                  Detail (Parameter Store): https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/systems-manager/parameters/%252Fgenu%252F${Environment}.json/description?region=${AWS_DEFAULT_REGION}
 
                   Stack Details:
                   Stack Name: ${STACK_NAME}
                   Region: ${AWS_DEFAULT_REGION}
+                  CodeBuild Logs: https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/codesuite/codebuild/projects/CodeBuild-for-${DEPLOYMENT_STACK_NAME}/history?region=${AWS_DEFAULT_REGION}
 
                   EOF
 
