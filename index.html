@@ -21,14 +21,14 @@
 
     // Function to update deployment URL based on selected region
     function updateDeploymentUrl(deploymentContainer, region) {
-      const deploymentLink = deploymentContainer.querySelector('.deployment-button');
-      if (deploymentLink) {
-        const currentHref = deploymentLink.getAttribute('href');
+      const deploymentLinks = deploymentContainer.querySelectorAll('.deployment-button');
+      deploymentLinks.forEach(function(link) {
+        const currentHref = link.getAttribute('href');
         // Replace region in URL
         const newHref = currentHref.replace(/https:\/\/[^.]+\.console\.aws\.amazon\.com/, 
           `https://${region}.console.aws.amazon.com`);
-        deploymentLink.setAttribute('href', newHref);
-      }
+        link.setAttribute('href', newHref);
+      });
     }
 
     // Initialize region selectors
