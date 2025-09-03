@@ -65,7 +65,7 @@ extra:
     - icon: fontawesome/brands/github
       link: https://github.com/aws-samples/sample-one-click-generative-ai-solutions/tree/main
 
-# Extensions 
+# Extensions
 markdown_extensions:
   - admonition
   - pymdownx.details
@@ -84,7 +84,7 @@ nav:
   - Supported Solutions:
     - 'Generative AI Use Cases': 
       - 'Overview': 'solutions/generative-ai-use-cases.md'
-      - 'Usec Case Builder': 'solutions/generative-ai-use-cases-ready-to-use.md'
+      - 'Use Case Builder': 'solutions/generative-ai-use-cases-ready-to-use.md'
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
