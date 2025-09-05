@@ -154,9 +154,9 @@ Resources:
         CloudWatchLogs:
           Status: ENABLED
       Environment:
-        Type: LINUX_CONTAINER
+        Type: ARM_CONTAINER
         ComputeType: BUILD_GENERAL1_SMALL
-        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
         PrivilegedMode: false
         EnvironmentVariables:
           - Name: Environment
@@ -214,15 +214,77 @@ Resources:
                     echo "No existing parameters found in Parameter Store or UsePreviousDeploymentParameter=false. Using current parameters."
                   fi
 
-                # Create and run unified parameter script
+                # Create and run unified parameter script with model conversion
                 - |
-                  cat > update-params.js << 'EOF'
-                  const fs = require('fs');
+                  cat > update-params.mjs << 'EOF'
+                  import fs from 'fs';
+                  import { execSync } from 'child_process';
 
+                  // Model conversion functions
+                  async function getAvailableModels(region) {
+                    let inferenceProfiles = [];
+                    try {
+                      const profileResult = execSync(`aws bedrock list-inference-profiles --region ${region} --query "inferenceProfileSummaries[].inferenceProfileId" --output json`, { encoding: 'utf8' });
+                      inferenceProfiles = JSON.parse(profileResult);
+                    } catch (error) {
+                      console.log(`No inference profiles available in ${region}`);
+                    }
+                    
+                    const modelResult = execSync(`aws bedrock list-foundation-models --region ${region} --by-output-modality TEXT --query "modelSummaries[].modelId" --output json`, { encoding: 'utf8' });
+                    const foundationModels = JSON.parse(modelResult);
+                    
+                    return [...inferenceProfiles, ...foundationModels];
+                  }
+
+                  function findAvailableModel(originalModelId, availableModels) {
+                    const baseModelId = originalModelId.replace(/^(us|apac|eu)\./, '');
+
+                    if (availableModels.includes(originalModelId)) {
+                      return { modelId: originalModelId, converted: false, reason: 'Original available' };
+                    }
+                    
+                    const inferenceProfile = availableModels.find(modelId => 
+                      modelId !== baseModelId && 
+                      modelId.replace(/^(us|apac|eu)\./, '') === baseModelId
+                    );
+                    
+                    if (inferenceProfile) {
+                      return { modelId: inferenceProfile, converted: true, reason: 'Inference profile' };
+                    }
+                    
+                    if (availableModels.includes(baseModelId)) {
+                      return { modelId: baseModelId, converted: true, reason: 'In-region model' };
+                    }
+                    
+                    return { modelId: originalModelId, converted: false, reason: 'No matching model found' };
+                  }
+
+                  async function convertModels(modelIds, region) {
+                    const availableModels = await getAvailableModels(region);
+                    const results = [];                    
+                    
+                    for (const modelId of modelIds) {
+                      const result = findAvailableModel(modelId, availableModels);
+                      
+                      if (result.reason !== 'No matching model found') {
+                        results.push(result.modelId);
+                      }
+                      
+                      if (result.converted) {
+                        console.log(`✓ ${modelId} -> ${result.modelId} (${result.reason})`);
+                      } else if (result.reason === 'No matching model found') {
+                        console.log(`⚠ ${modelId} (${result.reason}) - FILTERED OUT`);
+                      } else {
+                        console.log(`✓ ${modelId} (${result.reason})`);
+                      }
+                    }
+                    
+                    return [...new Set(results)];
+                  }
+
+                  // Main parameter processing
                   const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
                   const envName = process.env.Environment;
-                  
-                  // Read parameter mode
                   const usingExistingParams = process.env.UsePreviousDeploymentParameter === 'true';
                   
                   let params;
@@ -242,9 +304,14 @@ Resources:
                       additionalModelsStr.split(',').map(id => id.trim()) 
                       : [];
 
+                    const allModelIds = [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])];
+                    
+                    // Convert models for the target region
+                    const convertedModelIds = await convertModels(allModelIds, modelRegion);
+
                     params = {
                       modelRegion: modelRegion,
-                      modelIds: [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])],
+                      modelIds: convertedModelIds,
                       ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
                       ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
                       selfSignUpEnabled: selfSignUp === 'true',
@@ -273,7 +340,7 @@ Resources:
                   console.log('DEBUG - Final params:', JSON.stringify(params, null, 2));
                   EOF
                   
-                  node update-params.js
+                  node update-params.mjs
                   
                   # Store the JSON as a single parameter with SecureString type
                   aws ssm put-parameter --name "/genu/${Environment}.json" \
