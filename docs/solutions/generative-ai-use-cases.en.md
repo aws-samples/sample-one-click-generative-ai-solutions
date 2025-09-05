@@ -19,9 +19,11 @@ You can configure the following parameters during deployment:
 * **NotificationEmailAddress**
     * Email address for receiving notifications about deployment start and completion
 * **ModelRegion**
-    * The region where Amazon Bedrock models will be used
+    * The region where Amazon Bedrock provides models. If specified models are not available in the selected region, they will be automatically converted to compatible models
 * **RAGEnabled** (default: None)
     * Select RAG capabilities to enable. "Knowledge-Bases" uses Amazon Bedrock Knowledge Bases, "Kendra" uses Amazon Kendra Developer Edition, and "Both" uses both. Options with "Enterprise" suffix (like "Kendra-Enterprise") use Kendra Enterprise Edition
+* **AgentCoreEnabled** (default: true)
+    * Enable agent functionality that works with AWS MCP on AgentCore (runs on us-east-1)
 * **SelfSignUp** (default: false)
     * Toggles self-signup functionality on/off
 * **AllowedSignUpEmailDomains**

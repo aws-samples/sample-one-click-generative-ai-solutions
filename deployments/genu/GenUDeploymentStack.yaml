@@ -12,6 +12,7 @@ Metadata:
           - ModelRegion
           - AdditionalModels
           - RAGEnabled
+          - AgentCoreEnabled
           - SelfSignUp
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
@@ -50,6 +51,12 @@ Parameters:
     AllowedValues: ["None", "Knowledge-Bases", "Kendra", "Kendra-Enterprise", "Both", "Both-Enterprise"]
     Default: "None"
     Description: 'Select RAG capabilities: Amazon Bedrock Knowledge Bases, Kendra, Kendra Enterprise Edition, or combinations of them.'
+  
+  AgentCoreEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Default: true
+    Description: 'Enable agent that work with AWS MCP run on AgentCore (runs on us-east-1)'
   
   SelfSignUp:
     Type: String
@@ -167,6 +174,8 @@ Resources:
             Value: !Ref AdditionalModels
           - Name: RAGEnabled
             Value: !Ref RAGEnabled
+          - Name: AgentCoreEnabled
+            Value: !Ref AgentCoreEnabled
           - Name: SelfSignUp
             Value: !Ref SelfSignUp
           - Name: AllowedSignUpEmailDomains
@@ -295,6 +304,7 @@ Resources:
                     const modelRegion = process.env.ModelRegion;
                     const additionalModelsStr = process.env.AdditionalModels;
                     const ragEnabled = process.env.RAGEnabled;
+                    const agentCoreEnabled = process.env.AgentCoreEnabled;
                     const selfSignUp = process.env.SelfSignUp;
                     const allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains;
                     const allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges;
@@ -314,6 +324,8 @@ Resources:
                       modelIds: convertedModelIds,
                       ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
                       ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      createGenericAgentCoreRuntime: agentCoreEnabled === 'true',
+                      agentCoreRegion: 'us-east-1',
                       selfSignUpEnabled: selfSignUp === 'true',
                       allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                       allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
@@ -421,6 +433,7 @@ Resources:
                   Model Region: ${ModelRegion}
                   RAG Enabled: ${RAGEnabled}
                   Kendra Edition: $([[ "${RAGEnabled}" == *"Enterprise"* ]] && echo "Enterprise" || echo "Developer")
+                  Agent Core Enabled: ${AgentCoreEnabled}
                   Self-Signup Enabled: ${SelfSignUp}
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
                   Allowed IpV4 Address Ranges: ${AllowedIpV4AddressRanges}

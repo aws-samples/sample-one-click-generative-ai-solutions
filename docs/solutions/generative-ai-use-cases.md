@@ -19,9 +19,11 @@
 * **NotificationEmailAddress**
     * デプロイの開始・終了を通知するメールアドレスです
 * **ModelRegion**
-    * Amazon Bedrock のモデルを利用するリージョンです
+    * Amazon Bedrock のモデルを提供するリージョンです。GenU で利用するモデルが指定されたリージョンで提供されていない場合、互換性のあるモデルに自動的に変換されます
 * **RAGEnabled** (デフォルト: None)
     * RAG の設定を選択します。"Knowledge-Bases" は Amazon Bedrock Knowledge Bases 、"Kendra" は Amazon Kendra Developer Edition 、"Both" は両方使用します。"Kendra-Enterprise" のように "Enterprise" では Enterprise Edition を使用します
+* **AgentCoreEnabled** (デフォルト: true)
+    * AWS MCP と連携するエージェント機能を有効にします（us-east-1 で実行されます）
 * **SelfSignUp** (デフォルト: false)
     * セルフサインアップの有効 / 無効を切り替えます
 * **AllowedSignUpEmailDomains**
