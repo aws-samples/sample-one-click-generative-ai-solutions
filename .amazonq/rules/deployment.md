@@ -181,7 +181,7 @@ fi
 
 ## Implementation Examples
 
-You can use `/workspace` directory for storing test scripts to confirm behavior or git clone target solution repository. This directory is excluded from commit by `.gitignore`.
+You can use `/.workspace` directory for storing test scripts to confirm behavior or git clone target solution repository. This directory is excluded from commit by `.gitignore`.
 
 ### Parameter Definition Example
 
