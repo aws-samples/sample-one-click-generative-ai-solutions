@@ -36,6 +36,15 @@
 
 使いたい AWS のソリューションを決めたら、リージョンを選択し Deploy を Click します。デプロイのオプションについての説明などガイドが必要な場合は Deploy Guide を参照ください。
 
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterSolutions('all')">すべて</button>
+  <button class="filter-btn" onclick="filterSolutions('popular')">🌟 人気</button>
+  <button class="filter-btn" onclick="filterSolutions('chat')">💬 チャット・会話</button>
+  <button class="filter-btn" onclick="filterSolutions('development')">🔧 開発・自動化</button>
+  <button class="filter-btn" onclick="filterSolutions('creative')">🎨 コンテンツ制作</button>
+  <button class="filter-btn" onclick="filterSolutions('document')">📄 文書分析</button>
+</div>
+
 <style>
 .solution-card {
   border: 1px solid rgba(0, 0, 0, 0.1);
@@ -78,17 +87,6 @@
 
 .solution-card:hover .solution-card__image img {
   transform: scale(1.05);
-}
-
-.solution-card__image::before {
-  content: "🚀 Demo";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  color: #9ca3af;
-  font-weight: 500;
 }
 
 .solution-card__content {
@@ -158,6 +156,38 @@
   flex-wrap: wrap;
 }
 
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.filter-btn {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: var(--md-primary-fg-color);
+  color: white;
+  border-color: var(--md-primary-fg-color);
+}
+
+.filter-btn.active {
+  background: var(--md-primary-fg-color);
+  color: white;
+  border-color: var(--md-primary-fg-color);
+}
+
 @media screen and (max-width: 768px) {
   .solution-card__top {
     flex-direction: column;
@@ -194,28 +224,43 @@ function toggleDemo(tagElement, demoType) {
     targetImg.style.display = 'block';
   }
 }
+
+function filterSolutions(category) {
+  const cards = document.querySelectorAll('.solution-card');
+  const buttons = document.querySelectorAll('.filter-btn');
+  
+  buttons.forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  cards.forEach(card => {
+    const categories = card.dataset.category || '';
+    if (category === 'all' || categories.includes(category)) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
 </script>
 
-<div class="solution-card">
+<div class="solution-card" data-category="popular chat">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/genu-overview.gif" alt="GenU Overview Demo" data-demo="overview" style="display: block;">
-      <img src="assets/images/genu-chat.gif" alt="GenU Chat Demo" data-demo="chat" style="display: none;">
-      <img src="assets/images/genu-summary.gif" alt="GenU Summary Demo" data-demo="summary" style="display: none;">
-      <img src="assets/images/genu-rag.gif" alt="GenU RAG Demo" data-demo="rag" style="display: none;">
-      <img src="assets/images/genu-image.gif" alt="GenU Image Demo" data-demo="image" style="display: none;">
-      <img src="assets/images/genu-translate.gif" alt="GenU Translate Demo" data-demo="translate" style="display: none;">
+      <img src="./assets/images/solutions/generative-ai-use-cases/genu-chat.gif" alt="GenU Overview Demo" data-demo="chat" style="display: block;">
+      <img src="./assets/images/solutions/generative-ai-use-cases/genu-meeting-minutes.gif" alt="GenU Meeting Minutes Demo" data-demo="meeting" style="display: none;">
+      <img src="./assets/images/solutions/generative-ai-use-cases/genu-image.gif" alt="GenU Imgage" data-demo="image" style="display: none;">
+      <img src="./assets/images/solutions/generative-ai-use-cases/genu-video.gif" alt="GenU Video Demo" data-demo="video" style="display: none;">
+      <img src="./assets/images/solutions/generative-ai-use-cases/genu-builder.gif" alt="GenU Builder Demo" data-demo="builder" style="display: none;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Generative AI Use Cases</div>
       <div class="solution-card__description">
         <div class="solution-card__tags">
-          <button class="solution-card__tag active" onclick="toggleDemo(this, 'overview')">Overview</button>
-          <button class="solution-card__tag" onclick="toggleDemo(this, 'chat')">Chat</button>
-          <button class="solution-card__tag" onclick="toggleDemo(this, 'summary')">Summary</button>
-          <button class="solution-card__tag" onclick="toggleDemo(this, 'rag')">RAG</button>
+          <button class="solution-card__tag active" onclick="toggleDemo(this, 'chat')">Chat/RAG</button>
+          <button class="solution-card__tag" onclick="toggleDemo(this, 'meeting')">Meeting</button>
           <button class="solution-card__tag" onclick="toggleDemo(this, 'image')">Image</button>
-          <button class="solution-card__tag" onclick="toggleDemo(this, 'translate')">Translate</button>
+          <button class="solution-card__tag" onclick="toggleDemo(this, 'video')">Video</button>
+          <button class="solution-card__tag" onclick="toggleDemo(this, 'builder')">Builder</button>
         </div>
         <a href="https://github.com/aws-samples/generative-ai-use-cases-jp" target="_blank">Generative AI Use Cases</a> は、生成 AI の様々なユースケースがあらかじめ組み込まれたアプリケーションです。生成 AI の活用をこれから社内に普及するにあたり、安全かつ誰もが容易に使える環境を構築したい場合に最適です。
       </div>
@@ -247,10 +292,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="popular chat">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/dify.png" alt="Dify Demo" style="display: none;">
+      <img src="./assets/images/solutions/dify/dify-diagram.png" alt="Dify Diagram" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Dify</div>
@@ -278,10 +323,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="popular chat">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/bedrock-chat.png" alt="Bedrock Chat Demo" style="display: none;">
+      <img src="./assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Bedrock Chat</div>
@@ -309,10 +354,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="creative">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/genai-design-studio.png" alt="GenAI Design Studio Demo" style="display: none;">
+      <img src="./assets/images/solutions/genai-design-studio/demo.gif" alt="GenAI Design Studio Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">GenAI Design Studio</div>
@@ -339,10 +384,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="creative">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/comfyui.png" alt="ComfyUI Demo" style="display: none;">
+      <img src="./assets/images/solutions/comfyui/comfy.png" alt="ComfyUI Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">ComfyUI</div>
@@ -370,10 +415,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/rapid.png" alt="RAPID Demo" style="display: none;">
+      <img src="./assets/images/solutions/rapid/en_new_review_floor_plan.png" alt="RAPID Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Review & Assessment Powered by Intelligent Documentation (RAPID)</div>
@@ -400,10 +445,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/bedrock-engineer.png" alt="Bedrock Engineer Demo" style="display: none;">
+      <img src="./assets/images/solutions/bedrock-engineer/agent-chat-diagram.png" alt="Bedrock Engineer Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Bedrock Engineer</div>
@@ -425,10 +470,10 @@ function toggleDemo(tagElement, demoType) {
   </div>
 </div>
 
-<div class="solution-card">
+<div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="assets/images/remote-swe-agents.png" alt="Remote SWE Agents Demo" style="display: none;">
+      <img src="./assets/images/solutions/remote-swe-agents/ss-chat.png" alt="Remote SWE Agents Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title">Remote SWE Agents</div>

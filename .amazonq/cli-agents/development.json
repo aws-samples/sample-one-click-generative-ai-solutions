@@ -23,6 +23,15 @@
       },
       "timeout": 60000
     },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@latest"
+      ],
+      "env": {}
+    },
     "GitHub MCP Server": {
       "command": "npx",
       "envFile": "${workspaceFolder}/.env",
