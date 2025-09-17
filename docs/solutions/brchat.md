@@ -11,6 +11,23 @@
 - **API公開**: カスタマイズしたボットをスタンドアロンAPIとして公開可能
 - **管理機能**: API管理、ボットの分析、必須ボットの設定など
 
+## AWS へのデプロイ
+
+次のボタンからデプロイできます。AWS へログイン後クリックしてください。
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="us-east-1">バージニア</option>
+      <option value="us-west-2">オレゴン</option>
+      <option value="ap-northeast-1">東京</option>
+    </select>
+    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
 ### パラメータ設定
 
 デプロイ時に以下のパラメータを設定できます：
@@ -24,15 +41,14 @@
 * **EnableRagReplicas**: RAGデータベースのレプリカを有効化（可用性向上、コスト増加）
 * **Version**: デプロイするBedrock Chatのバージョン（デフォルト: v3）
 
-## セキュリティに関する注意点
+!!! warning "セキュリティに関する注意点"
+    本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
 
-本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
+    1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
+    2. **セルフサインアップの無効化**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成
+    3. **メールドメイン制限**: `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
 
-1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
-2. **セルフサインアップの無効化**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成
-3. **メールドメイン制限**: `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
-
-## デプロイ後の設定
+### デプロイ後の設定
 
 デプロイのボタンを押すと、しばらくしてから `AWS Notification - Subscription Confirmation` というメールが届くため `Confirm subscription` のリンクを押してください。これで、デプロイの開始、終了のメールが届くようになります。
 
@@ -46,6 +62,6 @@
     - `Admin`: 管理者権限
     - `PublishAllowed`: API公開権限
 
-## リソースの削除
+### リソースの削除
 
 デプロイしたリソースを削除するには、CloudFormation コンソールから `BedrockClaudeChat` と `BrChatDeploymentStack` スタックを削除します。

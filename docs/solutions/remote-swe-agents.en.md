@@ -1,6 +1,6 @@
 # Remote SWE Agents
 
-[Remote SWE Agents](https://github.com/aws-samples/remote-swe-agents) is an example implementation of a fully autonomous software development AI agent. The agent works in its own dedicated development environment, freeing you from being tied to your laptop!
+[Remote SWE Agents](https://github.com/aws-samples/remote-swe-agents) is an example implementation of a fully autonomous software development AI agent. The agent works in its own dedicated development environment, freeing you from being tied to your PC!
 
 This is a self-hosted, fully open-source solution on AWS that offers a similar experience to cloud-based asynchronous coding agents, such as Devin, OpenAI Codex, or Google Jules.
 
@@ -12,6 +12,27 @@ This is a self-hosted, fully open-source solution on AWS that offers a similar e
 - **Powered by AWS serverless services** with minimal maintenance costs
 - **No upfront or fixed costs** while you don't use the system
 - **Efficient token usage** with prompt cache and middle-out strategy
+
+## Deploy to AWS
+
+You can deploy using the button below. Please click after logging into AWS.
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="us-west-2">Oregon</option>
+      <option value="ap-northeast-1">Tokyo</option>
+      <option value="us-east-1">Virginia</option>
+    </select>
+    <a href="https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
+!!! note "Required Accounts"
+    - AWS account
+    - GitHub account
 
 ### Parameters
 
@@ -29,11 +50,6 @@ This is a self-hosted, fully open-source solution on AWS that offers a similar e
     - Comma-separated list of IPv6 CIDR ranges that can access the webapp.
 - **WorkerAdditionalPolicies**
     - Comma-separated list of additional IAM managed policies to attach to the worker instance.
-
-## Prerequisites
-
-- AWS account
-- GitHub account
 
 ## Post-Deployment Usage
 
