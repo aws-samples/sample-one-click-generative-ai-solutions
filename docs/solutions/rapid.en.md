@@ -13,19 +13,31 @@
 
 ## Key Use Cases
 
-### Product Specification Compliance Review
+* **Product Specification Compliance Review**
+   * Efficiently verify that product development specifications meet requirements and industry standards. Automate the process of comparing thousands of specifications annually against hundreds of checkpoints. AI extracts and structures relevant information from specifications, visualizing compliance results. Reviewers can efficiently perform final verification.
+* **Technical Manual Quality Verification**
+   * Verify that complex technical manuals comply with internal guidelines and industry standards. Support the process of comparing tens of thousands of pages of technical documentation annually against thousands of quality criteria. Automatically detect missing technical information and inconsistencies, supporting the creation of consistent, high-quality manuals.
+* **Procurement Document Compliance Verification**
+   * Check that procurement documents and proposals meet necessary requirements. Automatically extract required information from documents spanning hundreds of pages, streamlining thousands of document reviews annually. Improve procurement process speed and accuracy by having humans verify compliance results against requirement lists.
 
-Efficiently verify that product development specifications meet requirements and industry standards. Automate the process of comparing thousands of specifications annually against hundreds of checkpoints. AI extracts and structures relevant information from specifications, visualizing compliance results. Reviewers can efficiently perform final verification.
+## Deploy to AWS
 
-### Technical Manual Quality Verification
+You can deploy using the button below. Please click after logging into AWS.
 
-Verify that complex technical manuals comply with internal guidelines and industry standards. Support the process of comparing tens of thousands of pages of technical documentation annually against thousands of quality criteria. Automatically detect missing technical information and inconsistencies, supporting the creation of consistent, high-quality manuals.
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="ap-northeast-1">Tokyo</option>
+      <option value="us-west-2">Oregon</option>
+      <option value="us-east-1">Virginia</option>
+    </select>
+    <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
 
-### Procurement Document Compliance Verification
-
-Check that procurement documents and proposals meet necessary requirements. Automatically extract required information from documents spanning hundreds of pages, streamlining thousands of document reviews annually. Improve procurement process speed and accuracy by having humans verify compliance results against requirement lists.
-
-## Parameter Settings
+### Parameter Settings
 
 You can configure the following parameters during deployment:
 
@@ -43,15 +55,14 @@ You can configure the following parameters during deployment:
 * **Branch**: Branch name to deploy (default: main)
 * **GitTag**: Git tag name to deploy (takes priority over branch if specified)
 
-## Security Considerations
+!!! warning "Security Considerations"
+    For production use, the following security measures are recommended:
 
-For production use, the following security measures are recommended:
+    1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
+    2. **Disable Self-Signup**: Set `CognitoSelfSignUpEnabled` to `false` and have administrators create users
+    3. **Proper Access Control**: Implement appropriate access controls when handling sensitive documents
 
-1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
-2. **Disable Self-Signup**: Set `CognitoSelfSignUpEnabled` to `false` and have administrators create users
-3. **Proper Access Control**: Implement appropriate access controls when handling sensitive documents
-
-## Post-Deployment Setup
+### Post-Deployment Setup
 
 After clicking the deployment button, you will receive an email titled `AWS Notification - Subscription Confirmation`. Click the `Confirm subscription` link to start receiving deployment start and completion notifications.
 
@@ -65,6 +76,10 @@ When deployment is complete, you'll receive a notification email containing:
 4. **User Creation Instructions**: How to create users when self-signup is disabled
 5. **Configuration Information**: Confirmation of parameters specified during deployment
 
+### Resource Removal
+
+To remove deployed resources, delete the `RapidStack` and `RapidDeploymentStack` stacks from the CloudFormation console.
+
 ## How to Use
 
 1. **Create Checklists**: Create and upload checklists to be used for reviews
@@ -72,7 +87,3 @@ When deployment is complete, you'll receive a notification email containing:
 3. **Execute AI Review**: System automatically analyzes documents and compares them against checklists
 4. **Review and Modify Results**: Humans review AI results and make corrections as needed
 5. **Final Approval**: Finalize review results and generate reports
-
-## Resource Removal
-
-To remove deployed resources, delete the `RapidStack` and `RapidDeploymentStack` stacks from the CloudFormation console.

@@ -18,6 +18,24 @@
 - **Content Creation**: Create visual materials for games, movies, and advertisements
 - **Research & Development**: Experiment and test new generative technologies and models
 
+## Deploy to AWS
+
+You can deploy using the button below. Please click after logging into AWS.
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="ap-northeast-1">Tokyo</option>
+      <option value="ap-northeast-3">Osaka</option>
+      <option value="us-east-1">Virginia</option>
+      <option value="us-west-2">Oregon</option>
+    </select>
+    <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
 ### Parameter Settings
 
 You can configure the following parameters during deployment:
@@ -29,15 +47,14 @@ You can configure the following parameters during deployment:
 * **AllowedIpV4AddressRanges**: IPv4 address ranges allowed for access (e.g., 10.0.0.100/32, 192.168.0.0/24)
 * **AllowedIpV6AddressRanges**: IPv6 address ranges allowed for access
 
-## Security Considerations
+!!! warning "Security Considerations"
+    For production use, the following security measures are recommended:
 
-For production use, the following security measures are recommended:
+    1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
+    2. **Self-Signup Control**: Set `SelfSignUp` to `false` and have administrators create users, or limit email domain by `AllowedSignUpEmailDomains` to allow signups only from specific domains
+    3. **Resource Monitoring**: Regularly monitor GPU usage and costs
 
-1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
-2. **Self-Signup Control**: Set `SelfSignUp` to `false` and have administrators create users, or limit email domain by `AllowedSignUpEmailDomains` to allow signups only from specific domains
-3. **Resource Monitoring**: Regularly monitor GPU usage and costs
-
-## Post-Deployment Setup
+### Post-Deployment Setup
 
 After clicking the deployment button, you'll receive an `AWS Notification - Subscription Confirmation` email. Click the `Confirm subscription` link to start receiving deployment status notifications.
 
@@ -48,16 +65,7 @@ When deployment is complete, you'll receive a notification email containing:
 3. **Environment Configuration**: Details about the deployed environment
 4. **AWS Cognito User Management URL**: Console link for user creation and group management
 
-## Usage Instructions
-
-After logging into ComfyUI, you can start generating images by following these steps:
-
-1. **Select Workflow**: Choose a pre-defined workflow or create a new one
-2. **Configure Nodes**: Set prompts, models, parameters, and other settings
-3. **Execute**: Click the "Queue Prompt" button to start image generation
-4. **Review Results**: Download or save the generated images
-
-## Resource Removal
+### Resource Removal
 
 To remove deployed resources, delete the following stacks from the CloudFormation console:
 
@@ -66,6 +74,15 @@ To remove deployed resources, delete the following stacks from the CloudFormatio
 
 !!! warning "Warning"
     Deleting the stacks will remove all saved images and custom settings. Please backup any necessary data beforehand.
+
+## Usage Instructions
+
+After logging into ComfyUI, you can start generating images by following these steps:
+
+1. **Select Workflow**: Choose a pre-defined workflow or create a new one
+2. **Configure Nodes**: Set prompts, models, parameters, and other settings
+3. **Execute**: Click the "Queue Prompt" button to start image generation
+4. **Review Results**: Download or save the generated images
 
 ## Troubleshooting
 

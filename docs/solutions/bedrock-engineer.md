@@ -13,6 +13,18 @@ Bedrock Engineer は、強力な AI 機能を備えたスタンドアロンア�
 - 🎤 Amazon Nova Sonic によるボイスチャット機能
 - 🖥️ ウェブサイトや図の生成機能
 
+## ダウンロード
+
+次のボタンから最新版をダウンロードできます。
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <a href="https://github.com/aws-samples/bedrock-engineer/releases/latest" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-download"></i>　Download Latest Release
+    </a>
+  </div>
+</div>
+
 ## 主な機能
 
 ### エージェントチャット：カスタマイズ可能な AI アシスタント

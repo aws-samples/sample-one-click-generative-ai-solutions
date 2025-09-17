@@ -1,6 +1,6 @@
 # Bedrock Engineer
 
-[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) is an autonomous software development agent application powered by Amazon Bedrock. It offers a rich set of features for AI-assisted development and content creation through a dedicated desktop application.
+[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) is an AI assistant for software development tasks powered by [Amazon Bedrock](https://aws.amazon.com/bedrock/). Autonomous AI agents with large language models and real-world file system operations, web search capabilities, and more support your development work.
 
 ## Overview
 
@@ -13,6 +13,18 @@ Bedrock Engineer provides a standalone application experience with powerful AI c
 - 🎤 Voice chat capabilities with Amazon Nova Sonic
 - 🖥️ Website and diagram generation features
 
+## Download
+
+Download the latest version using the button below.
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <a href="https://github.com/aws-samples/bedrock-engineer/releases/latest" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-download"></i>　Download Latest Release
+    </a>
+  </div>
+</div>
+
 ## Key Features
 
 ### Agent Chat: Customizable AI Assistants
@@ -23,16 +35,15 @@ The Agent Chat feature provides a powerful interface for interacting with AI ass
 
 #### 1. Customizable Agents
 
-Create specialized agents by defining:
-- Custom names and descriptions
-- Tailored system prompts that define behavior and expertise
-- Tool selection specific to each agent's purpose
+Select agents from the top-left menu. By default, it includes Software Developer specialized for general software development, Programming Mentor to support programming learning, and Product Designer to support the conceptual stage of services and products.
 
 ![Custom Agents](https://raw.githubusercontent.com/aws-samples/bedrock-engineer/main/assets/custom-agents.png)
 
+Customize agent settings. Enter the agent's name and description, and input the system prompt. The system prompt is a crucial element that determines the agent's behavior. By clearly defining the agent's purpose, regulations, role, available tools, and when to use them, you can obtain more appropriate responses.
+
 #### 2. Integrated Tools
 
-Bedrock Engineer provides a comprehensive set of tools that can be selectively enabled for each agent:
+Click the Tools icon in the bottom left to select tools that the agent can use. Tools can be configured individually for each agent.
 
 ![Select Tools](https://raw.githubusercontent.com/aws-samples/bedrock-engineer/main/assets/select-tools.png)
 
@@ -58,14 +69,16 @@ Bedrock Engineer provides a comprehensive set of tools that can be selectively e
 
 #### 3. Agent Directory: Sharing and Discovery
 
-The Agent Directory allows you to discover and share AI agents created by the community:
+The Agent Directory is a content hub where you can discover and immediately use AI agents created by excellent contributors. It provides a curated collection of agents designed for various tasks and specializations.
 
 ![Agent Directory](https://raw.githubusercontent.com/aws-samples/bedrock-engineer/main/assets/agent-directory.png)
 
-- Browse a curated collection of specialized agents
-- Search and filter by tags and capabilities
-- Add agents to your collection with one click
-- Contribute your custom agents to the community
+**Features**
+- **Browse Collections** - Explore the growing library of specialized agents created by the community
+- **Search and Filter** - Quickly discover agents that match your needs using search functionality or filtering by tags
+- **View Detailed Information** - Check comprehensive information about each agent including creator, system prompt, supported tools, and usage scenarios
+- **One-Click Addition** - Add any agent to your personal collection with one click and start using immediately
+- **Agent Submission** - Become a contributor and share your custom agents with the community
 
 ## Additional Resources
 

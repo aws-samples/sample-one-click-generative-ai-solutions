@@ -11,6 +11,23 @@
 - **API Publishing**: Publish customized bots as standalone APIs
 - **Administrative Features**: API management, bot analytics, essential bot settings, and more
 
+## Deploy to AWS
+
+You can deploy using the button below. Please click after logging into AWS.
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="us-east-1">Virginia</option>
+      <option value="us-west-2">Oregon</option>
+      <option value="ap-northeast-1">Tokyo</option>
+    </select>
+    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
 ### Parameter Settings
 
 You can configure the following parameters during deployment:
@@ -24,15 +41,16 @@ You can configure the following parameters during deployment:
 * **EnableRagReplicas**: Enable replicas for RAG database (improves availability but increases cost)
 * **Version**: Version of Bedrock Chat to deploy (default: v3)
 
-## Security Considerations
+!!! warning "Security Considerations"
+    For production use, the following security measures are recommended:
 
-For production use, the following security measures are recommended:
+    1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
+    2. **Disable Self-Signup**: Set `SelfSignUp` to `false` and have administrators create users
+    3. **Email Domain Restrictions**: Use `AllowedSignUpEmailDomains` to allow signups only from specific domains
 
-1. **IP Restrictions**: Use `AllowedIpV4AddressRanges` and `AllowedIpV6AddressRanges` to restrict access to specific IP addresses
-2. **Disable Self-Signup**: Set `SelfSignUp` to `false` and have administrators create users
-3. **Email Domain Restrictions**: Use `AllowedSignUpEmailDomains` to allow signups only from specific domains
+### Post-Deployment Setup
 
-## Post-Deployment Setup
+After clicking the deployment button, you will receive an email titled `AWS Notification - Subscription Confirmation` after a short while. Click the `Confirm subscription` link to start receiving deployment start and completion notifications.
 
 When deployment is complete, you'll receive a notification email containing:
 
@@ -44,6 +62,6 @@ When deployment is complete, you'll receive a notification email containing:
     - `Admin`: Administrator permissions
     - `PublishAllowed`: Permission to publish APIs
 
-## Resource Removal
+### Resource Removal
 
-To remove deployed resources, delete the `BrChatDeploymentStack` stack from the CloudFormation console.
+To remove deployed resources, delete the `BedrockClaudeChat` and `BrChatDeploymentStack` stacks from the CloudFormation console.

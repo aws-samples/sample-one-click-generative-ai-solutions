@@ -18,6 +18,24 @@
 - **コンテンツ制作**: ゲーム、映画、広告用の視覚素材作成
 - **研究開発**: 新しい生成技術やモデルの実験とテスト
 
+## AWS へのデプロイ
+
+次のボタンからデプロイできます。AWS へログイン後クリックしてください。
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="ap-northeast-1">東京</option>
+      <option value="ap-northeast-3">大阪</option>
+      <option value="us-east-1">バージニア</option>
+      <option value="us-west-2">オレゴン</option>
+    </select>
+    <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
 ### パラメータ設定
 
 デプロイ時に以下のパラメータを設定できます：
@@ -29,15 +47,14 @@
 * **AllowedIpV4AddressRanges**: アクセスを許可するIPv4アドレス範囲（例: 10.0.0.100/32, 192.168.0.0/24）
 * **AllowedIpV6AddressRanges**: アクセスを許可するIPv6アドレス範囲
 
-## セキュリティに関する注意点
+!!! warning "セキュリティに関する注意点"
+    本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
 
-本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
+    1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
+    2. **セルフサインアップの制御**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成、もしくは `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
+    3. **リソース監視**: GPU 使用量とコストを定期的に監視
 
-1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
-2. **セルフサインアップの制御**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成、もしくは `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
-3. **リソース監視**: GPU 使用量とコストを定期的に監視
-
-## デプロイ後の設定
+### デプロイ後の設定
 
 デプロイのボタンを押すと、しばらくしてから `AWS Notification - Subscription Confirmation` というメールが届くため `Confirm subscription` のリンクを押してください。これで、デプロイの開始、終了のメールが届くようになります。
 
@@ -48,16 +65,7 @@
 3. **環境設定**: デプロイされた環境の詳細情報
 4. **AWS Cognito ユーザー管理URL**: ユーザー作成とグループ管理のためのコンソールリンク
 
-## 使用方法
-
-ComfyUI にログインした後は、以下の手順で画像生成を開始できます：
-
-1. **ワークフローの選択**: 事前定義されたワークフローを選択、または新しく作成
-2. **ノードの設定**: プロンプト、モデル、パラメータなどを設定
-3. **実行**: "Queue Prompt" ボタンで画像生成を開始
-4. **結果の確認**: 生成された画像をダウンロードまたは保存
-
-## リソースの削除
+### リソースの削除
 
 デプロイしたリソースを削除するには、CloudFormation コンソールから以下のスタックを削除します：
 
@@ -66,6 +74,15 @@ ComfyUI にログインした後は、以下の手順で画像生成を開始で
 
 !!! warning "注意"
     スタック削除により、保存された画像やカスタム設定もすべて削除されます。必要なデータは事前にバックアップしてください。
+
+## 使用方法
+
+ComfyUI にログインした後は、以下の手順で画像生成を開始できます：
+
+1. **ワークフローの選択**: 事前定義されたワークフローを選択、または新しく作成
+2. **ノードの設定**: プロンプト、モデル、パラメータなどを設定
+3. **実行**: "Queue Prompt" ボタンで画像生成を開始
+4. **結果の確認**: 生成された画像をダウンロードまたは保存
 
 ## トラブルシューティング
 

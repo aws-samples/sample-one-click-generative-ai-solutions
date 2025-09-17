@@ -13,7 +13,28 @@ AWS 上でセルフホスト型OSSソリューションとして提供され、D
 - **システムを使用しない間は固定費用なし**
 - **効率的なトークン使用量** - プロンプトキャッシュとミドルアウト戦略による最適化
 
-### パラメーター
+## AWS へのデプロイ
+
+次のボタンからデプロイできます。AWS へログイン後クリックしてください。
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="us-west-2">オレゴン</option>
+      <option value="ap-northeast-1">東京</option>
+      <option value="us-east-1">バージニア</option>
+    </select>
+    <a href="https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+  </div>
+</div>
+
+!!! note "事前準備するアカウント"
+    - AWS アカウント
+    - GitHub アカウント
+
+### パラメーター設定
 
 - **NotificationEmailAddress**
     - デプロイの開始・終了を通知するメールアドレスです。このアドレスは初期ウェブアプリユーザーとしても設定されます。
@@ -29,11 +50,6 @@ AWS 上でセルフホスト型OSSソリューションとして提供され、D
     - ウェブアプリにアクセス可能な IPv6 CIDR 範囲をカンマ区切りで指定します。
 - **WorkerAdditionalPolicies**
     - ワーカーインスタンスに追加で付与する IAM マネージドポリシーをカンマ区切りで指定します。
-
-## 前提条件
-
-- AWS アカウント
-- GitHub アカウント
 
 ## デプロイ後の使用方法
 

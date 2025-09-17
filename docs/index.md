@@ -235,7 +235,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/generative-ai-use-cases/genu-builder.gif" alt="GenU Builder Demo" data-demo="builder" style="display: none;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Generative AI Use Cases</div>
+      <div class="solution-card__title"><a href="solutions/generative-ai-use-cases/">Generative AI Use Cases</a></div>
       <div class="solution-card__description">
         <div class="solution-card__tags">
           <button class="solution-card__tag active" onclick="toggleDemo(this, 'chat')">Chat/RAG</button>
@@ -280,7 +280,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/dify/dify-diagram.png" alt="Dify Diagram" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Dify</div>
+      <div class="solution-card__title"><a href="solutions/dify/">Dify</a></div>
       <div class="solution-card__description">
         <a href="https://dify.ai/jp" target="_blank">Dify</a> は、生成 AI を用いたチャットボットやワークフローを GUI で作成することが出来ます。複数ステップにまたがる生成 AI の処理等を実装したい時に最適です。 AWS へのデプロイに当たっては <a href="https://github.com/aws-samples/dify-self-hosted-on-aws" target="_blank">dify-self-hosted-on-aws</a>を使うことで容易に配置できます。
       </div>
@@ -311,7 +311,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Bedrock Chat</div>
+      <div class="solution-card__title"><a href="solutions/brchat/">Bedrock Chat</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。
       </div>
@@ -342,7 +342,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/genai-design-studio/demo.gif" alt="GenAI Design Studio Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">GenAI Design Studio</div>
+      <div class="solution-card__title"><a href="solutions/genai-design-studio/">GenAI Design Studio</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> は、Amazon Nova Canvas を活用したバーチャル試着ソリューションです。アパレル業界やECサービスにおいて、服飾デザインから実際のモデル着用撮影まで、様々なプロセスの効率化を目指します。
       </div>
@@ -372,7 +372,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/comfyui/comfy.png" alt="ComfyUI Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">ComfyUI</div>
+      <div class="solution-card__title"><a href="solutions/comfyui/">ComfyUI</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">ComfyUI</a> は、ノードベースの生成AI画像生成ツールで、Stable Diffusion や様々なモデルを組み合わせて高品質な画像を生成できます。複雑なワークフローを視覚的に構築し、画像生成プロセスを細かく制御したい場合に最適です。
       </div>
@@ -403,7 +403,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/rapid/en_new_review_floor_plan.png" alt="RAPID Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Review & Assessment Powered by Intelligent Documentation (RAPID)</div>
+      <div class="solution-card__title"><a href="solutions/rapid/">Review & Assessment Powered by Intelligent Documentation (RAPID)</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation" target="_blank">RAPID</a> は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。
       </div>
@@ -433,7 +433,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/bedrock-engineer/agent-chat-diagram.png" alt="Bedrock Engineer Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Bedrock Engineer</div>
+      <div class="solution-card__title"><a href="solutions/bedrock-engineer/">Bedrock Engineer</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/aws-samples/bedrock-engineer" target="_blank">Bedrock Engineer</a> は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web 検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。
       </div>
@@ -458,7 +458,7 @@ function filterSolutions(category) {
       <img src="./assets/images/solutions/remote-swe-agents/ss-chat.png" alt="Remote SWE Agents Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title">Remote SWE Agents</div>
+      <div class="solution-card__title"><a href="solutions/remote-swe-agents/">Remote SWE Agents</a></div>
       <div class="solution-card__description">
         <a href="https://github.com/aws-samples/remote-swe-agents" target="_blank">Remote SWE Agents</a> は、AI による自律型のソフトウェア開発エージェントの実装例です。このエージェントはタスクごとに専用の開発環境内で動作し、ユーザーの PC に依存することなく開発作業を行います。
       </div>
