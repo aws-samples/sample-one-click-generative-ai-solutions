@@ -56,7 +56,7 @@ You can configure the following parameters during deployment:
 * **RAGEnabled** (default: None)
     * Select RAG capabilities to enable. "Knowledge-Bases" uses Amazon Bedrock Knowledge Bases, "Kendra" uses Amazon Kendra Developer Edition, and "Both" uses both. Options with "Enterprise" suffix (like "Kendra-Enterprise") use Kendra Enterprise Edition
 * **AgentCoreEnabled** (default: true)
-    * Enable agent functionality that works with AWS MCP (runs on us-east-1)
+    * Enable agent functionality that works with AWS MCP on AgentCore (runs on us-east-1)
 * **SelfSignUp** (default: false)
     * Toggles self-signup functionality on/off
 * **AllowedSignUpEmailDomains**
