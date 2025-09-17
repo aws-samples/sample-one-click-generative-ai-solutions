@@ -1,6 +1,6 @@
 # Bedrock Engineer
 
-[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) is an AI assistant for software development tasks powered by [Amazon Bedrock](https://aws.amazon.com/bedrock/). Autonomous AI agents with large language models and real-world file system operations, web search capabilities, and more support your development work.
+[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) is an AI assistant for software development tasks powered by [Amazon Bedrock](https://aws.amazon.com/bedrock/). It provides autonomous AI agents with large language models that support your development work through real-world file system operations, web search capabilities, and more.
 
 ## Overview
 
