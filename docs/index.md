@@ -34,7 +34,7 @@
 
 ## 2. Choose & Click
 
-使いたい AWS のソリューションを決めたら、リージョンを選択し Deploy を Click します。デプロイのオプションについての説明などガイドが必要な場合は Deploy Guide を参照ください。
+使いたい AWS のソリューションを決めたら、リージョンを選択し Deploy を Click します。デプロイのオプションについての説明などガイドが必要な場合は 詳しく を参照ください。
 
 <div class="filter-bar">
   <button class="filter-btn active" onclick="filterSolutions('all')">すべて</button>
@@ -142,18 +142,6 @@
 
 .solution-card__actions {
   border-top: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 1.5rem;
-  background: #fafbfc;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.solution-card__deployment {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
 }
 
 .filter-bar {
@@ -198,12 +186,6 @@
     height: 150px;
     border-right: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  }
-  
-  .solution-card__deployment {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
   }
 }
 </style>
@@ -282,7 +264,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
     <div class="deployment-help">
@@ -317,7 +299,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/dify/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -348,7 +330,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/brchat/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -378,7 +360,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/genai-design-studio/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -409,7 +391,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/comfyui/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -439,7 +421,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/rapid/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -464,7 +446,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/bedrock-engineer/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>
@@ -494,7 +476,7 @@ function filterSolutions(category) {
       </a>
       <a href="solutions/remote-swe-agents/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
-        Deploy Guide
+        詳しく
       </a>
     </div>
   </div>

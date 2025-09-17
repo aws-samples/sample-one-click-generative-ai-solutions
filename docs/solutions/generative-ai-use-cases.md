@@ -10,9 +10,42 @@
 - **マルチモデル対応**: Amazon Bedrock の様々なモデルを利用できます
 - **カスタマイズ可能**: ユースケースビルダーを用い、独自のユースケースを追加・共有できます
 
-### パラメータ設定
+## 組織での活用シナリオ
 
-デプロイ時に以下のパラメータを設定できます：
+- [オウンドメディア記事作成の効率化 : サルソニード様事例](https://aws.amazon.com/jp/blogs/news/genai-case-study-salsonido/)
+- [衣服デザイン等に活用し月 450 時間以上の工数を削減。デジタル人材育成を推進 : タキヒヨー様](https://aws.amazon.com/jp/solutions/case-studies/takihyo/)
+- [メルマガ作成・校正ツールを開発し月 200 時間の工数削減を実現 : オイシックス・ラ・大地様](https://aws.amazon.com/jp/solutions/case-studies/oisix/)
+    - [AWS Summit 2025 でのご講演](https://youtu.be/rd8PIxrOjHw?si=wBj7wUZJXTd9CEOG)
+- [カメラ付き照明による冠水検知にむけた素早い実証実験 : 岩崎電機様](https://aws.amazon.com/jp/blogs/news/genai-case-study-iwasaki/)
+
+## AWS へのデプロイ
+
+次のボタンからデプロイできます。AWS へログイン後クリックしてください。
+
+<div class="solution-card__actions">
+  <div class="solution-card__deployment">
+    <select class="region-selector">
+      <option value="ap-northeast-1">東京</option>
+      <option value="ap-northeast-3">大阪</option>
+      <option value="us-east-1">バージニア</option>
+      <option value="us-west-2">オレゴン</option>
+    </select>
+    <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-rocket"></i>　Deploy
+    </a>
+    <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&amp;param_UsePreviousDeploymentParameter=true&amp;templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <i class="fa-solid fa-sync"></i>　Update
+    </a>
+  </div>
+  <div class="deployment-help">
+    <strong>初回デプロイ:</strong> Deploy ボタンを使用してください。<br>
+    <strong>デプロイ後の更新:</strong> Update ボタンにより Environment、NotificationEmailAddress のみの入力 (他はデフォルト値のままで可) で前回の設定を引き継げます。(<a href="generative-ai-use-cases-update/" target="_blank">詳細な方法を確認</a>)
+  </div>
+</div>
+
+### パラメーター設定
+
+デプロイする際に、以下のパラメータを設定できます。
 
 * **Environment** (デフォルト: dev)
     * デプロイする環境の種別です。`packages/cdk/parameter.ts` で指定する環境です。Environment の値を切り替えることで複数の GenU 環境をデプロイできます
@@ -33,17 +66,17 @@
 * **AllowedIpV6AddressRanges**
     * アクセス可能な IP アドレスを指定 (IPv6)
 
-## セキュリティに関する注意点
+!!! warning "セキュリティに関する注意点"
+    
+    本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
+    
+    1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
+    2. **セルフサインアップの無効化**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成
+    3. **メールドメイン制限**: `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
+    
+    IP 制限を設定しない場合は Public Access 可能な状態でデプロイされますが、SelfSignUp は false にしているためログインには AWS アカウントでのユーザー作成 (Amazon Cognito) が必要です。
 
-本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
-
-1. **IP制限の設定**: `AllowedIpV4AddressRanges` と `AllowedIpV6AddressRanges` を使用して、アクセス可能なIPアドレスを制限
-2. **セルフサインアップの無効化**: `SelfSignUp` を `false` に設定し、管理者がユーザーを作成
-3. **メールドメイン制限**: `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
-
-IP 制限を設定しない場合は Public Access 可能な状態でデプロイされますが、SelfSignUp は false にしているためログインには AWS アカウントでのユーザー作成 (Amazon Cognito) が必要です。
-
-## デプロイ後の設定
+### デプロイ後の設定
 
 デプロイのボタンを押すと、しばらくしてから `AWS Notification - Subscription Confirmation` というメールが届くため `Confirm subscription` のリンクを押してください。これで、デプロイの開始、終了のメールが届くようになります。
 
@@ -53,16 +86,18 @@ IP 制限を設定しない場合は Public Access 可能な状態でデプロ�
 2. 管理者アカウントの作成方法
 3. Amazon Bedrockのモデルアクセス設定手順
 
-## 学習リソース
+### リソースの削除
 
-Generative AI Use Cases の使い方を学ぶには、以下のワークショップを参照してください：
+デプロイしたリソースを削除するには、CloudFormationコンソールから `GenerativeAiUseCasesStack` と `GenUDeploymentStack` スタックを削除します。
+
+## デプロイ後の活用方法
+
+Generative AI Use Cases の使い方を学ぶには、以下のワークショップを参照してください。
 
 * [生成 AI 体験ワークショップ](https://catalog.workshops.aws/generative-ai-use-cases-jp)
+
 
 ## 関連ドキュメント
 
 - [アップデート手順](generative-ai-use-cases-update.md) - 既存環境のアップデート方法
 
-## リソースの削除
-
-デプロイしたリソースを削除するには、CloudFormationコンソールから `GenerativeAiUseCasesStack` と `GenUDeploymentStack` スタックを削除します。
