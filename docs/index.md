@@ -36,6 +36,186 @@
 
 使いたい AWS のソリューションを決めたら、リージョンを選択し Deploy を Click します。デプロイのオプションについての説明などガイドが必要な場合は 詳しく を参照ください。
 
+### 課題から探す
+
+<div class="ask-expert-section">
+  <div class="ask-expert-header">
+    <h3 class="ask-expert-title">
+      <i class="fa-solid fa-compass"></i>
+      業界・課題別ソリューション選択
+    </h3>
+  </div>
+  
+  <div class="industry-tabs-container">
+    <div class="industry-tabs" role="tablist">
+      <button class="industry-tab active" data-industry="finance" role="tab">
+        <span class="tab-icon">💰</span>
+        <span class="tab-label">金融・法務</span>
+      </button>
+      <button class="industry-tab" data-industry="manufacturing" role="tab">
+        <span class="tab-icon">🏭</span>
+        <span class="tab-label">製造業</span>
+      </button>
+      <button class="industry-tab" data-industry="retail" role="tab">
+        <span class="tab-icon">🛒</span>
+        <span class="tab-label">小売・EC</span>
+      </button>
+      <button class="industry-tab" data-industry="creative" role="tab">
+        <span class="tab-icon">🎨</span>
+        <span class="tab-label">クリエイティブ</span>
+      </button>
+      <button class="industry-tab" data-industry="development" role="tab">
+        <span class="tab-icon">💻</span>
+        <span class="tab-label">開発・IT</span>
+      </button>
+    </div>
+    
+    <div class="tab-content-area">
+      <div class="tab-content active" id="finance-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📄</span>
+              <h4>文書審査・レビュー</h4>
+            </div>
+            <p class="challenge-description">契約書、コンプライアンス文書、財務報告書のAI支援レビュー</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/rapid/'">RAPID</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/generative-ai-use-cases/'">GenU</button>
+            </div>
+          </div>
+          
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">⚖️</span>
+              <h4>コンプライアンス自動化</h4>
+            </div>
+            <p class="challenge-description">規制遵守の自動チェックと報告システム</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/rapid/'">RAPID</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/brchat/'">Bedrock Chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="manufacturing-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📋</span>
+              <h4>技術文書管理</h4>
+            </div>
+            <p class="challenge-description">技術マニュアル、SOP、コンプライアンス文書の更新管理</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/rapid/'">RAPID</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/generative-ai-use-cases/'">GenU</button>
+            </div>
+          </div>
+          
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🔍</span>
+              <h4>品質保証</h4>
+            </div>
+            <p class="challenge-description">検査プロセスの標準化と品質管理文書の自動化</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/rapid/'">RAPID</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/brchat/'">Bedrock Chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="retail-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">👗</span>
+              <h4>バーチャル試着</h4>
+            </div>
+            <p class="challenge-description">商品デザインからモデル着用まで効率化</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/genai-design-studio/'">GenAI Studio</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/comfyui/'">ComfyUI</button>
+            </div>
+          </div>
+          
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">💬</span>
+              <h4>カスタマーサポート</h4>
+            </div>
+            <p class="challenge-description">AIチャットボットによる24時間顧客対応</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/generative-ai-use-cases/'">GenU</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/brchat/'">Bedrock Chat</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="creative-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🎨</span>
+              <h4>画像・デザイン生成</h4>
+            </div>
+            <p class="challenge-description">高品質な画像生成とデザインワークフロー</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/comfyui/'">ComfyUI</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/genai-design-studio/'">GenAI Studio</button>
+            </div>
+          </div>
+          
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📝</span>
+              <h4>コンテンツ制作</h4>
+            </div>
+            <p class="challenge-description">マーケティング素材やコンテンツの自動生成</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/generative-ai-use-cases/'">GenU</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/dify/'">Dify</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="tab-content" id="development-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🤖</span>
+              <h4>自動開発エージェント</h4>
+            </div>
+            <p class="challenge-description">AIによる自律的なソフトウェア開発</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/bedrock-engineer/'">Bedrock Engineer</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/remote-swe-agents/'">Remote SWE</button>
+            </div>
+          </div>
+          
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">⚙️</span>
+              <h4>ワークフロー自動化</h4>
+            </div>
+            <p class="challenge-description">複雑な業務プロセスの自動化</p>
+            <div class="solution-badges">
+              <button class="filter-btn" onclick="window.location.href='solutions/dify/'">Dify</button>
+              <button class="filter-btn" onclick="window.location.href='solutions/generative-ai-use-cases/'">GenU</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+### 一覧から探す
+
 <div class="filter-bar">
   <button class="filter-btn active" onclick="filterSolutions('all')">すべて</button>
   <button class="filter-btn" onclick="filterSolutions('popular')">🌟 人気</button>
@@ -188,6 +368,169 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   }
 }
+
+/* Ask Expert Section Styles */
+.ask-expert-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  margin: 3rem 0;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.ask-expert-header {
+  background: linear-gradient(135deg, var(--md-primary-fg-color) 0%, #4338ca 100%);
+  color: white;
+  padding: 2rem;
+  text-align: center;
+}
+
+.ask-expert-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.industry-tabs-container {
+  background: #ffffff;
+}
+
+.industry-tabs {
+  display: flex;
+  overflow-x: auto;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.industry-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 1.5rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.industry-tab:hover {
+  background: rgba(var(--md-primary-fg-color-rgb), 0.05);
+}
+
+.industry-tab.active {
+  border-bottom-color: var(--md-primary-fg-color);
+  background: white;
+}
+
+.tab-icon {
+  font-size: 1.5rem;
+}
+
+.tab-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.industry-tab.active .tab-label {
+  color: var(--md-primary-fg-color);
+}
+
+.tab-content-area {
+  min-height: 300px;
+}
+
+.tab-content {
+  display: none;
+  padding: 2rem;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.challenge-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.challenge-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.challenge-card:hover {
+  border-color: var(--md-primary-fg-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.challenge-icon {
+  font-size: 1.5rem;
+}
+
+.challenge-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.challenge-description {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.solution-badges {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media screen and (max-width: 768px) {
+  .ask-expert-header {
+    padding: 1.5rem;
+  }
+  
+  .ask-expert-title {
+    font-size: 1.25rem;
+  }
+  
+  .tab-content {
+    padding: 1.5rem;
+  }
+  
+  .industry-tabs {
+    flex-wrap: wrap;
+  }
+  
+  .industry-tab {
+    flex: 1 1 50%;
+    min-width: 100px;
+  }
+}
 </style>
 
 <script>
@@ -223,6 +566,29 @@ function filterSolutions(category) {
     }
   });
 }
+
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const tabs = document.querySelectorAll('.industry-tab');
+  const contents = document.querySelectorAll('.tab-content');
+  
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const industry = this.dataset.industry;
+      
+      // Remove active class from all tabs and contents
+      tabs.forEach(t => t.classList.remove('active'));
+      contents.forEach(c => c.classList.remove('active'));
+      
+      // Add active class to clicked tab and corresponding content
+      this.classList.add('active');
+      const targetContent = document.getElementById(industry + '-content');
+      if (targetContent) {
+        targetContent.classList.add('active');
+      }
+    });
+  });
+});
 </script>
 
 <div class="solution-card" data-category="popular chat">
