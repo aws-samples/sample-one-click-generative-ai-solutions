@@ -550,8 +550,7 @@
 .ask-expert-section {
   background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   border: 1px solid #e2e8f0;
-  border-radius: 20px;
-  margin: 3rem 0;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
 }
@@ -559,7 +558,7 @@
 .ask-expert-header {
   background: linear-gradient(135deg, var(--md-primary-fg-color) 0%, #4338ca 100%);
   color: white;
-  padding: 2rem;
+  padding: 1.2rem;
   text-align: center;
 }
 
@@ -587,7 +586,7 @@
 .industry-tab {
   flex: 1;
   min-width: 120px;
-  padding: 1.5rem 1rem;
+  padding: 1.2rem 1rem;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -645,7 +644,7 @@
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1.2rem;
   transition: all 0.3s ease;
 }
 
