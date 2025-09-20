@@ -1,0 +1,385 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AI Sales Roleplay one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "AI Sales Roleplay Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - BedrockRegion
+          - SelfSignUp
+          - AllowedSignUpEmailDomains
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  BedrockRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
+    Description: AWS region for Bedrock models
+  
+  SelfSignUp:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Enable self-signup functionality (CAUTION: Carefully consider when allowing public access)'
+  
+  AllowedSignUpEmailDomains:
+    Type: String
+    Default: ""
+    Description: 'Allowed email domains for signup (Example: example1.co.jp, example2.co.jp)'
+  
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: ""
+    Description: 'Allowed IPv4 address ranges for access (Example: 10.0.0.100/32, 192.168.0.0/24). Find your current Public IP address here: https://checkip.amazonaws.com/'
+  
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv6 address ranges for access
+
+Resources:
+
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: AI Sales Roleplay Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RoleplayDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${RoleplayDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  RoleplayDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys AI Sales Roleplay'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: BedrockRegion
+            Value: !Ref BedrockRegion
+          - Name: SelfSignUp
+            Value: !Ref SelfSignUp
+          - Name: AllowedSignUpEmailDomains
+            Value: !Ref AllowedSignUpEmailDomains
+          - Name: AllowedIpV4AddressRanges
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: AllowedIpV6AddressRanges
+            Value: !Ref AllowedIpV6AddressRanges
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+          - Name: DEPLOYMENT_STACK_NAME
+            Value: !Ref AWS::StackName
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting AI Sales Roleplay deployment"
+                - yum update -y
+                - yum install -y python3 jq
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Sales Roleplay Deployment Started" --message "Deployment of AI Sales Roleplay has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/sample-ai-sales-roleplay.git
+                - cd sample-ai-sales-roleplay
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-ai-sales-roleplay
+                - echo "Configuring deployment parameters..."
+                - |
+                  # Update cdk.json with parameters
+                  cd cdk
+                  
+                  # Configure Bedrock region
+                  jq --arg region "$BedrockRegion" '.context.default.bedrockRegion = $region' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  
+                  # Configure self signup
+                  if [ "$SelfSignUp" = "false" ]; then
+                    jq '.context.default.selfSignUpEnabled = false' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  else
+                    jq '.context.default.selfSignUpEnabled = true' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  fi
+                  
+                  # Configure allowed signup email domains
+                  if [ -n "$AllowedSignUpEmailDomains" ]; then
+                    IFS=',' read -ra DOMAINS <<< "$AllowedSignUpEmailDomains"
+                    DOMAINS_JSON=$(printf '%s\n' "${DOMAINS[@]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | jq -R . | jq -s .)
+                    jq --argjson domains "$DOMAINS_JSON" '.context.default.allowedSignUpEmailDomains = $domains' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  fi
+                  
+                  # Configure allowed IPv4 address ranges
+                  if [ -n "$AllowedIpV4AddressRanges" ]; then
+                    IFS=',' read -ra RANGES <<< "$AllowedIpV4AddressRanges"
+                    RANGES_JSON=$(printf '%s\n' "${RANGES[@]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | jq -R . | jq -s .)
+                    jq --argjson ranges "$RANGES_JSON" '.context.default.allowedIpV4AddressRanges = $ranges' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  fi
+                  
+                  # Configure allowed IPv6 address ranges
+                  if [ -n "$AllowedIpV6AddressRanges" ]; then
+                    IFS=',' read -ra RANGES <<< "$AllowedIpV6AddressRanges"
+                    RANGES_JSON=$(printf '%s\n' "${RANGES[@]}" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//' | jq -R . | jq -s .)
+                    jq --argjson ranges "$RANGES_JSON" '.context.default.allowedIpV6AddressRanges = $ranges' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                  fi
+                  
+                  echo "Updated cdk.json configuration:"
+                  cat cdk.json
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-ai-sales-roleplay
+                
+                # Build frontend
+                - echo "Building frontend..."
+                - cd frontend
+                - npm install
+                - npm run build
+                - cd ..
+                
+                # CDK operations (bootstrap and deploy)
+                - echo "Deploying AI Sales Roleplay with CDK..."
+                - cd cdk
+                - npm install
+                - npm install esbuild
+                - |
+                  # Install all Lambda dependencies
+                  echo "Installing Lambda dependencies..."
+                  for lambda_dir in lambda/*/; do
+                    if [ -f "$lambda_dir/package.json" ]; then
+                      echo "Installing dependencies in $lambda_dir"
+                      cd "$lambda_dir"
+                      npm install
+                      cd ../..
+                    fi
+                  done
+                - npm install esbuild
+                - |
+                  # Install all Lambda dependencies
+                  echo "Installing Lambda dependencies..."
+                  for lambda_dir in lambda/*/; do
+                    if [ -f "$lambda_dir/package.json" ]; then
+                      echo "Installing dependencies in $lambda_dir"
+                      cd "$lambda_dir"
+                      npm install
+                      cd ../..
+                    fi
+                  done
+                - |
+                  BOOTSTRAP_STACK_NAME="CDKToolkit"
+                  BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
+                  
+                  if [[ $BOOTSTRAP_EXISTS == *"Stack with id $BOOTSTRAP_STACK_NAME does not exist"* ]]; then
+                    echo "CDK Bootstrap not found. Running bootstrap..."
+                    npx cdk bootstrap
+                  else
+                    echo "CDK Bootstrap already exists. Skipping bootstrap."
+                  fi
+                - npx cdk deploy --require-approval never --all
+                
+            post_build:
+              commands:
+                - |
+                  if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then
+                    echo "Deployment completed successfully!"
+                    
+                    # Extract application information from CloudFormation stacks
+                    STACK_PREFIX="AISalesRoleplay-dev"
+                    INFRA_STACK_NAME="${STACK_PREFIX}-InfrastructureStack"
+                    
+                    # Get CloudFront URL
+                    CLOUDFRONT_URL=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontURL`].OutputValue' --output text 2>/dev/null || echo "")
+                    
+                    # Get Cognito User Pool ID
+                    USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text 2>/dev/null || echo "")
+                    
+                    # Get Cognito User Pool Client ID
+                    USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' --output text 2>/dev/null || echo "")
+                    
+                    # Get Identity Pool ID
+                    IDENTITY_POOL_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`IdentityPoolId`].OutputValue' --output text 2>/dev/null || echo "")
+                    
+                    # Construct user registration URL
+                    USER_REGISTRATION_URL=""
+                    if [ -n "$USER_POOL_ID" ] && [ -n "$USER_POOL_CLIENT_ID" ]; then
+                      REGION=$(aws configure get region)
+                      USER_REGISTRATION_URL="https://${REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/users?region=${REGION}"
+                    fi
+                    
+                    # Create success message
+                    MESSAGE="AI Sales Roleplay deployment completed successfully at $(date).
+
+                    📱 Application URL: ${CLOUDFRONT_URL:-'Not available'}
+                    
+                    👥 User Management:
+                    - User Pool ID: ${USER_POOL_ID:-'Not available'}
+                    - User Pool Client ID: ${USER_POOL_CLIENT_ID:-'Not available'}
+                    - Identity Pool ID: ${IDENTITY_POOL_ID:-'Not available'}
+                    - User Registration Console: ${USER_REGISTRATION_URL:-'Not available'}
+                    
+                    📋 Next Steps:
+                    1. Access the application using the URL above
+                    2. Create users in the Cognito User Pool using the AWS Console
+                    3. Users can sign in with their credentials
+                    
+                    For more information, check the CloudFormation stack outputs in the AWS Console."
+                    
+                    aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Sales Roleplay Deployment Completed" --message "$MESSAGE"
+                    
+                    echo "=== DEPLOYMENT SUMMARY ==="
+                    echo "Application URL: $CLOUDFRONT_URL"
+                    echo "User Pool ID: $USER_POOL_ID"
+                    echo "User Registration Console: $USER_REGISTRATION_URL"
+                    echo "=========================="
+                  else
+                    echo "Deployment failed!"
+                    aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Sales Roleplay Deployment Failed" --message "AI Sales Roleplay deployment failed at $(date). Please check the CodeBuild logs for details."
+                    exit 1
+                  fi
+
+  # Lambda function to trigger CodeBuild
+  TriggerLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-trigger'
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt TriggerLambdaRole.Arn
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import json
+          
+          def lambda_handler(event, context):
+              try:
+                  print(f"Event: {json.dumps(event)}")
+                  
+                  if event['RequestType'] == 'Create':
+                      codebuild = boto3.client('codebuild')
+                      project_name = event['ResourceProperties']['ProjectName']
+                      
+                      print(f"Starting build for project: {project_name}")
+                      response = codebuild.start_build(projectName=project_name)
+                      build_id = response['build']['id']
+                      
+                      print(f"Build started with ID: {build_id}")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'BuildId': build_id,
+                          'Message': f'Build started successfully with ID: {build_id}'
+                      })
+                  else:
+                      print("Non-create event, skipping build trigger")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'Message': 'No action required for non-create events'
+                      })
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {
+                      'Error': str(e)
+                  })
+
+  # IAM Role for Lambda trigger function
+  TriggerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CodeBuildTriggerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt RoleplayDeploymentProject.Arn
+
+  # Custom resource to trigger deployment
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerLambdaFunction.Arn
+      ProjectName: !Ref RoleplayDeploymentProject
+
+Outputs:
+  DeploymentProjectName:
+    Description: Name of the CodeBuild project for AI Sales Roleplay deployment
+    Value: !Ref RoleplayDeploymentProject
+  
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
