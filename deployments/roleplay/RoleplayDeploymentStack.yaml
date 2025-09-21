@@ -24,7 +24,7 @@ Parameters:
   BedrockRegion:
     Type: String
     Default: us-east-1
-    AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
+    AllowedValues: [us-east-1, us-west-2]
     Description: AWS region for Bedrock models
   
   SelfSignUp:
