@@ -41,7 +41,7 @@
 デプロイ時に以下のパラメータを設定できます：
 
 * **NotificationEmailAddress**: デプロイの開始・終了を通知するメールアドレス
-* **BedrockRegion**: Amazon Bedrock のモデルを利用するリージョン（us-east-1, us-west-2, ap-northeast-1）
+* **BedrockRegion**: Amazon Bedrock のモデルを利用するリージョン（us-east-1, us-west-2）
 * **SelfSignUp** (デフォルト: false): セルフサインアップの有効/無効を切り替えます
 * **AllowedSignUpEmailDomains**: サインアップを許可するメールドメイン（例: example1.co.jp, example2.co.jp）
 * **AllowedIpV4AddressRanges**: アクセスを許可するIPv4アドレス範囲（例: 10.0.0.100/32, 192.168.0.0/24）。現在のパブリックIPアドレスは https://checkip.amazonaws.com/ で確認できます
