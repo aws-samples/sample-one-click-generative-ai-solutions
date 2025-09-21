@@ -206,30 +206,6 @@ Resources:
                 - echo "Deploying AI Sales Roleplay with CDK..."
                 - cd cdk
                 - npm install
-                - npm install esbuild
-                - |
-                  # Install all Lambda dependencies
-                  echo "Installing Lambda dependencies..."
-                  for lambda_dir in lambda/*/; do
-                    if [ -f "$lambda_dir/package.json" ]; then
-                      echo "Installing dependencies in $lambda_dir"
-                      cd "$lambda_dir"
-                      npm install
-                      cd ../..
-                    fi
-                  done
-                - npm install esbuild
-                - |
-                  # Install all Lambda dependencies
-                  echo "Installing Lambda dependencies..."
-                  for lambda_dir in lambda/*/; do
-                    if [ -f "$lambda_dir/package.json" ]; then
-                      echo "Installing dependencies in $lambda_dir"
-                      cd "$lambda_dir"
-                      npm install
-                      cd ../..
-                    fi
-                  done
                 - |
                   BOOTSTRAP_STACK_NAME="CDKToolkit"
                   BOOTSTRAP_EXISTS=$(aws cloudformation describe-stacks --stack-name $BOOTSTRAP_STACK_NAME 2>&1 || echo "NOT_EXISTS")
@@ -257,18 +233,12 @@ Resources:
                     
                     # Get Cognito User Pool ID
                     USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolId`].OutputValue' --output text 2>/dev/null || echo "")
-                    
-                    # Get Cognito User Pool Client ID
-                    USER_POOL_CLIENT_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`UserPoolClientId`].OutputValue' --output text 2>/dev/null || echo "")
-                    
-                    # Get Identity Pool ID
-                    IDENTITY_POOL_ID=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`IdentityPoolId`].OutputValue' --output text 2>/dev/null || echo "")
+                    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                     
                     # Construct user registration URL
                     USER_REGISTRATION_URL=""
                     if [ -n "$USER_POOL_ID" ] && [ -n "$USER_POOL_CLIENT_ID" ]; then
-                      REGION=$(aws configure get region)
-                      USER_REGISTRATION_URL="https://${REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/users?region=${REGION}"
+                      USER_REGISTRATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL}/user-management/users?region=${AWS_DEFAULT_REGION}"
                     fi
                     
                     # Create success message
@@ -277,9 +247,6 @@ Resources:
                     📱 Application URL: ${CLOUDFRONT_URL:-'Not available'}
                     
                     👥 User Management:
-                    - User Pool ID: ${USER_POOL_ID:-'Not available'}
-                    - User Pool Client ID: ${USER_POOL_CLIENT_ID:-'Not available'}
-                    - Identity Pool ID: ${IDENTITY_POOL_ID:-'Not available'}
                     - User Registration Console: ${USER_REGISTRATION_URL:-'Not available'}
                     
                     📋 Next Steps:

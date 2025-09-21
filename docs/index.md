@@ -890,7 +890,37 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<div class="solution-card" data-category="popular chat">
+<div class="solution-card" data-category="document">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/rapid/en_new_review_floor_plan.png" alt="RAPID Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/rapid/">Review & Assessment Powered by Intelligent Documentation (RAPID)</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation" target="_blank">RAPID</a> は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
+        <option value="us-west-2">オレゴン</option>
+        <option value="us-east-1">バージニア</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/rapid/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
       <img src="./assets/images/solutions/roleplay/demo.png" alt="AI Sales Roleplay Demo" style="display: block;">
@@ -905,11 +935,10 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">東京</option>
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RoleplayDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RoleplayDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RoleplayDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RoleplayDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/roleplay/" class="detail-button">
@@ -974,36 +1003,6 @@ document.addEventListener('DOMContentLoaded', function() {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/comfyui/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        詳しく
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="solution-card" data-category="document">
-  <div class="solution-card__top">
-    <div class="solution-card__image">
-      <img src="./assets/images/solutions/rapid/en_new_review_floor_plan.png" alt="RAPID Demo" style="display: block;">
-    </div>
-    <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/rapid/">Review & Assessment Powered by Intelligent Documentation (RAPID)</a></div>
-      <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation" target="_blank">RAPID</a> は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。
-      </div>
-    </div>
-  </div>
-  <div class="solution-card__actions">
-    <div class="solution-card__deployment">
-      <select class="region-selector">
-        <option value="ap-northeast-1">東京</option>
-        <option value="us-west-2">オレゴン</option>
-        <option value="us-east-1">バージニア</option>
-      </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-        <i class="fa-solid fa-rocket"></i>　Deploy
-      </a>
-      <a href="solutions/rapid/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>
