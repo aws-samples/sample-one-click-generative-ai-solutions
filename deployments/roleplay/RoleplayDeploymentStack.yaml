@@ -237,8 +237,8 @@ Resources:
                     
                     # Construct user registration URL
                     USER_REGISTRATION_URL=""
-                    if [ -n "$USER_POOL_ID" ] && [ -n "$USER_POOL_CLIENT_ID" ]; then
-                      USER_REGISTRATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL}/user-management/users?region=${AWS_DEFAULT_REGION}"
+                    if [ -n "$USER_POOL_ID" ]; then
+                      USER_REGISTRATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
                     fi
                     
                     # Create success message
