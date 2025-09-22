@@ -972,6 +972,7 @@ document.addEventListener('DOMContentLoaded', function() {
       </a>
     </div>
   </div>
+</div>
 
 <div class="solution-card" data-category="creative">
   <div class="solution-card__top">
