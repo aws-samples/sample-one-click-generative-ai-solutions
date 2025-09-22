@@ -60,7 +60,7 @@
         <span class="tab-icon">🛒</span>
         <span class="tab-label">小売・サービス</span>
       </button>
-      <button class="industry-tab" data-industry="creative" role="tab">
+      <button class="industry-tab" data-industry="public" role="tab">
         <span class="tab-icon">🏥</span>
         <span class="tab-label">公共・医療機関</span>
       </button>
@@ -304,7 +304,7 @@
         </div>
       </div>
       
-      <div class="tab-content" id="creative-content">
+      <div class="tab-content" id="public-content">
         <div class="challenge-grid">
 
           <div class="challenge-card">
@@ -761,7 +761,7 @@ function filterSolutions(category) {
 document.addEventListener('DOMContentLoaded', function() {
   const tabs = document.querySelectorAll('.industry-tab');
   const contents = document.querySelectorAll('.tab-content');
-  const industries = ['finance', 'manufacturing', 'retail', 'creative', 'development'];
+  const industries = ['finance', 'manufacturing', 'retail', 'public', 'development'];
   
   function activateTab(industry) {
     tabs.forEach(t => t.classList.remove('active'));
