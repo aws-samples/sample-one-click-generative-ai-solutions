@@ -8,7 +8,6 @@ Metadata:
           default: "AI Sales Roleplay Deployment Parameters"
         Parameters:
           - NotificationEmailAddress
-          - BedrockRegion
           - SelfSignUp
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
@@ -20,12 +19,6 @@ Parameters:
     Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
     AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
     ConstraintDescription: Must be a valid email address
-  
-  BedrockRegion:
-    Type: String
-    Default: us-east-1
-    AllowedValues: [us-east-1, us-west-2]
-    Description: AWS region for Bedrock models
   
   SelfSignUp:
     Type: String
@@ -121,8 +114,6 @@ Resources:
         Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
         PrivilegedMode: true
         EnvironmentVariables:
-          - Name: BedrockRegion
-            Value: !Ref BedrockRegion
           - Name: SelfSignUp
             Value: !Ref SelfSignUp
           - Name: AllowedSignUpEmailDomains
@@ -157,9 +148,6 @@ Resources:
                 - |
                   # Update cdk.json with parameters
                   cd cdk
-                  
-                  # Configure Bedrock region
-                  jq --arg region "$BedrockRegion" '.context.default.bedrockRegion = $region' cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
                   
                   # Configure self signup
                   if [ "$SelfSignUp" = "false" ]; then
