@@ -959,6 +959,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
