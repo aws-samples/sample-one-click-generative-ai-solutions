@@ -213,8 +213,7 @@ Resources:
                     echo "Deployment completed successfully!"
                     
                     # Extract application information from CloudFormation stacks
-                    STACK_PREFIX="AISalesRoleplay-dev"
-                    INFRA_STACK_NAME="${STACK_PREFIX}-InfrastructureStack"
+                    INFRA_STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'AISalesRoleplay') && contains(StackName, 'InfrastructureStack')].StackName" --output text)
                     
                     # Get CloudFront URL
                     CLOUDFRONT_URL=$(aws cloudformation describe-stacks --stack-name $INFRA_STACK_NAME --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontURL`].OutputValue' --output text 2>/dev/null || echo "")
