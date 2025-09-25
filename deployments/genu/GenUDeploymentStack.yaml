@@ -314,7 +314,7 @@ Resources:
                       additionalModelsStr.split(',').map(id => id.trim()) 
                       : [];
 
-                    const allModelIds = [...new Set([...additionalModelIds, ...cdkJson.context.modelIds])];
+                    const allModelIds = [...new Set([...cdkJson.context.modelIds, ...additionalModelIds])];
                     
                     // Convert models for the target region
                     const convertedModelIds = await convertModels(allModelIds, modelRegion);
