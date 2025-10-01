@@ -1,0 +1,686 @@
+Description: Code server for AgentCore Development - Ubuntu ARM64
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Code Server for AI Agent Development Parameters"
+        Parameters:
+          - UserEmail
+          - UserFullName
+          - InstanceType
+          - InstanceVolumeSize
+          - HomeFolder
+          - RepoUrl
+
+Parameters:
+  UserEmail:
+    Type: String
+    Description: User email address (used for git config and as CodeEditor username)
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    ConstraintDescription: Must be a valid email address
+  UserFullName:
+    Type: String
+    Description: Full name for git configuration
+    Default: AIAgent Developer
+  InstanceType:
+    Type: String
+    Default: t4g.medium
+  InstanceVolumeSize:
+    Type: Number
+    Default: 40
+  HomeFolder:
+    Type: String
+    Default: /workshop
+  RepoUrl:
+    Type: String
+    Default: 'https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding.git'
+
+Mappings:
+  ArmImage:
+    Ubuntu-24:
+      ImageId: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/noble/stable/current/arm64/hvm/ebs-gp3/ami-id}}'
+  AWSRegionsPrefixListID:
+    us-east-1:
+      PrefixList: pl-3b927c52
+    us-west-2:
+      PrefixList: pl-82a045eb
+    eu-west-1:
+      PrefixList: pl-4fa04526
+    ap-northeast-1:
+      PrefixList: pl-58a04531
+
+Resources:
+  DeploymentNotifications:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub AgentCore-Notifications-${AWS::StackName}
+
+  EmailSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotifications
+      Endpoint: !Ref UserEmail
+
+  StackStatusRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source: ["aws.cloudformation"]
+        detail-type: ["CloudFormation Stack Status Change"]
+        detail:
+          stack-id: [!Ref AWS::StackId]
+          status-details:
+            status: ["CREATE_COMPLETE", "CREATE_FAILED"]
+      Targets:
+        - Arn: !GetAtt NotificationLambda.Arn
+          Id: "StackStatusTarget"
+
+  NotificationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Code:
+        ZipFile: !Sub |
+          import json
+          import boto3
+          
+          sns = boto3.client('sns')
+          secretsmanager = boto3.client('secretsmanager')
+          
+          def handler(event, context):
+              try:
+                  detail = event['detail']
+                  status = detail['status-details']['status']
+                  stack_id = detail['stack-id']
+                  
+                  secret_arn = "${CodeEditorSecret}"
+                  password = secretsmanager.get_secret_value(SecretId=secret_arn)['SecretString']
+                  secret_data = json.loads(password)
+                  actual_password = secret_data['password']
+                  
+                  message = "AgentCore deployment " + status + " for ${UserEmail}\n\n"
+                  message += "Stack ID: " + stack_id + "\n\n"
+                  message += "Direct Access URL:\n"
+                  message += "https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}&tkn=" + actual_password + "\n\n"
+                  message += "Click the link above to access your development environment!"
+                  
+                  sns.publish(
+                      TopicArn='${DeploymentNotifications}',
+                      Message=message,
+                      Subject='AgentCore Deployment ' + status
+                  )
+                  
+                  return {'statusCode': 200}
+              except Exception as e:
+                  print('Error: ' + str(e))
+                  return {'statusCode': 500}
+      Role: !GetAtt NotificationLambdaRole.Arn
+
+  NotificationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: NotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref DeploymentNotifications
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref CodeEditorSecret
+
+  NotificationLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NotificationLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt StackStatusRule.Arn
+
+  SNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics: [!Ref DeploymentNotifications]
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref DeploymentNotifications
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub 
+            - AgentDevelopment-VPC-${Username}
+            - Username: !Select [0, !Split ['@', !Ref UserEmail]]
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: true
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  SubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet
+      RouteTableId: !Ref PublicRouteTable
+
+  CodeEditorSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 
+        - AgentCore-${Username}-${StackId}
+        - Username: !Select [0, !Split ['@', !Ref UserEmail]]
+          StackId: !Select [0, !Split ['-', !Select [2, !Split ['/', !Ref AWS::StackId]]]]
+      GenerateSecretString:
+        PasswordLength: 16
+        SecretStringTemplate: !Sub 
+          - '{"username":"${Username}"}'
+          - Username: !Select [0, !Split ['@', !Ref UserEmail]]
+        GenerateStringKey: 'password'
+        ExcludePunctuation: true
+
+  CodeEditorSSMDoc:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentType: Command
+      Content:
+        schemaVersion: '2.2'
+        parameters:
+          CodeEditorPassword:
+            type: String
+          UserEmail:
+            type: String
+          UserFullName:
+            type: String
+        mainSteps:
+          - name: InstallPackages
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - apt-get update
+                - DEBIAN_FRONTEND=noninteractive apt-get install -y curl gnupg unzip nginx openssl jq git python3-pip python3-venv wget
+                - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+                - echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release --codename --short) stable" > /etc/apt/sources.list.d/docker.list
+                - apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io
+          - name: SetupUser
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  if [ "$USERNAME" != "ubuntu" ]; then
+                    adduser --disabled-password --gecos '' $USERNAME
+                    usermod -aG sudo,docker $USERNAME
+                  else
+                    usermod -aG docker $USERNAME
+                  fi
+                  echo "$USERNAME:{{ CodeEditorPassword }}" | chpasswd
+                  echo "$USERNAME ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/91-vscode-user
+          - name: ConfigureEnvironment
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME git config --global user.email "{{ UserEmail }}"
+                  sudo -u $USERNAME git config --global user.name "{{ UserFullName }}"
+                  sudo -u $USERNAME git config --global init.defaultBranch "main"
+                - !Sub |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  echo 'export AWS_REGION=${AWS::Region}' >> /home/$USERNAME/.bashrc
+                  echo 'export AWS_ACCOUNTID=${AWS::AccountId}' >> /home/$USERNAME/.bashrc
+                  echo 'export PATH=$PATH:/home/$USERNAME/.local/bin' >> /home/$USERNAME/.bashrc
+                - !Sub |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME mkdir -p /home/$USERNAME/.aws
+                  sudo -u $USERNAME tee /home/$USERNAME/.aws/config <<EOF
+                  [default]
+                  region = ${AWS::Region}
+                  output = json
+                  EOF
+          - name: InstallAWSTools
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/aws-cli.zip
+                - unzip -o -q /tmp/aws-cli.zip -d /tmp && /tmp/aws/install
+                - curl -fsSL https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-arm64.zip -o /tmp/aws-sam-cli-linux-arm64.zip
+                - unzip -o /tmp/aws-sam-cli-linux-arm64.zip -d /tmp/sam-installation && sudo /tmp/sam-installation/install
+          - name: InstallAmazonQCLI
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - curl --proto '=https' --tlsv1.2 -sSf "https://desktop-release.q.us-east-1.amazonaws.com/latest/q-aarch64-linux.zip" -o /tmp/q.zip
+                - unzip -o /tmp/q.zip -d /tmp
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME /tmp/q/install.sh --no-confirm
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  echo 'echo "Amazon Q CLI installed at ~/.local/bin. Run \"q\" to start using it."' >> /home/$USERNAME/.bashrc
+                  echo 'echo "Use \"q login\" to authenticate with your AWS Builder ID or IAM Identity Center."' >> /home/$USERNAME/.bashrc
+          - name: Installuv
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME bash /tmp/uv_install.sh
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  if uv generate-shell-completion bash &>/dev/null; then
+                    echo 'eval "$(uv generate-shell-completion bash)"' >> /home/$USERNAME/.bashrc
+                  fi
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  if uvx generate-shell-completion bash &>/dev/null; then
+                    echo 'eval "$(uvx generate-shell-completion bash)"' >> /home/$USERNAME/.bashrc
+                  fi
+          - name: CloneRepo
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - !Sub |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  if [ -n "${RepoUrl}" ]; then
+                    mkdir -p ${HomeFolder}
+                    chown $USERNAME:$USERNAME ${HomeFolder}
+                    sudo -u $USERNAME git clone ${RepoUrl} ${HomeFolder}
+                  fi
+          - name: InstallCodeEditor
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  export HOME=/root
+                  curl -fsSL https://code-server.dev/install.sh | sh
+                  sudo -u $USERNAME mkdir -p /home/$USERNAME/.config/code-server
+                  cat > /home/$USERNAME/.config/code-server/config.yaml <<EOF
+                  bind-addr: 127.0.0.1:8080
+                  auth: password
+                  password: {{ CodeEditorPassword }}
+                  cert: false
+                  EOF
+                  chown -R $USERNAME:$USERNAME /home/$USERNAME/.config/code-server
+                  systemctl enable --now code-server@$USERNAME
+          - name: ConfigureNginx
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  cat > /etc/nginx/sites-available/default <<EOF
+                  server {
+                      listen 80;
+                      server_name _;
+                      location / {
+                          proxy_pass http://localhost:8080/;
+                          proxy_set_header Host \$http_host;
+                          proxy_set_header Upgrade \$http_upgrade;
+                          proxy_set_header Connection upgrade;
+                          proxy_set_header Accept-Encoding gzip;
+                      }
+                  }
+                  EOF
+                  systemctl enable nginx && systemctl start nginx
+                  systemctl reload nginx
+          - name: StartServices
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  systemctl start code-server@$USERNAME
+                  systemctl start docker
+
+  CodeEditorInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !FindInMap [ArmImage, Ubuntu-24, ImageId]
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref PublicSubnet
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref InstanceVolumeSize
+            VolumeType: gp3
+            Encrypted: true
+      SecurityGroupIds: [!Ref SecurityGroup]
+      IamInstanceProfile: !Ref CodeEditorInstanceProfile
+      UserData:
+        Fn::Base64: !Sub 
+          - |
+            #!/bin/bash
+            hostnamectl set-hostname AgentCore-${Username}
+            mkdir -p ${HomeFolder}
+          - Username: !Select [0, !Split ['@', !Ref UserEmail]]
+      Tags:
+        - Key: Name
+          Value: !Sub 
+            - AgentCore-${Username}
+            - Username: !Select [0, !Split ['@', !Ref UserEmail]]
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: AgentCore Code Editor Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !FindInMap [AWSRegionsPrefixListID, !Ref 'AWS::Region', PrefixList]
+
+  CodeEditorInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles: [!Ref CodeEditorInstanceRole]
+
+  CodeEditorInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonQDeveloperAccess
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
+        - arn:aws:iam::aws:policy/BedrockAgentCoreFullAccess
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
+        - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
+        - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+      Policies:
+        - PolicyName: AgentCoreDevelopmentPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              # Lab 1: Bedrock model access for Code Interpreter
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                  - bedrock:PutFoundationModelEntitlement
+                Resource: 
+                  - '*'
+              # Lab 1: AWS Pricing API access for cost estimation
+              - Effect: Allow
+                Action:
+                  - pricing:GetProducts
+                  - pricing:DescribeServices
+                  - pricing:GetAttributeValues
+                Resource: '*'
+              # Lab 3: Cognito permissions for OAuth setup
+              - Effect: Allow
+                Action:
+                  - cognito-idp:CreateUserPool
+                  - cognito-idp:CreateUserPoolClient
+                  - cognito-idp:CreateUserPoolDomain
+                  - cognito-idp:CreateResourceServer
+                  - cognito-idp:DescribeUserPool
+                  - cognito-idp:DescribeUserPoolClient
+                  - cognito-idp:DescribeUserPoolDomain
+                  - cognito-idp:DescribeResourceServer
+                  - cognito-idp:UpdateUserPool
+                  - cognito-idp:UpdateUserPoolClient
+                  - cognito-idp:UpdateResourceServer
+                  - cognito-idp:DeleteUserPool
+                  - cognito-idp:DeleteUserPoolClient
+                  - cognito-idp:DeleteUserPoolDomain
+                  - cognito-idp:DeleteResourceServer
+                  - cognito-idp:ListUserPools
+                  - cognito-idp:ListUserPoolClients
+                  - cognito-idp:ListResourceServers
+                Resource: '*'
+              # Lab 4: Lambda permissions for Gateway integration
+              - Effect: Allow
+                Action:
+                  - lambda:CreateFunction
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionCode
+                  - lambda:UpdateFunctionConfiguration
+                  - lambda:DeleteFunction
+                  - lambda:InvokeFunction
+                  - lambda:AddPermission
+                  - lambda:RemovePermission
+                  - lambda:GetPolicy
+                  - lambda:TagResource
+                  - lambda:UntagResource
+                  - lambda:ListTags
+                  - lambda:PutFunctionConcurrency
+                  - lambda:GetFunctionConcurrency
+                  - lambda:DeleteFunctionConcurrency
+                Resource: '*'
+              # Lab 4: SES permissions for email functionality
+              - Effect: Allow
+                Action:
+                  - ses:SendEmail
+                  - ses:SendRawEmail
+                  - ses:VerifyEmailIdentity
+                  - ses:GetIdentityVerificationAttributes
+                  - ses:DeleteIdentity
+                  - ses:ListIdentities
+                Resource: '*'
+              # General: IAM permissions for role management
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:CreatePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DeletePolicy
+                  - iam:TagRole
+                  - iam:UntagRole
+                  - iam:GetRole
+                  - iam:GetPolicy
+                  - iam:PassRole
+                  - iam:ListRoles
+                  - iam:ListPolicies
+                  - iam:ListAttachedRolePolicies
+                Resource: '*'
+              # General: CloudFormation permissions for SAM deployments
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:UpdateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DescribeStackResources
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:GetTemplate
+                  - cloudformation:ListStacks
+                  - cloudformation:ListChangeSets
+                  - cloudformation:ValidateTemplate
+                Resource: '*'
+              # General: S3 permissions for SAM artifacts
+              - Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                  - s3:GetBucketVersioning
+                  - s3:PutBucketTagging
+                  - s3:GetBucketTagging
+                  - s3:PutBucketPolicy
+                  - s3:GetBucketPolicy
+                  - s3:DeleteBucketPolicy
+                  - s3:PutEncryptionConfiguration
+                  - s3:GetEncryptionConfiguration
+                  - s3:PutBucketVersioning
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:GetBucketPublicAccessBlock
+                Resource: '*'
+
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub CloudFront-${AWS::StackName}
+          ViewerProtocolPolicy: allow-all
+          AllowedMethods: [DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT]
+          CachedMethods: [GET, HEAD]
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+        Origins:
+          - DomainName: !GetAtt CodeEditorInstance.PublicDnsName
+            Id: !Sub CloudFront-${AWS::StackName}
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+
+  RunSSMDoc:
+    Type: Custom::RunSSMDoc
+    Properties:
+      ServiceToken: !GetAtt RunSSMDocLambda.Arn
+      InstanceId: !Ref CodeEditorInstance
+      DocumentName: !Ref CodeEditorSSMDoc
+      SecretArn: !Ref CodeEditorSecret
+      UserEmail: !Ref UserEmail
+      UserFullName: !Ref UserFullName
+
+  RunSSMDocLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      MemorySize: 128
+      Timeout: 600
+      Architectures: [arm64]
+      Handler: index.lambda_handler
+      Role: !GetAtt RunSSMDocLambdaRole.Arn
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import boto3
+          import json
+          
+          def lambda_handler(event, context):
+              if event['RequestType'] != 'Create':
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  return
+              try:
+                  props = event['ResourceProperties']
+                  
+                  # Retrieve password from Secrets Manager
+                  secretsmanager = boto3.client('secretsmanager')
+                  secret_arn = props['SecretArn']
+                  secret_response = secretsmanager.get_secret_value(SecretId=secret_arn)
+                  secret_data = json.loads(secret_response['SecretString'])
+                  password = secret_data['password']
+                  
+                  # Prepare parameters with resolved password
+                  params = {k: [v] for k, v in props.items() 
+                           if k not in ['ServiceToken', 'InstanceId', 'DocumentName', 'SecretArn']}
+                  params['CodeEditorPassword'] = [password]
+                  
+                  response = boto3.client('ssm').send_command(
+                      InstanceIds=[props['InstanceId']],
+                      DocumentName=props['DocumentName'],
+                      Parameters=params)
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, 
+                      {'CommandId': response['Command']['CommandId'], 'Password': password})
+              except Exception as e:
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, str(e))
+
+  RunSSMDocLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SSMAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: 
+                  - ssm:SendCommand
+                  - secretsmanager:GetSecretValue
+                Resource: '*'
+
+Outputs:
+  URL:
+    Description: AgentCore Code Editor URL
+    Value: !Sub https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}
+  Password:
+    Description: Code Editor Password
+    Value: !GetAtt RunSSMDoc.Password
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref CodeEditorInstance
+  Username:
+    Description: Code Editor Username
+    Value: !Select [0, !Split ['@', !Ref UserEmail]]
