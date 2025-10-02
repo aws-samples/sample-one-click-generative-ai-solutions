@@ -386,6 +386,23 @@
             </div>
           </div>
 
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🏗️</span>
+              <h4>開発環境</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>AI エージェントの開発等には様々なフレームワークのインストールやデプロイのための設定が必要</li>
+                <li>インストール時に様々なエラーが発生したり、設定が上手くいかないことが多い</li>
+                <li>AI エージェントの利用・開発の民主化に当たり環境の際と手間がボトルネックになっている</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 クラウド上の開発環境</strong> : <a href="solutions/aiagentdev/">AI Agent Development Code Server : 事前セットアップ済みの VS Code ベースの開発環境をクラウド上に構築</a><br/>
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -1083,6 +1100,37 @@ document.addEventListener('DOMContentLoaded', function() {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/remote-swe-agents/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> は、Amazon Bedrock Agent Core を活用した AI エージェント開発のための専用開発環境です。ブラウザベースの VS Code (code-server) で、AWS 上で完全に動作する開発環境を提供します。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
+        <option value="ap-northeast-3">大阪</option>
+        <option value="us-east-1">バージニア</option>
+        <option value="us-west-2">オレゴン</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/aiagentdev/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>

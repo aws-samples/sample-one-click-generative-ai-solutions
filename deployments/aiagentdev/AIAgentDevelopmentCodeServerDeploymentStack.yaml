@@ -1,10 +1,10 @@
-Description: Code server for AgentCore Development - Ubuntu ARM64
+Description: AI Agent Development Code Server - Ubuntu ARM64
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
       - Label:
-          default: "Code Server for AI Agent Development Parameters"
+          default: "AI Agent Development Code Server Parameters"
         Parameters:
           - UserEmail
           - UserFullName
@@ -54,6 +54,7 @@ Resources:
   DeploymentNotifications:
     Type: AWS::SNS::Topic
     Properties:
+      DisplayName: AI Agent Dev Code Server Deployment Notifications
       TopicName: !Sub AgentCore-Notifications-${AWS::StackName}
 
   EmailSubscription:
@@ -72,7 +73,7 @@ Resources:
         detail:
           stack-id: [!Ref AWS::StackId]
           status-details:
-            status: ["CREATE_COMPLETE", "CREATE_FAILED"]
+            status: ["CREATE_COMPLETE", "CREATE_FAILED", "UPDATE_COMPLETE", "UPDATE_FAILED"]
       Targets:
         - Arn: !GetAtt NotificationLambda.Arn
           Id: "StackStatusTarget"
@@ -101,11 +102,12 @@ Resources:
                   secret_data = json.loads(password)
                   actual_password = secret_data['password']
                   
-                  message = "AgentCore deployment " + status + " for ${UserEmail}\n\n"
+                  message = "AI Agent Development Code Server " + status + " for ${UserEmail}\n\n"
                   message += "Stack ID: " + stack_id + "\n\n"
-                  message += "Direct Access URL:\n"
-                  message += "https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}&tkn=" + actual_password + "\n\n"
-                  message += "Click the link above to access your development environment!"
+                  message += "Access Information:\n"
+                  message += "URL: https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}\n"
+                  message += "Password: " + actual_password + "\n\n"
+                  message += "Please copy the URL above and enter the password when prompted to access your development environment."
                   
                   sns.publish(
                       TopicArn='${DeploymentNotifications}',
@@ -673,14 +675,14 @@ Resources:
 
 Outputs:
   URL:
-    Description: AgentCore Code Editor URL
+    Description: AI Agent Development Code Server URL
     Value: !Sub https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}
+  Username:
+    Description: Code Server Username
+    Value: !Select [0, !Split ['@', !Ref UserEmail]]
   Password:
-    Description: Code Editor Password
+    Description: Code Server Password
     Value: !GetAtt RunSSMDoc.Password
   InstanceId:
     Description: EC2 Instance ID
     Value: !Ref CodeEditorInstance
-  Username:
-    Description: Code Editor Username
-    Value: !Select [0, !Split ['@', !Ref UserEmail]]
