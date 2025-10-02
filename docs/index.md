@@ -395,11 +395,11 @@
               <ul>
                 <li>AI エージェントの開発等には様々なフレームワークのインストールやデプロイのための設定が必要</li>
                 <li>インストール時に様々なエラーが発生したり、設定が上手くいかないことが多い</li>
-                <li>AI エージェントの利用・開発の民主化に当たり環境の設定と手間がボトルネックになっている</li>
+                <li>AI エージェントの利用・開発の民主化にあたり環境の差異と手間がボトルネックになっている</li>
               </ul>
             <p>
             <div class="solution-badges">
-              <strong>💡 クラウド上の開発環境</strong> : <a href="solutions/aiagentdev/">AI Agent Development Code Server : 事前セットアップ済みの VS Code ベースの開発環境をクラウド上に構築</a><br/>
+              <strong>💡 クラウド上の開発環境</strong> : <a href="solutions/aiagentdev/">AI Agent Development Code Server : クラウド上の AI エージェント開発環境</a><br/>
             </div>
           </div>
 
@@ -597,7 +597,6 @@
 
 .industry-tabs {
   display: flex;
-  overflow-x: auto;
   border-bottom: 1px solid #e2e8f0;
   background: #f8fafc;
 }
