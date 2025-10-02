@@ -469,6 +469,22 @@ Resources:
                   - pricing:DescribeServices
                   - pricing:GetAttributeValues
                 Resource: '*'
+              # Lab 2: Deploy agent with CodeBuild - Developer/Caller permissions
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuilds
+                  - codebuild:ListBuildsForProject
+                  - codebuild:CreateProject
+                  - codebuild:UpdateProject
+                  - codebuild:BatchGetProjects
+                Resource: 
+                  - !Sub arn:${AWS::Partition}:codebuild:*:*:project/bedrock-agentcore-*
+                  - !Sub arn:${AWS::Partition}:codebuild:*:*:build/bedrock-agentcore-*
+              - Effect: Allow
+                Action:
+                  - codebuild:ListProjects
+                Resource: '*'
               # Lab 3: Cognito permissions for OAuth setup
               - Effect: Allow
                 Action:
@@ -577,6 +593,7 @@ Resources:
                   - s3:PutBucketVersioning
                   - s3:PutBucketPublicAccessBlock
                   - s3:GetBucketPublicAccessBlock
+                  - s3:PutLifecycleConfiguration
                 Resource: '*'
 
   CloudFrontDistribution:
