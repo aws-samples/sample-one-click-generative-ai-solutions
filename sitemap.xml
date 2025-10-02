@@ -2,168 +2,182 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/"/>
     </url>
     <url>
+        <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/aiagentdev/</loc>
+        <lastmod>2025-10-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/aiagentdev/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/aiagentdev/"/>
+    </url>
+    <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/brchat/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/brchat/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/brchat/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/comfyui/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/comfyui/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/comfyui/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/dify/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/dify/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/dify/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/genai-design-studio/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/genai-design-studio/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/genai-design-studio/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-ready-to-use/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-ready-to-use/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-ready-to-use/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-update/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-update/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-update/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/rapid/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/rapid/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/rapid/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/remote-swe-agents/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/remote-swe-agents/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/remote-swe-agents/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/roleplay/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/roleplay/"/>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/roleplay/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/"/>
     </url>
     <url>
+        <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/aiagentdev/</loc>
+        <lastmod>2025-10-02</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/aiagentdev/"/>
+        <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/aiagentdev/"/>
+    </url>
+    <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/bedrock-engineer/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/bedrock-engineer/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/brchat/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/brchat/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/brchat/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/comfyui/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/comfyui/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/comfyui/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/dify/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/dify/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/dify/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/genai-design-studio/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/genai-design-studio/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/genai-design-studio/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-ready-to-use/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-ready-to-use/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-ready-to-use/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-update/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases-update/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases-update/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/generative-ai-use-cases/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/generative-ai-use-cases/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/rapid/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/rapid/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/rapid/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/remote-swe-agents/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/remote-swe-agents/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/remote-swe-agents/"/>
     </url>
     <url>
         <loc>https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/roleplay/</loc>
-        <lastmod>2025-09-22</lastmod>
+        <lastmod>2025-10-02</lastmod>
         <changefreq>daily</changefreq>
         <xhtml:link rel="alternate" hreflang="en" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/en/solutions/roleplay/"/>
         <xhtml:link rel="alternate" hreflang="ja" href="https://aws-samples.github.io/sample-one-click-generative-ai-solutions/solutions/roleplay/"/>
