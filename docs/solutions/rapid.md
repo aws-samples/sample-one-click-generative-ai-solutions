@@ -2,9 +2,9 @@
 
 [RAPID](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation) は、生成 AI (Amazon Bedrock) を活用した書類審査ソリューションです。膨大な書類と複雑なチェックリストによる審査業務を、Human in the Loop アプローチで効率化します。チェックリストの構造化から AI による審査、そして人間の最終判断までの一連のプロセスをサポートし、審査時間の短縮と品質向上を実現します。
 
-![overview](/docs/assets/images/solutions/rapid/rapid_overview_top.png)
+![overview](../assets/images/solutions/rapid/rapid_overview_top.png)
 
-![overview](/docs/assets/images/solutions/rapid/rapid_overview_detail.png)
+![overview](../assets/images/solutions/rapid/rapid_overview_detail.png)
 
 ## 主な機能
 
