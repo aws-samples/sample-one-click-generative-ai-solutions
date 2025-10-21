@@ -454,6 +454,21 @@ Resources:
           PolicyDocument:
             Version: 2012-10-17
             Statement:
+              # Fundamental permissions for Bedrock model subscriptions
+              - Effect: Allow
+                Action:
+                  - aws-marketplace:Subscribe
+                  - aws-marketplace:ViewSubscriptions
+                Resource: 
+                  - '*'
+              # Necessary permission to create service linked role for AgentCore Runtime (automatically created)
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                Resource: 'arn:aws:iam::*:role/aws-service-role/runtime-identity.bedrock-agentcore.amazonaws.com/AWSServiceRoleForBedrockAgentCoreRuntimeIdentity'
+                Condition:
+                  StringEquals:
+                    iam:AWSServiceName: 'runtime-identity.bedrock-agentcore.amazonaws.com'
               # Lab 1: Bedrock model access for Code Interpreter
               - Effect: Allow
                 Action:
