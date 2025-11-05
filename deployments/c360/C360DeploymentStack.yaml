@@ -19,16 +19,6 @@ Parameters:
     Default: 'false'
     AllowedValues: ['true', 'false']
     Description: Enable Amazon Personalize for recommendation (requires EntityResolution to be true)
-  
-  AllowedIpV4AddressRanges:
-    Type: String
-    Default: '0.0.0.0/1,128.0.0.0/1'
-    Description: Comma-separated list of allowed IPv4 CIDR ranges for web access
-  
-  AllowedIpV6AddressRanges:
-    Type: String
-    Default: '0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1'
-    Description: Comma-separated list of allowed IPv6 CIDR ranges for web access
 
 Resources:
   SNSTopic:
@@ -83,10 +73,6 @@ Resources:
             Value: !Ref EntityResolutionEnabled
           - Name: PERSONALIZE_ENABLED
             Value: !Ref PersonalizeEnabled
-          - Name: ALLOWED_IPV4_RANGES
-            Value: !Ref AllowedIpV4AddressRanges
-          - Name: ALLOWED_IPV6_RANGES
-            Value: !Ref AllowedIpV6AddressRanges
       Source:
         Type: NO_SOURCE
         BuildSpec: |

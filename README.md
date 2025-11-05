@@ -205,10 +205,6 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
    * AWS Entity Resolution を利用するかどうかを設定します。顧客データの照合・統合機能を有効化します。
 * PersonalizeEnabled (default: false)
    * Amazon Personalize を利用するかどうかを設定します。EntityResolutionEnabled が true の場合のみ利用可能です。
-* AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
-   * アクセス可能な IPv4 アドレス範囲を指定します（カンマ区切り）
-* AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
-   * アクセス可能な IPv6 アドレス範囲を指定します（カンマ区切り）
 
 ### 想定ユースケース
 
