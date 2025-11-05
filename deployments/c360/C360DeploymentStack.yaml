@@ -1,0 +1,195 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deploy Customer 360 Text2SQL Segmentation and Entity Resolution Solution'
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: Email address for deployment notifications
+    AllowedPattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+    ConstraintDescription: Must be a valid email address
+  
+  EntityResolutionEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable AWS Entity Resolution for customer data matching
+  
+  PersonalizeEnabled:
+    Type: String
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: Enable Amazon Personalize for recommendation (requires EntityResolution to be true)
+  
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: '0.0.0.0/1,128.0.0.0/1'
+    Description: Comma-separated list of allowed IPv4 CIDR ranges for web access
+  
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: '0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1'
+    Description: Comma-separated list of allowed IPv6 CIDR ranges for web access
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub '${AWS::StackName}-notifications'
+
+  SNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref SNSTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Policies:
+        - PolicyName: SNSPublishPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref SNSTopic
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub '${AWS::StackName}-build'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:5.0
+        EnvironmentVariables:
+          - Name: SNS_TOPIC_ARN
+            Value: !Ref SNSTopic
+          - Name: ENTITY_RESOLUTION_ENABLED
+            Value: !Ref EntityResolutionEnabled
+          - Name: PERSONALIZE_ENABLED
+            Value: !Ref PersonalizeEnabled
+          - Name: ALLOWED_IPV4_RANGES
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: ALLOWED_IPV6_RANGES
+            Value: !Ref AllowedIpV6AddressRanges
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 18
+              commands:
+                - echo "Installing dependencies..."
+                - npm install -g aws-cdk
+                - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment started" --subject "C360 Deployment Started"
+            pre_build:
+              commands:
+                - echo "Cloning repository..."
+                - git clone https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution.git
+                - cd sample-c360-text2sql-segmentation-entityresolution
+                - echo "Installing project dependencies..."
+                - npm ci
+                - echo "Updating configuration..."
+                - |
+                  # Update cdk.json with parameters
+                  sed -i "s/\"personalizeEnabled\": false/\"personalizeEnabled\": $PERSONALIZE_ENABLED/g" cdk.json
+                  sed -i "s/\"entityResolutionEnabled\": false/\"entityResolutionEnabled\": $ENTITY_RESOLUTION_ENABLED/g" cdk.json
+
+            build:
+              commands:
+                - echo "Bootstrapping CDK..."
+                - cdk bootstrap
+                - echo "Deploying C360 stack..."
+                - cdk deploy --all --require-approval never
+            post_build:
+              commands:
+                - echo "Deployment completed"
+                - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment completed successfully" --subject "C360 Deployment Completed"
+          on-failure:
+            commands:
+              - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment failed" --subject "C360 Deployment Failed"
+
+  LambdaTriggerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt CodeBuildProject.Arn
+
+  LambdaTriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-trigger'
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaTriggerRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import json
+          
+          def lambda_handler(event, context):
+              try:
+                  if event['RequestType'] == 'Create':
+                      codebuild = boto3.client('codebuild')
+                      project_name = event['ResourceProperties']['ProjectName']
+                      
+                      response = codebuild.start_build(projectName=project_name)
+                      build_id = response['build']['id']
+                      
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'BuildId': build_id
+                      })
+                  else:
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+  TriggerBuild:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt LambdaTriggerFunction.Arn
+      ProjectName: !Ref CodeBuildProject
+
+Outputs:
+  SNSTopicArn:
+    Description: SNS Topic ARN for notifications
+    Value: !Ref SNSTopic
+  
+  CodeBuildProjectName:
+    Description: CodeBuild project name
+    Value: !Ref CodeBuildProject

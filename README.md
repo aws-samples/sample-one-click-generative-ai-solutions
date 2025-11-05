@@ -191,6 +191,35 @@ GenU を 1 click でデプロイしたあとに、GenU のアップデートや�
 * **技術マニュアルの品質確認**: 複雑な技術マニュアルが社内ガイドラインや業界標準に準拠しているかを確認
 * **調達文書のコンプライアンス確認**: 調達文書や提案書が必要な要件を満たしているかをチェック
 
+## Customer 360
+
+[Customer 360 Text2SQL Segmentation & Entity Resolution](https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution) は、AWS Entity Resolution を活用して異なるデータソース間で顧客データを照合・統合し、自然言語による対話でセグメントを作成することができる、Customer 360 を始めるためのサンプル実装です。Amazon Personalize item-affinity recipe によるセグメンテーション機能にも対応しています。
+
+ [![](https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png)](https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml)
+
+### Parameters
+
+* NotificationEmailAddress
+   * デプロイの開始・終了を通知するメールアドレスです。
+* EntityResolutionEnabled (default: false)
+   * AWS Entity Resolution を利用するかどうかを設定します。顧客データの照合・統合機能を有効化します。
+* PersonalizeEnabled (default: false)
+   * Amazon Personalize を利用するかどうかを設定します。EntityResolutionEnabled が true の場合のみ利用可能です。
+* AllowedIpV4AddressRanges (default: 0.0.0.0/1,128.0.0.0/1)
+   * アクセス可能な IPv4 アドレス範囲を指定します（カンマ区切り）
+* AllowedIpV6AddressRanges (default: 0000:0000:0000:0000:0000:0000:0000:0000/1,8000:0000:0000:0000:0000:0000:0000:0000/1)
+   * アクセス可能な IPv6 アドレス範囲を指定します（カンマ区切り）
+
+### 想定ユースケース
+
+メインブランドとサブブランドの 2 つの自社ECサイトを運用している事業者が持つデータを使って、ワークフローが実行されます。ワークフローでは、はじめに 2つの EC サイトで重複している顧客情報が AWS Entity Resolution の ML を用いたマッチングにより統合された後に、チャットインターフェイスを通じてセグメンテーション（商品を購入しそうなユーザーの抽出）や、属性・購買行動の分析を行うことができます。
+
+### 主な機能
+
+* **顧客データ統合**: AWS Entity Resolution による異なるデータソース間での顧客データ照合・統合
+* **自然言語セグメンテーション**: チャットインターフェイスを通じた条件に合致するユーザーの抽出
+* **属性・購買行動分析**: 顧客の行動パターンや属性の分析機能
+
 ## Bedrock Engineer
 
 [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) は、Amazon Bedrock を活用した自律型ソフトウェア開発エージェントアプリケーションです。ファイル作成・編集、コマンド実行、Web検索、ナレッジベース活用、マルチエージェント連携、画像生成など、様々な機能をカスタマイズして利用できます。クライアントアプリケーションとして動作するため、CloudFormationによるデプロイは不要で、直接ダウンロードして使用できます。
