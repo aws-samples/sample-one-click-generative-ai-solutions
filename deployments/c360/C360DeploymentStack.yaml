@@ -80,10 +80,9 @@ Resources:
           phases:
             install:
               runtime-versions:
-                nodejs: 18
+                nodejs: 22
               commands:
                 - echo "Installing dependencies..."
-                - npm install -g aws-cdk
                 - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment started" --subject "C360 Deployment Started"
             pre_build:
               commands:
