@@ -1,5 +1,5 @@
-AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Deploy Customer 360 Text2SQL Segmentation and Entity Resolution Solution'
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Deploy Customer 360 Text2SQL Segmentation and Entity Resolution Solution"
 
 Parameters:
   NotificationEmailAddress:
@@ -7,24 +7,24 @@ Parameters:
     Description: Email address for deployment notifications
     AllowedPattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
     ConstraintDescription: Must be a valid email address
-  
+
   EntityResolutionEnabled:
     Type: String
-    Default: 'false'
-    AllowedValues: ['true', 'false']
+    Default: "false"
+    AllowedValues: ["true", "false"]
     Description: Enable AWS Entity Resolution for customer data matching
-  
+
   PersonalizeEnabled:
     Type: String
-    Default: 'false'
-    AllowedValues: ['true', 'false']
+    Default: "false"
+    AllowedValues: ["true", "false"]
     Description: Enable Amazon Personalize for recommendation (requires EntityResolution to be true)
 
 Resources:
   SNSTopic:
     Type: AWS::SNS::Topic
     Properties:
-      TopicName: !Sub '${AWS::StackName}-notifications'
+      TopicName: !Sub "${AWS::StackName}-notifications"
 
   SNSSubscription:
     Type: AWS::SNS::Subscription
@@ -37,7 +37,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -48,7 +48,7 @@ Resources:
       Policies:
         - PolicyName: SNSPublishPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -58,7 +58,7 @@ Resources:
   CodeBuildProject:
     Type: AWS::CodeBuild::Project
     Properties:
-      Name: !Sub '${AWS::StackName}-build'
+      Name: !Sub "${AWS::StackName}-build"
       ServiceRole: !GetAtt CodeBuildServiceRole.Arn
       Artifacts:
         Type: NO_ARTIFACTS
@@ -100,9 +100,9 @@ Resources:
             build:
               commands:
                 - echo "Bootstrapping CDK..."
-                - cdk bootstrap
+                - npx cdk bootstrap
                 - echo "Deploying C360 stack..."
-                - cdk deploy --all --require-approval never
+                - npx cdk deploy --all --require-approval never
             post_build:
               commands:
                 - echo "Deployment completed"
@@ -115,7 +115,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Principal:
@@ -126,7 +126,7 @@ Resources:
       Policies:
         - PolicyName: CodeBuildStartPolicy
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
               - Effect: Allow
                 Action:
@@ -136,7 +136,7 @@ Resources:
   LambdaTriggerFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: !Sub '${AWS::StackName}-trigger'
+      FunctionName: !Sub "${AWS::StackName}-trigger"
       Runtime: python3.11
       Handler: index.lambda_handler
       Role: !GetAtt LambdaTriggerRole.Arn
@@ -145,7 +145,7 @@ Resources:
           import boto3
           import cfnresponse
           import json
-          
+
           def lambda_handler(event, context):
               try:
                   if event['RequestType'] == 'Create':
@@ -174,7 +174,7 @@ Outputs:
   SNSTopicArn:
     Description: SNS Topic ARN for notifications
     Value: !Ref SNSTopic
-  
+
   CodeBuildProjectName:
     Description: CodeBuild project name
     Value: !Ref CodeBuildProject
