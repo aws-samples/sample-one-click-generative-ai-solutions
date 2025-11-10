@@ -94,6 +94,7 @@ nav:
     - 'Bedrock Chat': 'solutions/brchat.md'
     - 'RAPID': 'solutions/rapid.md'
     - 'AI Sales Roleplay': 'solutions/roleplay.md'
+    - 'Customer 360 Data Fusion': 'solutions/c360.md'
     - 'GenAI Design Studio': 'solutions/genai-design-studio.md'
     - 'ComfyUI': 'solutions/comfyui.md'
     - 'Remote SWE Agents': 'solutions/remote-swe-agents.md'
