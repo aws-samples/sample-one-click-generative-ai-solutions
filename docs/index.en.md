@@ -427,6 +427,36 @@ function filterSolutions(category) {
   </div>
 </div>
 
+<div class="solution-card" data-category="document">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/c360/demo.png" alt="Customer 360 Data Fusion Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution" target="_blank">Customer 360 Data Fusion</a> leverages AWS Entity Resolution to match and integrate customer data across different data sources, enabling natural language segment creation for comprehensive Customer 360 implementation.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+      </select>
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/c360/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
