@@ -106,7 +106,68 @@ Resources:
             post_build:
               commands:
                 - echo "Deployment completed"
-                - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment completed successfully" --subject "C360 Deployment Completed"
+                - cd $CODEBUILD_SRC_DIR/
+                - |
+                  # Get stack outputs - try multiple patterns to find the C360 stack
+                  STACK_NAME=$(aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --query "StackSummaries[?contains(StackName, 'AmtC360Marketing')].StackName" --output text | head -1)
+                  if [ -z "$STACK_NAME" ]; then
+                    STACK_NAME=$(aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --query "StackSummaries[?contains(StackName, 'C360')].StackName" --output text | head -1)
+                  fi
+                  
+                  if [ ! -z "$STACK_NAME" ]; then
+                    # Try different output key patterns
+                    FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='WebAppUrl'].OutputValue" --output text)
+                    if [ -z "$FRONTEND_URL" ] || [ "$FRONTEND_URL" == "None" ]; then
+                      FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'WebAppUrl')].OutputValue" --output text | head -1)
+                    fi
+                    
+                    S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='DataBucketOutput'].OutputValue" --output text)
+                    if [ -z "$S3_BUCKET" ] || [ "$S3_BUCKET" == "None" ]; then
+                      S3_BUCKET=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'DataBucket')].OutputValue" --output text | head -1)
+                    fi
+                    
+                    USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
+                    if [ -z "$USER_POOL_ID" ] || [ "$USER_POOL_ID" == "None" ]; then
+                      USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'UserPoolId')].OutputValue" --output text | head -1)
+                    fi
+                  fi
+                  
+                  # Get AWS account info
+                  AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                  
+                  # Build Cognito console URL if we have a User Pool ID
+                  if [ ! -z "$USER_POOL_ID" ] && [ "$USER_POOL_ID" != "None" ]; then
+                    USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+                  else
+                    USER_CREATION_URL="Check Cognito console for user pool management"
+                  fi
+
+                  cat > deployment-info.txt << EOF
+                  C360 Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Application URL: ${FRONTEND_URL}
+
+                  Configuration:
+                  Entity Resolution Enabled: ${ENTITY_RESOLUTION_ENABLED}
+                  Personalize Enabled: ${PERSONALIZE_ENABLED}
+
+                  Important Next Steps:
+                  1. Data Upload Instructions:
+                     https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution?tab=readme-ov-file#%E3%83%86%E3%82%B9%E3%83%88%E3%83%87%E3%83%BC%E3%82%BF%E6%BA%96%E5%82%99
+
+                  2. Create a user in the Cognito User Pool to access the application:
+                     ${USER_CREATION_URL}
+
+                  3. S3 Data Bucket: ${S3_BUCKET}
+
+                  Stack Details:
+                  Stack Name: ${STACK_NAME}
+                  Region: ${AWS_DEFAULT_REGION}
+
+                  For more information, visit: https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution
+                  EOF
+                - aws sns publish --topic-arn $SNS_TOPIC_ARN --subject "C360 Deployment Completed" --message file://deployment-info.txt
           on-failure:
             commands:
               - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "C360 deployment failed" --subject "C360 Deployment Failed"
