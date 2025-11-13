@@ -76,6 +76,21 @@ When deployment is complete, you'll receive a notification email containing:
 4. **User Creation Instructions**: How to create users when self-signup is disabled
 5. **Configuration Information**: Confirmation of parameters specified during deployment
 
+### Try RAPID
+
+After deployment is complete, you can try RAPID using the following sample files.
+
+#### Download Sample Files
+
+RAPID requires two types of files: checklist files and review document files. You can download English sample files from the links below:
+
+| Use Case | Checklist | Review Document |
+|----------|-----------|----------------|
+| **Use Case 001: House Maker Meeting Minutes** | [Meeting Minutes Checklist](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/en/use_case_001_house_maker_meeting_minutes/check_list_meeting_minutes.pdf) | [Floor Plan](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/en/use_case_001_house_maker_meeting_minutes/review_document_floor_plan.png) |
+| **Use Case 004: Internal Approval Request (IT Department)** | [Internal Approval Checklist](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/en/use_case_004_internal_approval_request/check_list_internal_approval.pdf) | [Internal Approval Request](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/en/use_case_004_internal_approval_request/review_document_internal_approval_request.pdf) |
+
+For additional sample files and detailed usage instructions, please refer to [RAPID Examples](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/tree/main/examples).
+
 ### Resource Removal
 
 To remove deployed resources, delete the `RapidStack` and `RapidDeploymentStack` stacks from the CloudFormation console.

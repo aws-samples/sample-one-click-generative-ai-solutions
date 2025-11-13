@@ -80,6 +80,23 @@
 4. **ユーザー作成手順**: セルフサインアップが無効の場合のユーザー作成方法
 5. **設定情報**: デプロイ時に指定したパラメータの確認
 
+### RAPID を試す
+
+デプロイ完了後、以下のサンプルファイルを使用して RAPID の動作を試すことができます。
+
+#### サンプルファイルのダウンロード
+
+RAPID には、チェックリストファイルと審査対象ファイルの 2 種類のファイルが必要です。以下のリンクから日本語のサンプルファイルをダウンロードできます：
+
+| ユースケース | チェックリスト | 審査対象ファイル |
+|------------|--------------|----------------|
+| **ユースケース001: ハウスメーカーでの商談と図面の一致** | [顧客商談議事録](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/%E3%83%A6%E3%83%BC%E3%82%B9%E3%82%B1%E3%83%BC%E3%82%B9001_%E3%83%8F%E3%82%A6%E3%82%B9%E3%83%A1%E3%83%BC%E3%82%AB%E3%83%BC%E5%95%86%E8%AB%87%EF%BC%88%E8%AD%B0%E4%BA%8B%E9%8C%B2%E3%81%A8%E5%9B%B3%E9%9D%A2%E9%96%93%E3%81%AE%E6%95%B4%E5%90%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%EF%BC%89/01.%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%E3%83%AA%E3%82%B9%E3%83%88_%E9%A1%A7%E5%AE%A2%E5%95%86%E8%AB%87%E8%AD%B0%E4%BA%8B%E9%8C%B2/%E5%95%86%E8%AB%87%E8%AD%B0%E4%BA%8B%E9%8C%B201.pdf) | [建物間取り図](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/%E3%83%A6%E3%83%BC%E3%82%B9%E3%82%B1%E3%83%BC%E3%82%B9001_%E3%83%8F%E3%82%A6%E3%82%B9%E3%83%A1%E3%83%BC%E3%82%AB%E3%83%BC%E5%95%86%E8%AB%87%EF%BC%88%E8%AD%B0%E4%BA%8B%E9%8C%B2%E3%81%A8%E5%9B%B3%E9%9D%A2%E9%96%93%E3%81%AE%E6%95%B4%E5%90%88%E3%83%81%E3%82%A7%E3%83%83%E3%82%AF%EF%BC%89/02.%E5%AF%A9%E6%9F%BB%E5%AF%BE%E8%B1%A1_%E5%BB%BA%E7%89%A9%E9%96%93%E5%8F%96%E3%82%8A%E5%9B%B3/%E3%83%9E%E3%83%B3%E3%82%B7%E3%83%A7%E3%83%B3_3LDK.png) |
+| **ユースケース002: 不動産仲介** | [重要事項説明書 簡易チェックリスト](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース002_不動産仲介_重要事項説明書/01_チェックリスト_重要事項説明書_簡易チェックリスト/重要事項説明書_簡易チェックリスト.pdf) | [重要事項説明書](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース002_不動産仲介_重要事項説明書/02_審査対象書類_重要事項説明書/記入中_重説20250608.pdf) |
+| **ユースケース003: 車庫申請** | [チェック項目](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース003_車庫申請/チェック項目.pdf) | [申請書例](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース003_車庫申請/申請書例.pdf) |
+| **ユースケース004: 社内稟議（IT部門）** | [チェックリスト](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース004_社内稟議（IT部門）/チェックリスト/社内稟議書チェックリスト.pdf) | [社内稟議依頼](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/blob/main/examples/ja/ユースケース004_社内稟議（IT部門）/審査対象書類/社内稟議依頼.pdf) |
+
+その他のサンプルファイルや詳細な使用方法については、[RAPID Examples](https://github.com/aws-samples/review-and-assessment-powered-by-intelligent-documentation/tree/main/examples) をご参照ください。
+
 ### リソースの削除
 
 デプロイしたリソースを削除するには、CloudFormation コンソールから `RapidStack` と `RapidDeploymentStack` スタックを削除します。
