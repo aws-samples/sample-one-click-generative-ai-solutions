@@ -324,6 +324,7 @@ Resources:
                       modelIds: convertedModelIds,
                       ragKnowledgeBaseEnabled: ragEnabled === 'Knowledge-Bases' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
                       ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
+                      agentBuilderEnabled: agentCoreEnabled === 'true',
                       createGenericAgentCoreRuntime: agentCoreEnabled === 'true',
                       agentCoreRegion: 'us-east-1',
                       selfSignUpEnabled: selfSignUp === 'true',
