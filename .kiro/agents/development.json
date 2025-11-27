@@ -45,7 +45,7 @@
     "*"
   ],
   "allowedTools": [
-    "fsRead",
+    "read",
     "fsReplace",
     "listDirectory",
     "fileSearch"
@@ -68,6 +68,6 @@
   },
   "resources": [
     "file://README.md",
-    "file://.amazonq/rules/development.md"
+    "file://.kiro/steering/development.md"
   ]
 }
