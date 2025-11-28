@@ -52,11 +52,13 @@
 * **NotificationEmailAddress**
     * デプロイの開始・終了を通知するメールアドレスです
 * **ModelRegion**
-    * Amazon Bedrock のモデルを提供するリージョンです。GenU で利用するモデルが指定されたリージョンで提供されていない場合、互換性のあるモデルに自動的に変換されます
+    * Amazon Bedrock のモデルを提供するリージョンです。GenU で利用するモデルが指定されたリージョンで提供されていない場合、互換性のあるモデルに自動的に変換されます。[対応済みのモデルはこちらから参照できます](https://aws-samples.github.io/generative-ai-use-cases/en/DEPLOY_OPTION.html#change-amazon-bedrock-models)。
 * **RAGEnabled** (デフォルト: None)
     * RAG の設定を選択します。"Knowledge-Bases" は Amazon Bedrock Knowledge Bases 、"Kendra" は Amazon Kendra Developer Edition 、"Both" は両方使用します。"Kendra-Enterprise" のように "Enterprise" では Enterprise Edition を使用します
 * **AgentCoreEnabled** (デフォルト: true)
-    * AWS MCP と連携するエージェント機能を有効にします（us-east-1 で実行されます）
+    * エージェント機能を有効にします
+* **AgentCoreRegion** (デフォルト: us-east-1)
+    * エージェントが使用するリージョンです
 * **SelfSignUp** (デフォルト: false)
     * セルフサインアップの有効 / 無効を切り替えます
 * **AllowedSignUpEmailDomains**
@@ -75,6 +77,20 @@
     3. **メールドメイン制限**: `AllowedSignUpEmailDomains` で特定のドメインからのサインアップのみを許可
     
     IP 制限を設定しない場合は Public Access 可能な状態でデプロイされますが、SelfSignUp は false にしているためログインには AWS アカウントでのユーザー作成 (Amazon Cognito) が必要です。
+
+!!! tip "Experimental : GenU で使える AgentCore エージェントを設定する"
+
+    ワンクリックデプロイ時に、GenU で使える Agent を自動的に設定します！  
+    ご利用いただく場合は **GenU をデプロイ / 更新する前に**、**AgentCoreRegionで指定したリージョンへ**デプロイください。
+
+    | Agent | Description |
+    |:------|:------|
+    | 👩‍💻 [AWS サポートエージェント](https://icoxfog417.github.io/personal-account-manager/){:target="_blank"} | AWS を使う際の請求、また GenU の使い方など "よくある質問" にいつでもお答えるするエージェントです |
+
+    技術的には、Integration/GenU のタグがつけられた Stack を検索し、見つかった場合 GenU デプロイパラメーターの一つである `agentCoreExternalRuntimes` に Stack で出力されている "AgentCoreRuntimeArn" を `arn` 、 "AgentCoreRuntimeName" を `name` / `description` として登録します。  
+    タグ / Stack の Outputs をこの設定で行いデプロイしておけば、**自作のエージェントを簡単に GenU で使うことができます**。
+
+
 
 ### デプロイ後の設定
 
