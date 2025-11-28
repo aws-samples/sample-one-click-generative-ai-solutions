@@ -304,23 +304,38 @@ Resources:
                   // Discover AgentCore Runtime agents in specified region
                   async function discoverAgentCoreRuntimes(region) {
                     try {
-                      const stacks = JSON.parse(execSync(`aws cloudformation describe-stacks --region ${region} --query "Stacks[?Tags[?Key=='Integration' && Value=='GenU']].StackName" --output json`, { encoding: 'utf8' }));
+                      // Fetch only stacks with Integration=GenU tag, including outputs
+                      const output = execSync(
+                        `aws cloudformation describe-stacks --region ${region} --query "Stacks[?Tags[?Key=='Integration' && Value=='GenU']]" --output json`,
+                        { encoding: 'utf8' }
+                      );
+                      
+                      if (!output || output.trim() === '') {
+                        console.log('No AgentCore Runtimes found in region');
+                        return [];
+                      }
+                      
+                      const stacks = JSON.parse(output);
                       const runtimes = [];
                       
-                      for (const stackName of stacks) {
-                        const outputs = JSON.parse(execSync(`aws cloudformation describe-stacks --region ${region} --stack-name ${stackName} --query "Stacks[0].Outputs" --output json`, { encoding: 'utf8' }));
-                        const agentCoreArn = outputs.find(o => o.OutputKey === 'AgentCoreRuntimeArn')?.OutputValue;
-                        const agentCoreName = outputs.find(o => o.OutputKey === 'AgentCoreRuntimeName')?.OutputValue;
-                        
-                        if (agentCoreArn && agentCoreName) {
-                          runtimes.push({ description: agentCoreName, name: agentCoreName, arn: agentCoreArn });
-                          console.log(`✓ Found AgentCore Runtime: ${agentCoreName} (${agentCoreArn})`);
+                      for (const stack of stacks || []) {
+                        if (stack.Outputs) {
+                          const agentCoreArn = stack.Outputs.find(o => o.OutputKey === 'AgentCoreRuntimeArn')?.OutputValue;
+                          const agentCoreName = stack.Outputs.find(o => o.OutputKey === 'AgentCoreRuntimeName')?.OutputValue;
+                          
+                          if (agentCoreArn && agentCoreName) {
+                            runtimes.push({ description: agentCoreName, name: agentCoreName, arn: agentCoreArn });
+                            console.log(`✓ Found AgentCore Runtime: ${agentCoreName} (${agentCoreArn})`);
+                          }
                         }
                       }
                       
+                      if (runtimes.length === 0) {
+                        console.log('No AgentCore Runtimes found in region');
+                      }
                       return runtimes;
                     } catch (error) {
-                      console.log('No AgentCore Runtimes found or error discovering:', error.message);
+                      console.log('Error discovering AgentCore Runtimes:', error.message);
                       return [];
                     }
                   }
@@ -454,24 +469,21 @@ Resources:
                   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                   USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL}/user-management/users?region=${AWS_DEFAULT_REGION}"
                   
-                  # Create Cognito user
-                  TEMP_PASSWORD="Temp$(openssl rand -base64 9)!"
-                  
-                  # Set default values
+                  # Create Cognito user (Cognito will generate and email temporary password)
                   USERNAME="-"
-                  PASSWORD="-"
-                  USER_NOTE="User already exists or creation failed."
+                  USER_NOTE="User creation was not successful. Please create user manually or check if user already exists."
                   
-                  # Try to create user and update values if successful
-                  if aws cognito-idp admin-create-user \
+                  ERROR_OUTPUT=$(aws cognito-idp admin-create-user \
                     --user-pool-id "$USER_POOL" \
                     --username "$NotificationEmailAddress" \
                     --user-attributes Name=email,Value="$NotificationEmailAddress" Name=email_verified,Value=true \
-                    --temporary-password "$TEMP_PASSWORD" \
-                    --region ${AWS_DEFAULT_REGION} 2>/dev/null; then
+                    --region ${AWS_DEFAULT_REGION} 2>&1)
+                  
+                  if [ $? -eq 0 ]; then
                     USERNAME="$NotificationEmailAddress"
-                    PASSWORD="$TEMP_PASSWORD"
-                    USER_NOTE="You will be required to change your password on first login."
+                    USER_NOTE="Temporary password has been sent to your email address by AWS Cognito. You will be required to change your password on first login."
+                  else
+                    echo "Failed to create user: $ERROR_OUTPUT"
                   fi
                   
                   # Determine Kendra edition
@@ -489,17 +501,16 @@ Resources:
 
                   User Credentials:
                   Username: ${USERNAME}
-                  Temporary Password: ${PASSWORD}
                   Note: ${USER_NOTE}
 
                   Important Next Steps:
                   1. Please enable model access on Amazon Bedrock:
                      https://${AWS_ACCOUNT_ID}.${ModelRegion}.console.aws.amazon.com/bedrock/home?region=${ModelRegion}#/modelaccess
                   
-                  2. To add additional users, please access to Cognito User Pool and register users by referring registration guide.
+                  2. To add additional users, please access the Cognito User Pool and register users by referring to the registration guide.
                      Users can register by themselves if self-signup enabled.
                      ${USER_CREATION_URL}
-                     User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account                  
+                     User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account
 
                   Configuration:
                   Environment: ${Environment}
