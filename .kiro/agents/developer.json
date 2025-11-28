@@ -1,5 +1,5 @@
 {
-  "name": "development",
+  "name": "developer",
   "description": "One Click CloudFormation Development Agent",
   "mcpServers": {
     "AWS Core MCP Server": {

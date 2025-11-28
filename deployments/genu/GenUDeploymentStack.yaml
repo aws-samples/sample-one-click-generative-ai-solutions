@@ -56,7 +56,13 @@ Parameters:
     Type: String
     AllowedValues: [true, false]
     Default: true
-    Description: 'Enable agent that work with AWS MCP run on AgentCore (runs on us-east-1)'
+    Description: 'Enable agent that work with AWS MCP run on AgentCore'
+  
+  AgentCoreRegion:
+    Type: String
+    Default: us-east-1
+    AllowedValues: [us-east-1, us-west-2, ap-northeast-1]
+    Description: 'AWS region for AgentCore Runtime'
   
   SelfSignUp:
     Type: String
@@ -176,6 +182,8 @@ Resources:
             Value: !Ref RAGEnabled
           - Name: AgentCoreEnabled
             Value: !Ref AgentCoreEnabled
+          - Name: AgentCoreRegion
+            Value: !Ref AgentCoreRegion
           - Name: SelfSignUp
             Value: !Ref SelfSignUp
           - Name: AllowedSignUpEmailDomains
@@ -190,6 +198,8 @@ Resources:
             Value: !Ref DeploymentNotificationTopic
           - Name: DEPLOYMENT_STACK_NAME
             Value: !Ref AWS::StackName
+          - Name: NotificationEmailAddress
+            Value: !Ref NotificationEmailAddress
       Source:
         Type: NO_SOURCE
         BuildSpec: |
@@ -291,6 +301,45 @@ Resources:
                     return [...new Set(results)];
                   }
 
+                  // Discover AgentCore Runtime agents in specified region
+                  async function discoverAgentCoreRuntimes(region) {
+                    try {
+                      // Fetch only stacks with Integration=GenU tag, including outputs
+                      const output = execSync(
+                        `aws cloudformation describe-stacks --region ${region} --query "Stacks[?Tags[?Key=='Integration' && Value=='GenU']]" --output json`,
+                        { encoding: 'utf8' }
+                      );
+                      
+                      if (!output || output.trim() === '') {
+                        console.log('No AgentCore Runtimes found in region');
+                        return [];
+                      }
+                      
+                      const stacks = JSON.parse(output);
+                      const runtimes = [];
+                      
+                      for (const stack of stacks || []) {
+                        if (stack.Outputs) {
+                          const agentCoreArn = stack.Outputs.find(o => o.OutputKey === 'AgentCoreRuntimeArn')?.OutputValue;
+                          const agentCoreName = stack.Outputs.find(o => o.OutputKey === 'AgentCoreRuntimeName')?.OutputValue;
+                          
+                          if (agentCoreArn && agentCoreName) {
+                            runtimes.push({ description: agentCoreName, name: agentCoreName, arn: agentCoreArn });
+                            console.log(`✓ Found AgentCore Runtime: ${agentCoreName} (${agentCoreArn})`);
+                          }
+                        }
+                      }
+                      
+                      if (runtimes.length === 0) {
+                        console.log('No AgentCore Runtimes found in region');
+                      }
+                      return runtimes;
+                    } catch (error) {
+                      console.log('Error discovering AgentCore Runtimes:', error.message);
+                      return [];
+                    }
+                  }
+
                   // Main parameter processing
                   const cdkJson = JSON.parse(fs.readFileSync('packages/cdk/cdk.json', 'utf8'));
                   const envName = process.env.Environment;
@@ -305,6 +354,7 @@ Resources:
                     const additionalModelsStr = process.env.AdditionalModels;
                     const ragEnabled = process.env.RAGEnabled;
                     const agentCoreEnabled = process.env.AgentCoreEnabled;
+                    const agentCoreRegion = process.env.AgentCoreRegion;
                     const selfSignUp = process.env.SelfSignUp;
                     const allowedSignUpEmailDomains = process.env.AllowedSignUpEmailDomains;
                     const allowedIpV4AddressRanges = process.env.AllowedIpV4AddressRanges;
@@ -318,6 +368,9 @@ Resources:
                     
                     // Convert models for the target region
                     const convertedModelIds = await convertModels(allModelIds, modelRegion);
+                    
+                    // Discover AgentCore Runtimes in agentCoreRegion
+                    const agentCoreRuntimes = await discoverAgentCoreRuntimes(agentCoreRegion);
 
                     params = {
                       modelRegion: modelRegion,
@@ -326,7 +379,8 @@ Resources:
                       ragEnabled: ragEnabled === 'Kendra' || ragEnabled === 'Kendra-Enterprise' || ragEnabled === 'Both' || ragEnabled === 'Both-Enterprise',
                       agentBuilderEnabled: agentCoreEnabled === 'true',
                       createGenericAgentCoreRuntime: agentCoreEnabled === 'true',
-                      agentCoreRegion: 'us-east-1',
+                      agentCoreRegion: agentCoreRegion,
+                      agentCoreExternalRuntimes: agentCoreRuntimes.length > 0 ? agentCoreRuntimes : undefined,
                       selfSignUpEnabled: selfSignUp === 'true',
                       allowedSignUpEmailDomains: allowedSignUpEmailDomains ? allowedSignUpEmailDomains.split(',').map(d => d.trim()) : null,
                       allowedIpV4AddressRanges: allowedIpV4AddressRanges ? allowedIpV4AddressRanges.split(',').map(r => r.trim()) : null,
@@ -406,7 +460,7 @@ Resources:
                 # Deploy the stack
                 - npm run cdk:deploy:quick -- -c env=${Environment}
                 
-                # Get the application URL
+                # Get the application URL and create Cognito user
                 - cd $CODEBUILD_SRC_DIR/
                 - |
                   STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'GenerativeAiUseCasesStack${Environment}')].StackName" --output text)
@@ -414,6 +468,30 @@ Resources:
                   USER_POOL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text)
                   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
                   USER_CREATION_URL="https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${USER_POOL}/user-management/users?region=${AWS_DEFAULT_REGION}"
+                  
+                  # Create Cognito user (Cognito will generate and email temporary password)
+                  USERNAME="-"
+                  USER_NOTE="User creation was not successful. Please create user manually or check if user already exists."
+                  
+                  ERROR_OUTPUT=$(aws cognito-idp admin-create-user \
+                    --user-pool-id "$USER_POOL" \
+                    --username "$NotificationEmailAddress" \
+                    --user-attributes Name=email,Value="$NotificationEmailAddress" Name=email_verified,Value=true \
+                    --region ${AWS_DEFAULT_REGION} 2>&1)
+                  
+                  if [ $? -eq 0 ]; then
+                    USERNAME="$NotificationEmailAddress"
+                    USER_NOTE="Temporary password has been sent to your email address by AWS Cognito. You will be required to change your password on first login."
+                  else
+                    echo "Failed to create user: $ERROR_OUTPUT"
+                  fi
+                  
+                  # Determine Kendra edition
+                  if [[ "${RAGEnabled}" == *"Enterprise"* ]]; then
+                    KENDRA_EDITION="Enterprise"
+                  else
+                    KENDRA_EDITION="Developer"
+                  fi
 
                   cat << EOF > deployment-info.txt
                   GenU Deployment Completed Successfully!
@@ -421,11 +499,16 @@ Resources:
 
                   Login URL: ${APP_URL}
 
+                  User Credentials:
+                  Username: ${USERNAME}
+                  Note: ${USER_NOTE}
+
                   Important Next Steps:
                   1. Please enable model access on Amazon Bedrock:
                      https://${AWS_ACCOUNT_ID}.${ModelRegion}.console.aws.amazon.com/bedrock/home?region=${ModelRegion}#/modelaccess
                   
-                  2. Please create a user in the Cognito User Pool to access the application (if self-signup disabled):
+                  2. To add additional users, please access the Cognito User Pool and register users by referring to the registration guide.
+                     Users can register by themselves if self-signup enabled.
                      ${USER_CREATION_URL}
                      User Registration Guide : https://catalog.workshops.aws/generative-ai-use-cases-jp/ja-JP/disable-self-signup/create-account
 
@@ -433,7 +516,7 @@ Resources:
                   Environment: ${Environment}
                   Model Region: ${ModelRegion}
                   RAG Enabled: ${RAGEnabled}
-                  Kendra Edition: $([[ "${RAGEnabled}" == *"Enterprise"* ]] && echo "Enterprise" || echo "Developer")
+                  Kendra Edition: ${KENDRA_EDITION}
                   Agent Core Enabled: ${AgentCoreEnabled}
                   Self-Signup Enabled: ${SelfSignUp}
                   Allowed SignUp Email Domains: ${AllowedSignUpEmailDomains}
