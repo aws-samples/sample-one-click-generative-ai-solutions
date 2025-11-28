@@ -9,16 +9,29 @@ Metadata:
         Parameters:
           - Environment
           - NotificationEmailAddress
+      - Label:
+          default: "GenU Model Parameters"
+        Parameters:
           - ModelRegion
           - AdditionalModels
+      - Label:
+          default: "GenU RAG Parameters"
+        Parameters:
           - RAGEnabled
+      - Label:
+          default: "GenU Agent Parameters"
+        Parameters:
           - AgentCoreEnabled
+          - AgentCoreRegion
+      - Label:
+          default: "GenU Security Parameters"
+        Parameters:  
           - SelfSignUp
           - AllowedSignUpEmailDomains
           - AllowedIpV4AddressRanges
           - AllowedIpV6AddressRanges
       - Label:
-          default: "Update Configuration"
+          default: "Set false on Create / true on Update"
         Parameters:
           - UsePreviousDeploymentParameter
 
