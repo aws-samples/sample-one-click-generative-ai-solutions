@@ -67,6 +67,7 @@
     }
   },
   "resources": [
+    "file://.kiro/steering/principles.md",
     "file://README.md",
     "file://.kiro/steering/development.md"
   ]

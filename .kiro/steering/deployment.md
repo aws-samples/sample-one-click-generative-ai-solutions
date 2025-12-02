@@ -1,8 +1,25 @@
 # CloudFormation One-Click Deployment Guidelines
 
-This document outlines the fundamental rules and architecture patterns for implementing CloudFormation templates that enable one-click deployments of generative AI solutions, based on the GenU and Dify implementation examples.
+## 1. Goal
 
-## Core Architecture Pattern
+Deliver **fast, safe, reliable time-to-experience** for generative AI solutions through one-click deployment.
+
+### Design Principles
+- **One Click to Value**: Single CloudFormation action deploys and runs the solution
+- **Security First**: Least privilege IAM, IP restrictions, secure defaults
+- **Self-Healing**: Automated setup with clear progress notifications and actionable errors
+
+## 2. What We Implement
+
+A CloudFormation template that orchestrates automated CDK deployment via CodeBuild, eliminating the need for local development environment setup.
+
+### Key Components
+1. **CloudFormation Stack** - Entry point with user-configurable parameters
+2. **CodeBuild Pipeline** - Automated build and deployment execution
+3. **SNS Notifications** - Deployment progress and completion alerts
+4. **Lambda Trigger** - Automatic pipeline initiation
+
+## 3. Architecture Pattern
 
 The one-click deployment architecture follows this pattern:
 
@@ -22,7 +39,7 @@ graph TD
     Lambda -->|Assumes| LambdaRole[Lambda IAM Role]
     
     subgraph "CodeBuild Pipeline"
-        CB -->|1. Install| Install[Install Dependencies & Clone Repo]
+        CB -->|1. Install| Install[Install Runtime & Dependencies]
         Install -->|2. Pre-build| PreBuild[Update Parameters]
         PreBuild -->|3. Build| Build[Deploy Application Stack]
         Build -->|4. Post-build| PostBuild[Send Completion Notification]
@@ -32,159 +49,31 @@ graph TD
     PostBuild -->|Publishes to| SNS
 ```
 
-## Implementation Rules
+## 4. How to Implement
 
-### 1. CloudFormation Template Structure
+### 4.1 CloudFormation Stack
 
-- **Template Format**: Use `AWSTemplateFormatVersion: '2010-09-09'` and include a descriptive `Description`.
-- **Metadata**: Include `AWS::CloudFormation::Interface` to organize parameters into logical groups.
-- **Parameters**: Define all configurable aspects of the deployment as parameters.
-- **Resources**: Organize resources in a logical sequence (notification → roles → build → trigger).
-- **Outputs**: Provide useful information about the deployed resources.
+The entry point template that defines all resources and user-configurable parameters.
 
-### 2. Required Components
+**Template Structure:**
+- Use `AWSTemplateFormatVersion: '2010-09-09'` with descriptive `Description`
+- Include `AWS::CloudFormation::Interface` metadata to organize parameters
+- Define parameters for all configurable aspects
+- Organize resources logically: SNS → IAM Roles → CodeBuild → Lambda Trigger
+- Provide useful outputs about deployed resources
 
-Every one-click deployment template must include:
+**Parameter Guidelines:**
+- **Required**: `NotificationEmailAddress` and application-specific configuration
+- **Optional with Defaults**: Environment, region, security settings (IP ranges, access controls)
+- **Validation**: Use `AllowedPattern` for format validation, `AllowedValues` for enums, `ConstraintDescription` for error messages
 
-1. **SNS Topic and Subscription**:
-   - For sending deployment notifications
-   - Must subscribe to the email provided as a parameter
+**Security Best Practices:**
+- Always provide parameters for IP restrictions with sensible defaults
+- Default self-signup to disabled; require explicit domain restrictions when enabled
+- Use least privilege IAM permissions scoped to specific resources
+- Include clear warnings when defaults allow public access
 
-2. **CodeBuild Project**:
-   - With appropriate IAM roles and policies
-   - Environment variables derived from CloudFormation parameters
-   - BuildSpec that follows the standard phases (install, pre-build, build, post-build)
-
-3. **Custom Resource with Lambda Trigger**:
-   - To initiate the CodeBuild project automatically
-   - Must handle Create, Update, and Delete events appropriately
-
-4. **IAM Roles and Policies**:
-   - For CodeBuild and Lambda functions
-   - Follow principle of least privilege where possible
-
-### 3. Parameter Guidelines
-
-- **Required Parameters**:
-  - `NotificationEmailAddress`: For deployment notifications
-  - Application-specific configuration parameters
-
-- **Optional Parameters with Defaults**:
-  - Environment/deployment stage
-  - Region selections
-  - Security configurations (IP ranges, access controls)
-
-- **Parameter Validation**:
-  - Use `AllowedPattern` for format validation (e.g., email addresses)
-  - Use `AllowedValues` for enumerated options
-  - Include `ConstraintDescription` for user-friendly error messages
-
-### 4. CodeBuild BuildSpec Structure
-
-The BuildSpec should follow this standard structure:
-
-1. **Install Phase**:
-   - Set up runtime environments
-   - Clone the application repository
-   - Install dependencies
-   - Send initial notification
-
-2. **Pre-build Phase**:
-   - Update application parameters/configuration
-   - Prepare the environment for deployment
-
-3. **Build Phase**:
-   - Check if CDK bootstrap is needed and run if required
-   - Deploy the application stack
-   - **Extract deployment information using CloudFormation outputs** (recommended approach)
-
-4. **Post-build Phase**:
-   - Send completion notification with application details
-   - Clean up temporary resources
-
-#### Build Phase Best Practice : Parameter Extraction
-
-**✅ RECOMMENDED: CloudFormation Outputs Approach**
-```bash
-# Get deployment information using CloudFormation outputs
-STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'AppStackPattern')].StackName" --output text)
-APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text)
-USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'UserPoolId')].OutputValue" --output text)
-```
-
-**❌ NOT RECOMMENDED: Temporary File Parsing**
-```bash
-# Avoid this approach - unreliable and hard to debug
-if [ -f .cdk-outputs.json ]; then
-  APP_URL=$(cat .cdk-outputs.json | python3 -c "complex parsing logic")
-else
-  APP_URL="Check CloudFormation outputs"  # This creates poor user experience
-fi
-```
-
-**Why CloudFormation Outputs Approach is Superior:**
-- **Reliability**: Direct API calls vs. dependency on temporary files
-- **Debuggability**: Can be tested independently outside CodeBuild
-- **Flexibility**: `contains()` queries handle CDK-generated random suffixes
-- **Consistency**: Same pattern across all deployment solutions
-- **Maintainability**: Simpler, more straightforward implementation
-
-### 5. Security Best Practices
-
-- **IP Restrictions**:
-   - Always provide parameters for IP restrictions
-   - Use sensible defaults that encourage security
-   - Include clear warnings when defaults allow public access
-
-- **Self-signup Controls**:
-   - Default to disabled self-signup
-   - Require explicit domain restrictions when self-signup is enabled
-
-- **IAM Permissions**:
-   - Use least privilege where possible
-   - Scope permissions to specific resources
-
-### 6. Notification Standards
-
-- **Initial Notification**:
-   - Send when deployment starts
-   - Include basic information about the deployment
-
-- **Completion Notification**:
-   - Include application URL
-   - Include user management URL if applicable
-   - List key configuration parameters
-   - Provide next steps or additional setup instructions
-
-### 7. Error Handling
-
-- **CloudFormation Custom Resource**:
-   - Must properly handle and report errors
-   - Should send FAILED status with error details
-
-- **CodeBuild**:
-   - Include error handling in scripts
-   - Capture and report meaningful error messages
-
-- **Parameter Extraction Debugging**:
-   - **Blank Variables in Notifications**: Most commonly caused by incorrect stack name patterns or output key matching
-   - **Test queries independently** before embedding in BuildSpec:
-     ```bash
-     # Test stack identification
-     aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'YourAppPattern')].StackName" --output text
-     
-     # Test parameter extraction
-     aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text
-     ```
-   - **Use flexible `contains()` queries** to handle CDK-generated random suffixes
-   - **Verify output key patterns** by examining actual CloudFormation outputs first
-
-## Implementation Examples
-
-You can use `/.workspace` directory for storing test scripts to confirm behavior or git clone target solution repository. This directory is excluded from commit by `.gitignore`.
-
-### Parameter Definition Example
-
+**Example:**
 ```yaml
 Parameters:
   NotificationEmailAddress:
@@ -199,8 +88,53 @@ Parameters:
     Description: Allowed IPv4 address ranges for access (comma separated)
 ```
 
-### SNS Topic and Subscription Example
+### 4.2 CodeBuild Pipeline
 
+Automated build and deployment execution that runs the CDK deployment.
+
+**Required Configuration:**
+- IAM role with appropriate permissions for CDK deployment
+- Environment variables derived from CloudFormation parameters
+- BuildSpec following standard phases: install → pre-build → build → post-build
+
+**BuildSpec Structure:**
+
+1. **Install Phase**: Set up runtime, clone repository, install dependencies, send initial notification
+2. **Pre-build Phase**: Update application parameters/configuration
+3. **Build Phase**: Check CDK bootstrap, deploy application stack, extract deployment information
+4. **Post-build Phase**: Send completion notification, clean up temporary resources
+
+**Parameter Extraction Best Practice:**
+
+✅ **RECOMMENDED: CloudFormation Outputs Approach**
+```bash
+# Get deployment information using CloudFormation outputs
+STACK_NAME=$(aws cloudformation describe-stacks --query "Stacks[?contains(StackName, 'AppStackPattern')].StackName" --output text)
+APP_URL=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text)
+USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME --query "Stacks[0].Outputs[?contains(OutputKey, 'UserPoolId')].OutputValue" --output text)
+```
+
+❌ **NOT RECOMMENDED: Temporary File Parsing**
+```bash
+# Avoid this approach - unreliable and hard to debug
+if [ -f .cdk-outputs.json ]; then
+  APP_URL=$(cat .cdk-outputs.json | python3 -c "complex parsing logic")
+else
+  APP_URL="Check CloudFormation outputs"  # Poor user experience
+fi
+```
+
+**Why CloudFormation Outputs is Superior:**
+- Reliability: Direct API calls vs. dependency on temporary files
+- Debuggability: Can be tested independently outside CodeBuild
+- Flexibility: `contains()` queries handle CDK-generated random suffixes
+- Consistency: Same pattern across all deployment solutions
+
+### 4.3 SNS Notifications
+
+Deployment progress and completion alerts sent to users.
+
+**Configuration:**
 ```yaml
 DeploymentNotificationTopic:
   Type: AWS::SNS::Topic
@@ -217,8 +151,15 @@ DeploymentNotificationSubscription:
     Endpoint: !Ref NotificationEmailAddress
 ```
 
-### Custom Resource Trigger Example
+**Notification Standards:**
+- **Initial**: Send when deployment starts with basic information
+- **Completion**: Include application URL, user management URL, key configuration parameters, next steps
 
+### 4.4 Lambda Trigger
+
+Automatic pipeline initiation via CloudFormation Custom Resource.
+
+**Implementation:**
 ```yaml
 DeploymentTrigger:
   Type: AWS::CloudFormation::CustomResource
@@ -267,126 +208,90 @@ TriggerFunction:
         };
 ```
 
-## Adapting for New Applications
+**Error Handling:**
+- Must properly handle and report errors
+- Send FAILED status with error details to CloudFormation
+- Handle Create, Update, and Delete events appropriately
+
+## 5. Implementation Process
 
 When adapting this pattern for new applications, follow these comprehensive steps based on successful implementations like GenU and Dify:
 
-1. **Analyze Application Architecture and Dependencies**:
-   - Use MCP (Model Context Protocol) tools like `github` and its `get_file_contents` to analyze README.md and documentation
-   - Identify the deployment method (CDK, CloudFormation, Terraform, etc.). We prioritize deployment by CDK.
-   - Determine runtime requirements (Node.js version, Python dependencies, etc.)
-   - Check for required AWS services and permissions
+### 5.1 Analyze Application Architecture and Dependencies
 
-2. **Identify Application-Specific Parameters**:
-   - Core configuration parameters (environment, region, model settings)
-   - Security parameters (IP restrictions, authentication methods)
-   - Feature toggles (RAG capabilities, agent enablement, etc.)
-   - Integration parameters (existing resources, external services)
+- Use MCP (Model Context Protocol) tools like `github` and its `get_file_contents` to analyze README.md and documentation
+- You also allowed to clone a repository to `.workspace`
+- Identify the deployment method (CDK, CloudFormation, Terraform, etc.). We prioritize deployment by CDK.
+- Determine runtime requirements (Node.js version, Python dependencies, etc.)
+- Check for required AWS services and permissions
 
-3. **Implement Build Steps and Parameter Handling**:
-   - Basically, copy from existing CloudFormation file (`deployments/genu/GenUDeploymentStack.yaml`, etc) then edit by following Implementation Rule.
-   - Modify the parameters based on analysis at step2.
+### 5.2 Identify Application-Specific Parameters
 
-4. **Test Deployment Scenarios**:
-   - Verify deployment in a AWS account. You need approval from human.
-   - Test with various parameter combinations
-   - Validate error handling and recovery
-   - Check notification content and formatting
-   - Ensure proper resource cleanup on failure or deletion
+- Core configuration parameters (environment, region, model settings)
+- Security parameters (IP restrictions, authentication methods)
+- Feature toggles (RAG capabilities, agent enablement, etc.)
+- Integration parameters (existing resources, external services)
 
-### Commands for development
+### 5.3 Create Implementation Plan
 
-#### Deployment
+- Create a plan document in `.workspace/` directory with todo lists
+- Include analysis findings from sections 5.1 and 5.2
+- List specific components to implement (CloudFormation Stack, CodeBuild Pipeline, SNS Notifications, Lambda Trigger)
+- Define parameter mappings and BuildSpec modifications needed
+- Get human approval before proceeding to implementation
 
-**Important**: Parameter format matters significantly. Use JSON format for reliability, especially when dealing with comma-separated values.
+### 5.4 Implement Build Steps and Parameter Handling
 
-**Recommended JSON Format** (most reliable):
+- Copy from existing CloudFormation file (`deployments/genu/GenUDeploymentStack.yaml`, etc) as a template
+- Follow the component specifications in section 4 (CloudFormation Stack, CodeBuild Pipeline, SNS Notifications, Lambda Trigger)
+- Modify the parameters based on analysis from section 5.2
+
+### 5.5 Test Deployment Scenarios
+
+- Verify deployment in a AWS account. You need approval from human.
+- Test with various parameter combinations
+- Validate error handling and recovery
+- Check notification content and formatting
+- Ensure proper resource cleanup on failure or deletion
+
+#### 5.5.1 Development Commands
+
+**Deploy stack:**
 ```bash
 aws cloudformation create-stack \
   --stack-name XXXX \
   --template-body file://XXXX.yaml \
   --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
   --parameters '[
-    {
-      "ParameterKey": "NotificationEmailAddress",
-      "ParameterValue": "example@example.co.jp"
-    },
-    {
-      "ParameterKey": "Environment",
-      "ParameterValue": "dev"
-    },
-    {
-      "ParameterKey": "RAGEnabled",
-      "ParameterValue": "false"
-    },
-    {
-      "ParameterKey": "AllowedSignUpEmailDomains",
-      "ParameterValue": "example.com,example.co.jp"
-    }
+    {"ParameterKey": "NotificationEmailAddress", "ParameterValue": "example@example.co.jp"},
+    {"ParameterKey": "Environment", "ParameterValue": "dev"}
   ]'
 ```
 
-**Alternative Single-line Format** (for simple parameters without commas):
+**Monitor deployment:**
 ```bash
-aws cloudformation create-stack \
-  --stack-name XXXX \
-  --template-body file://XXXX.yaml \
-  --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-  --parameters ParameterKey=NotificationEmailAddress,ParameterValue=example@example.co.jp ParameterKey=Environment,ParameterValue=dev
-```
-
-**⚠️ Common Pitfalls to Avoid**:
-- Multi-line parameter format with backslashes often fails with comma-separated values
-- AWS CLI may interpret comma-separated values as lists, causing type validation errors
-- Always use JSON format when parameters contain commas or complex values
-
-#### Monitoring and Status Checking
-
-**Check deployment status:**
-```bash
-aws cloudformation describe-stacks --stack-name XXXX
 aws cloudformation describe-stack-events --stack-name XXXX
+aws logs tail /aws/codebuild/<PROJECT_NAME> --follow
 ```
 
-**Monitor CodeBuild execution:**
-```bash
-# Follow CodeBuild logs in real-time
-aws logs tail /aws/codebuild/<PROJECT_NAME> --region <REGION> --follow
-
-# Check specific log streams
-aws logs describe-log-streams --log-group-name /aws/codebuild/<PROJECT_NAME> --region <REGION>
-```
-
-**Debug parameter extraction:**
-```bash
-# List application stacks
-aws cloudformation list-stacks --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE --query "StackSummaries[?contains(StackName, 'YourAppPattern')].StackName"
-
-# Examine all outputs
-aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[*].{Key:OutputKey,Value:OutputValue}"
-
-# Test specific parameter queries
-aws cloudformation describe-stacks --stack-name <STACK_NAME> --query "Stacks[0].Outputs[?contains(OutputKey, 'FrontendUrl')].OutputValue" --output text
-```
-
-#### Delete Stack
-
+**Delete stack:**
 ```bash
 aws cloudformation delete-stack --stack-name XXXX
 ```
 
-#### Validate template:
+**Validate template:**
 ```bash
 aws cloudformation validate-template --template-body file://XXXX.yaml
 ```
 
-#### Test
+### 5.6 Documentation
 
-Verify stack resources and outputs:
-```bash
-aws cloudformation list-stack-resources --stack-name XXXX
-aws cloudformation describe-stacks --stack-name XXXX --query "Stacks[0].Outputs"
-```
+After successful deployment testing, update the project documentation:
+
+- Create documentation for the new solution in the `docs/` directory
+- Follow the existing documentation structure and style
+- Update `mkdocs.yml` to add navigation entry for the new solution
+- Include deployment instructions, parameters, and usage examples
 
 ## Conclusion
 
