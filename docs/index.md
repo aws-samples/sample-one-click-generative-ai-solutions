@@ -1175,7 +1175,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/langfuse/">Langfuse</a></div>
       <div class="solution-card__description">
-        <a href="https://langfuse.com/" target="_blank">Langfuse</a> は、オープンソースの LLMOps プラットフォームです。生成 AI アプリケーションの観測し深い分析を提供し、評価・改善・デバッグを容易にします。
+        <a href="https://langfuse.com/" target="_blank">Langfuse</a> は、オープンソースの LLMOps プラットフォームです。生成 AI アプリケーションの観測と深い分析を提供し、評価・改善・デバッグを容易にします。
       </div>
     </div>
   </div>

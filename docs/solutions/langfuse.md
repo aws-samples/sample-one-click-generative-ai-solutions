@@ -1,6 +1,6 @@
 # Langfuse
 
-[Langfuse](https://langfuse.com/) は、オープンソースの LLMOps プラットフォームです。生成 AI アプリケーションの観測し深い分析を提供し、評価・改善・デバッグを容易にします。
+[Langfuse](https://langfuse.com/) は、オープンソースの LLMOps プラットフォームです。生成 AI アプリケーションの観測と深い分析を提供し、評価・改善・デバッグを容易にします。
 
 ## 主な機能
 
