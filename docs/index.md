@@ -1084,6 +1084,37 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
+      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> は、Amazon Bedrock Agent Core を活用した AI エージェント開発のための専用開発環境です。ブラウザベースの VS Code (code-server) で、AWS 上で完全に動作する開発環境を提供します。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
+        <option value="ap-northeast-3">大阪</option>
+        <option value="us-east-1">バージニア</option>
+        <option value="us-west-2">オレゴン</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/aiagentdev/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
       <img src="./assets/images/solutions/bedrock-engineer/agent-chat-diagram.png" alt="Bedrock Engineer Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
@@ -1139,12 +1170,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+      <img src="./assets/images/solutions/langfuse/langfuse-traces.png" alt="Langfuse Traces" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__title"><a href="solutions/langfuse/">Langfuse</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> は、Amazon Bedrock Agent Core を活用した AI エージェント開発のための専用開発環境です。ブラウザベースの VS Code (code-server) で、AWS 上で完全に動作する開発環境を提供します。
+        <a href="https://langfuse.com/" target="_blank">Langfuse</a> は、オープンソースの LLMOps プラットフォームです。生成 AI アプリケーションの観測と深い分析を提供し、評価・改善・デバッグを容易にします。
       </div>
     </div>
   </div>
@@ -1152,20 +1183,20 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="solution-card__deployment">
       <select class="region-selector">
         <option value="ap-northeast-1">東京</option>
-        <option value="ap-northeast-3">大阪</option>
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/aiagentdev/" class="detail-button">
+      <a href="solutions/langfuse/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>
     </div>
   </div>
 </div>
+
 
 ## 3. Start Journey
 
