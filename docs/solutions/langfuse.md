@@ -27,10 +27,10 @@ AWS の Managed Service を使用したデプロイを行います。詳細は [
       <option value="us-east-1">バージニア</option>
       <option value="us-west-2">オレゴン</option>
     </select>
-    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&amp;templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
       <i class="fa-solid fa-rocket"></i>　Deploy
     </a>
-    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeletionStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml&param_ExecuteDelete=true" class="deployment-button md-button md-button--danger" target="_blank">
+    <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeletionStack&amp;templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml&amp;param_ExecuteDelete=true" class="deployment-button md-button md-button--danger" target="_blank">
       <i class="fa-solid fa-trash"></i>　Delete
     </a>
   </div>
