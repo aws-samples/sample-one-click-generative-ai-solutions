@@ -1,0 +1,484 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Langfuse V3 one-click deployment on Amazon ECS with Fargate'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Notification Settings"
+        Parameters:
+          - NotificationEmailAddress
+      - Label:
+          default: "Deployment Options"
+        Parameters:
+          - ExecuteDelete
+      - Label:
+          default: "Langfuse Configuration"
+        Parameters:
+          - LangfuseWorkerDesiredCount
+          - DatabaseInstanceType
+          - CacheNodeType
+          - TelemetryEnabled
+          - ExperimentalFeaturesEnabled
+      - Label:
+          default: "Initial Setup"
+        Parameters:
+          - OrganizationId
+          - OrganizationName
+          - ProjectId
+          - ProjectName
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+  
+  ExecuteDelete:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: 'Delete existing Langfuse stacks before deployment (WARNING: This will destroy all data)'
+  
+  LangfuseWorkerDesiredCount:
+    Type: Number
+    Default: 1
+    MinValue: 1
+    MaxValue: 10
+    Description: Number of Langfuse worker tasks
+  
+  DatabaseInstanceType:
+    Type: String
+    Default: db.t4g.medium
+    AllowedValues:
+      - db.t4g.medium
+      - db.t4g.large
+      - db.r6g.large
+      - db.r6g.xlarge
+    Description: Aurora PostgreSQL instance type
+  
+  CacheNodeType:
+    Type: String
+    Default: cache.t4g.micro
+    AllowedValues:
+      - cache.t4g.micro
+      - cache.t4g.small
+      - cache.t4g.medium
+      - cache.r6g.large
+    Description: ElastiCache Redis node type
+  
+  TelemetryEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable Langfuse telemetry
+  
+  ExperimentalFeaturesEnabled:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable experimental features
+  
+  OrganizationId:
+    Type: String
+    Default: "my-org"
+    AllowedPattern: "^[a-z0-9-]+$"
+    ConstraintDescription: Must contain only lowercase letters, numbers, and hyphens
+    Description: Organization identifier
+  
+  OrganizationName:
+    Type: String
+    Default: "My Org"
+    Description: Organization display name
+  
+  ProjectId:
+    Type: String
+    Default: "my-project"
+    AllowedPattern: "^[a-z0-9-]+$"
+    ConstraintDescription: Must contain only lowercase letters, numbers, and hyphens
+    Description: Project identifier
+  
+  ProjectName:
+    Type: String
+    Default: "My Project"
+    Description: Project display name
+
+Resources:
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Langfuse Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${LangfuseDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${LangfuseDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  LangfuseDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys Langfuse V3 on ECS with Fargate'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      Environment:
+        Type: ARM_CONTAINER
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
+        PrivilegedMode: false
+        EnvironmentVariables:
+          - Name: WORKER_DESIRED_COUNT
+            Value: !Ref LangfuseWorkerDesiredCount
+          - Name: DATABASE_INSTANCE_TYPE
+            Value: !Ref DatabaseInstanceType
+          - Name: CACHE_NODE_TYPE
+            Value: !Ref CacheNodeType
+          - Name: TELEMETRY_ENABLED
+            Value: !Ref TelemetryEnabled
+          - Name: EXPERIMENTAL_FEATURES_ENABLED
+            Value: !Ref ExperimentalFeaturesEnabled
+          - Name: SNS_TOPIC_ARN
+            Value: !Ref DeploymentNotificationTopic
+          - Name: AWS_DEPLOY_REGION
+            Value: !Ref AWS::Region
+          - Name: EXECUTE_DELETE
+            Value: !Ref ExecuteDelete
+          - Name: NOTIFICATION_EMAIL
+            Value: !Ref NotificationEmailAddress
+          - Name: ORGANIZATION_ID
+            Value: !Ref OrganizationId
+          - Name: ORGANIZATION_NAME
+            Value: !Ref OrganizationName
+          - Name: PROJECT_ID
+            Value: !Ref ProjectId
+          - Name: PROJECT_NAME
+            Value: !Ref ProjectName
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+                python: 3.11
+              commands:
+                - echo "Starting Langfuse V3 deployment"
+                - aws sns publish --topic-arn ${SNS_TOPIC_ARN} --subject "Langfuse Deployment Started" --message "Deployment of Langfuse V3 has started. This will take approximately 25-35 minutes. You will receive another notification when deployment is complete."
+                - node --version
+                - python3.11 --version
+                - echo "Cloning repository with sparse checkout"
+                - git clone --depth=1 --filter=blob:none --sparse https://github.com/aws-samples/deploy-langfuse-on-ecs-with-fargate.git
+                - cd deploy-langfuse-on-ecs-with-fargate
+                - git sparse-checkout set langfuse-v3
+                - cd langfuse-v3
+                - echo "Installing dependencies"
+                - python3.11 -m pip install -r requirements.txt
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/deploy-langfuse-on-ecs-with-fargate/langfuse-v3
+                - echo "Patching Aurora PostgreSQL version for regional compatibility"
+                - sed -i 's/VER_15_4/VER_15_8/g' cdk_stacks/aurora_postgresql.py
+                - echo "Verifying patch applied:"
+                - grep "VER_15" cdk_stacks/aurora_postgresql.py
+                - echo "Setting CDK environment variables"
+                - export CDK_DEFAULT_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+                - export CDK_DEFAULT_REGION=${AWS_DEPLOY_REGION}
+                - echo "CDK Account:$CDK_DEFAULT_ACCOUNT Region:$CDK_DEFAULT_REGION"
+                - echo "Generating secrets"
+                - export NEXTAUTH_SECRET=$(openssl rand -base64 32)
+                - export SALT=$(openssl rand -base64 32)
+                - export ENCRYPTION_KEY=$(openssl rand -hex 32)
+                - export USER_NAME=$(echo ${NOTIFICATION_EMAIL} | cut -d'@' -f1)
+                - export INIT_USER_PASSWORD=$(python3 -c "import secrets, string; print(''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(20)) + 'Aa1!')")
+                - export INIT_PROJECT_PUBLIC_KEY="pk-lf-$(openssl rand -hex 16)"
+                - export INIT_PROJECT_SECRET_KEY="sk-lf-$(openssl rand -hex 16)"
+                - echo "Secrets generated successfully"
+                - echo "Creating cdk.context.json"
+                - |
+                  cat > cdk.context.json << EOF
+                  {
+                    "private_dns_namespace_name": "langfuse.local",
+                    "db_cluster_name": "langfuse-db",
+                    "db_instance_type": "${DATABASE_INSTANCE_TYPE}",
+                    "cache_node_type": "${CACHE_NODE_TYPE}",
+                    "ecr": [
+                      {
+                        "repository_name": "langfuse-web",
+                        "docker_image_name": "langfuse/langfuse",
+                        "tag": "3"
+                      },
+                      {
+                        "repository_name": "langfuse-worker",
+                        "docker_image_name": "langfuse/langfuse-worker",
+                        "tag": "3"
+                      },
+                      {
+                        "repository_name": "clickhouse",
+                        "docker_image_name": "clickhouse",
+                        "tag": "24.12.3.47"
+                      }
+                    ],
+                    "ecs_cluster_name": "langfuse",
+                    "langfuse_worker_desired_count": ${WORKER_DESIRED_COUNT},
+                    "langfuse_worker_env": {
+                      "NODE_ENV": "production",
+                      "SALT": "${SALT}",
+                      "ENCRYPTION_KEY": "${ENCRYPTION_KEY}",
+                      "TELEMETRY_ENABLED": "${TELEMETRY_ENABLED}",
+                      "LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES": "${EXPERIMENTAL_FEATURES_ENABLED}"
+                    },
+                    "langfuse_web_env": {
+                      "NODE_ENV": "production",
+                      "NEXTAUTH_SECRET": "${NEXTAUTH_SECRET}",
+                      "SALT": "${SALT}",
+                      "ENCRYPTION_KEY": "${ENCRYPTION_KEY}",
+                      "HOSTNAME": "0.0.0.0",
+                      "LANGFUSE_S3_MEDIA_DOWNLOAD_URL_EXPIRY_SECONDS": "604800",
+                      "TELEMETRY_ENABLED": "${TELEMETRY_ENABLED}",
+                      "LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES": "${EXPERIMENTAL_FEATURES_ENABLED}",
+                      "LANGFUSE_SDK_CI_SYNC_PROCESSING_ENABLED": "false",
+                      "LANGFUSE_READ_FROM_POSTGRES_ONLY": "false",
+                      "LANGFUSE_READ_FROM_CLICKHOUSE_ONLY": "true",
+                      "LANGFUSE_RETURN_FROM_CLICKHOUSE": "true",
+                      "LANGFUSE_INIT_ORG_ID": "${ORGANIZATION_ID}",
+                      "LANGFUSE_INIT_ORG_NAME": "${ORGANIZATION_NAME}",
+                      "LANGFUSE_INIT_PROJECT_ID": "${PROJECT_ID}",
+                      "LANGFUSE_INIT_PROJECT_NAME": "${PROJECT_NAME}",
+                      "LANGFUSE_INIT_PROJECT_PUBLIC_KEY": "${INIT_PROJECT_PUBLIC_KEY}",
+                      "LANGFUSE_INIT_PROJECT_SECRET_KEY": "${INIT_PROJECT_SECRET_KEY}",
+                      "LANGFUSE_INIT_USER_EMAIL": "${NOTIFICATION_EMAIL}",
+                      "LANGFUSE_INIT_USER_NAME": "${USER_NAME}",
+                      "LANGFUSE_INIT_USER_PASSWORD": "${INIT_USER_PASSWORD}"
+                    }
+                  }
+                  EOF
+                
+                - echo "cdk.context.json created"
+                - cat cdk.context.json
+                - |
+                  if [ "$EXECUTE_DELETE" = "true" ]; then
+                    echo "Deleting existing Langfuse stacks..."
+                    npx cdk destroy --force --all || echo "No stacks to delete or deletion failed"
+                  fi
+                - echo "Checking CDK bootstrap status"
+                - |
+                  if ! aws cloudformation describe-stacks --stack-name CDKToolkit --region ${AWS_DEPLOY_REGION} 2>/dev/null; then
+                    echo "Bootstrapping CDK..."
+                    npx cdk bootstrap aws://${CDK_DEFAULT_ACCOUNT}/${CDK_DEFAULT_REGION}
+                  else
+                    echo "CDK already bootstrapped"
+                  fi
+            build:
+              commands:
+                - |
+                  if [ "$EXECUTE_DELETE" = "true" ]; then
+                    echo "ExecuteDelete is enabled. Skipping deployment."
+                    exit 0
+                  fi
+                - cd $CODEBUILD_SRC_DIR/deploy-langfuse-on-ecs-with-fargate/langfuse-v3
+                - echo "Deploying all CDK stacks..."
+                - npx cdk deploy --require-approval never --concurrency 10 --all
+                - echo "Extracting LoadBalancer URL"
+                - |
+                  LANGFUSE_URL=$(aws cloudformation describe-stacks \
+                    --stack-name LangfuseWebECSServiceStack \
+                    --region ${AWS_DEPLOY_REGION} \
+                    --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerDNS'].OutputValue" \
+                    --output text)
+                  
+                  if [ -z "$LANGFUSE_URL" ]; then
+                    LANGFUSE_URL="Check CloudFormation console for LangfuseWebECSServiceStack outputs"
+                  elif [[ ! "$LANGFUSE_URL" =~ ^https?:// ]]; then
+                    LANGFUSE_URL="http://${LANGFUSE_URL}"
+                  fi
+                  
+                  echo "Langfuse URL: ${LANGFUSE_URL}"
+                
+            post_build:
+              commands:
+                - |
+                  if [ "$EXECUTE_DELETE" = "true" ]; then
+                    echo "Sending deletion completion notification"
+                    aws sns publish \
+                      --topic-arn ${SNS_TOPIC_ARN} \
+                      --subject "Langfuse Deletion Completed" \
+                      --message "All Langfuse CDK stacks have been deleted successfully."
+                    exit 0
+                  fi
+                - echo "Sending completion notification"
+                - |
+                  MESSAGE="Langfuse V3 deployment completed successfully!
+                  
+                  Langfuse URL: ${LANGFUSE_URL}
+                  
+                  Login Credentials:
+                  Email: ${NOTIFICATION_EMAIL}
+                  Password: ${INIT_USER_PASSWORD}
+                  
+                  API Keys:
+                  Public Key: ${INIT_PROJECT_PUBLIC_KEY}
+                  Secret Key: ${INIT_PROJECT_SECRET_KEY}
+                  
+                  IMPORTANT: Please change your password after first login for security.
+                  
+                  Configuration:
+                  - Organization: ${ORGANIZATION_NAME} (${ORGANIZATION_ID})
+                  - Project: ${PROJECT_NAME} (${PROJECT_ID})
+                  - Worker Tasks: ${WORKER_DESIRED_COUNT}
+                  - Database: ${DATABASE_INSTANCE_TYPE}
+                  - Cache: ${CACHE_NODE_TYPE}
+                  
+                  Security Note: The Application Load Balancer is publicly accessible. Consider implementing additional security measures for production use.
+                  
+                  For more information, visit: https://langfuse.com/docs"
+                  
+                  aws sns publish \
+                    --topic-arn ${SNS_TOPIC_ARN} \
+                    --subject "Langfuse Deployment Completed" \
+                    --message "$MESSAGE"
+
+  # Lambda Trigger Function
+  TriggerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt LangfuseDeploymentProject.Arn
+
+  TriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt TriggerFunctionRole.Arn
+      Runtime: nodejs22.x
+      Timeout: 30
+      Code:
+        ZipFile: |
+          const { CodeBuildClient, StartBuildCommand } = require('@aws-sdk/client-codebuild');
+          const response = require('cfn-response');
+
+          exports.handler = async (event, context) => {
+            console.log('Event:', JSON.stringify(event, null, 2));
+            
+            const physicalResourceId = `CodeBuildTrigger-${event.ResourceProperties.ProjectName}`;
+            const responseData = {};
+            
+            try {
+              const codebuild = new CodeBuildClient({ 
+                region: process.env.AWS_REGION,
+                maxAttempts: 3
+              });
+
+              if (event.RequestType === 'Create' || event.RequestType === 'Update') {
+                const command = new StartBuildCommand({ 
+                  projectName: event.ResourceProperties.ProjectName 
+                });
+                const result = await codebuild.send(command);
+                responseData.BuildId = result.build.id;
+              }
+              
+              await response.send(event, context, response.SUCCESS, responseData, physicalResourceId);
+            } catch (error) {
+              console.error('Error:', error);
+              await response.send(event, context, response.FAILED, { Error: error.message }, physicalResourceId);
+            }
+          };
+
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerFunction.Arn
+      ProjectName: !Ref LangfuseDeploymentProject
+      ServiceTimeout: 600
+
+Outputs:
+  CodeBuildProjectName:
+    Description: CodeBuild project name for Langfuse deployment
+    Value: !Ref LangfuseDeploymentProject
+  
+  NotificationTopicArn:
+    Description: SNS topic ARN for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
+  
+  DeploymentRegion:
+    Description: AWS region where Langfuse is deployed
+    Value: !Ref AWS::Region
+  
+  LangfuseURL:
+    Description: Langfuse application URL (available after deployment completes)
+    Value: 'Check LangfuseWebECSServiceStack outputs for LoadBalancerDNS'
+  
+  LoginEmail:
+    Description: Login email address (credentials sent via email)
+    Value: !Ref NotificationEmailAddress
+  
+  OrganizationInfo:
+    Description: Organization details
+    Value: !Sub '${OrganizationName} (${OrganizationId})'
+  
+  ProjectInfo:
+    Description: Project details
+    Value: !Sub '${ProjectName} (${ProjectId})'

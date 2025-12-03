@@ -397,6 +397,37 @@ function filterSolutions(category) {
   </div>
 </div>
 
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> is a dedicated development environment for AI agent development using Amazon Bedrock Agent Core. It provides a browser-based VS Code (code-server) development environment that runs entirely on AWS.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/aiagentdev/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
 <div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
@@ -420,6 +451,36 @@ function filterSolutions(category) {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/rapid/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="chat">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/roleplay/demo.png" alt="AI Sales Roleplay Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/roleplay/">AI Sales Roleplay</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-ai-sales-roleplay" target="_blank">AI Sales Roleplay</a> is a roleplaying system for improving sales skills using generative AI. Through voice conversations with emotionally expressive AI, you can develop practical sales skills.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RoleplayDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RoleplayDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/roleplay/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
@@ -505,6 +566,36 @@ function filterSolutions(category) {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/remote-swe-agents/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/langfuse/langfuse-traces.png" alt="Langfuse Traces" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/langfuse/">Langfuse</a></div>
+      <div class="solution-card__description">
+        <a href="https://langfuse.com/" target="_blank">Langfuse</a> is an open-source LLMOps platform. It provides deep observability and analysis for generative AI applications, making evaluation, improvement, and debugging easier.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/langfuse/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
