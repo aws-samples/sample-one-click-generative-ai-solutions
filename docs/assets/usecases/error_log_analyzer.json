@@ -1,0 +1,21 @@
+{
+  "promptTemplate": "あなたはシステムエラーやログ解析の専門家です。\n<error_message></error_message>で与えられるエラーメッセージやログを分析し、以下の手順で回答してください。\n\n## 分析手順\n1. エラーメッセージやログの内容を注意深く読み取る\n2. エラーの種類や重要度を判断する\n3. エラーが発生している箇所や原因を特定する\n4. 一般的な解決策を考える\n5. チェックすべき設定項目や確認事項を列挙する\n\n## 回答フォーマット\n以下の形式で回答してください：\n\n### エラーの概要\n- エラーの種類と重要度を簡潔に説明\n\n### 原因と思われる箇所\n- エラーが発生している具体的な箇所を特定\n- 考えられる原因を列挙（複数ある場合は優先度順に）\n\n### 解決策\n- 各原因に対する具体的な解決手順を提示\n- 実施する際の注意点があれば記載\n\n### チェックすべき設定項目・確認事項\n- 確認すべき設定ファイルや環境変数\n- ログファイルの確認場所\n- 関連するシステム状態の確認方法\n- その他確認すべき事項\n\n## 注意事項\n- 技術的に正確な情報を提供すること\n- 複数の可能性がある場合は、それぞれについて言及すること\n- 具体的で実行可能な手順を示すこと\n- 必要に応じてコマンド例やコード例を含めること\n\n<error_message>\n{{text:エラーメッセージ / ログの一部}}\n</error_message>",
+  "fixedModelId": "",
+  "fileUpload": false,
+  "inputExamples": [
+    {
+      "title": "Java",
+      "examples": {
+        "エラーメッセージ / ログの一部": "2025-12-05 10:30:45 [ERROR] com.example.app.UserService - Failed to establish connection to database\njava.sql.SQLException: Connections could not be acquired from the underlying database!\n    at com.zaxxer.hikari.pool.HikariPool.createPoolEntry(HikariPool.java:464)\n    at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:536)\nCaused by: java.net.ConnectException: Connection refused (Connection refused)\n    at java.base/sun.nio.ch.Net.connect(Net.java:132)\n    at java.base/sun.nio.ch.SocketChannelImpl.connect(SocketChannelImpl.java:677)\n    at com.mysql.cj.jdbc.ConnectionImpl.connect(ConnectionImpl.java:413)\n    ... 8 more\nCaused by: java.sql.SQLNonTransientConnectionException: Could not create connection to database server. Attempted reconnect 3 times. Failing over.\n    ... (omitted stack trace for brevity)"
+      }
+    },
+    {
+      "title": "python",
+      "examples": {
+        "エラーメッセージ / ログの一部": "2025-12-05 10:00:15 [INFO] access_log: Request GET /api/v1/users/500 OK (200) took 15ms\n2025-12-05 10:00:18 [INFO] access_log: Request POST /api/v1/data/create OK (201) took 22ms\n2025-12-05 10:00:21 [INFO] db_pool: Current connections: 15/50\n2025-12-05 10:00:25 [INFO] external_api: Starting sync request to external_service_A\n2025-12-05 10:00:25 [INFO] access_log: Request GET /status OK (200) took 8ms\n2025-12-05 10:00:35 [WARN] external_api: External service A request taking too long. Current duration: 10s.\n2025-12-05 10:00:40 [ERROR] external_api: Request to external_service_A failed after 15 seconds. Timeout reached.\nTraceback (most recent call last):\n  File \"/usr/src/app/services/external.py\", line 55, in sync_data\n    response = requests.get(url, timeout=15)\nrequests.exceptions.Timeout: HTTPSConnectionPool(host='external.service.com', port=443): Read timed out. (read timeout=15)\n2025-12-05 10:00:41 [INFO] access_log: Request GET /api/v1/users/list OK (200) took 18ms\n2025-12-05 10:00:45 [INFO] db_pool: Current connections: 17/50\n2025-12-05 10:00:50 [INFO] access_log: Request POST /api/v1/report/generate OK (201) took 25ms\n2025-12-05 10:00:55 [INFO] external_api: Starting sync request to external_service_B\n2025-12-05 10:01:05 [WARN] external_api: External service B request taking too long. Current duration: 10s.\n2025-12-05 10:01:10 [ERROR] external_api: Request to external_service_B failed after 15 seconds. Timeout reached.\nrequests.exceptions.Timeout: HTTPSConnectionPool(host='external.service.com', port=443): Read timed out. (read timeout=15)\n2025-12-05 10:01:15 [INFO] db_pool: Current connections: 45/50\n2025-12-05 10:01:20 [INFO] db_pool: Current connections: 49/50\n2025-12-05 10:01:25 [CRITICAL] db_pool: Failed to acquire connection. Connection pool exhausted! Max connections: 50. Wait time exceeded 5000ms.\n2025-12-05 10:01:25 [ERROR] com.app.data.Repository - Database connection error during user insert.\njava.sql.SQLTransientConnectionException: HikariPool-1 - Connection is not available, request timed out after 5000ms.\n    at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:190)\n    ... 12 more\n2025-12-05 10:01:26 [INFO] access_log: Request POST /api/v1/user/add Internal Server Error (500) took 6000ms\n2025-12-05 10:01:30 [INFO] access_log: Request GET /home OK (200) took 10ms"
+      }
+    }
+  ],
+  "description": "エラーの原因と思われる箇所を特定し、一般的な解決策やチェックすべき設定項目を提示します。",
+  "title": "エラーログ解析"
+}
