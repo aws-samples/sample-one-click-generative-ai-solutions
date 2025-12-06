@@ -5,10 +5,14 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 ## 主な機能
 
 - **ブラウザベース開発環境** - code-server による VS Code 互換の開発体験
-- **事前設定済み開発ツール** - AWS CLI、SAM CLI、Amazon Q CLI、uv、Docker などを標準装備
+- **事前設定済み開発ツール** - AWS CLI、SAM CLI、Kiro CLI、uv、Docker などを標準装備
 - **Amazon Bedrock Agent Core 対応** - エージェント開発に必要な権限とツールを事前設定
 - **CloudFront 経由のセキュアアクセス** - HTTPS による安全な接続
 - **自動環境構築** - SSM Document による一貫性のある環境セットアップ
+
+活用いただいた記事
+
+* [ワンクリックでKiro-CLI環境を構築できる「AI Agent Development Code Server」を試してみた](https://dev.classmethod.jp/articles/kiro-ai-agent-development-code-server/)
 
 ## AWS へのデプロイ
 
@@ -55,18 +59,17 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 
 デプロイのボタンを押すと、しばらくしてから `AI Agent Dev Code Server Deployment Notifications - Subscription Confirmation` というメールが届くため `Confirm subscription` のリンクを押してください。これで、デプロイが完了したらメールが届くようになります。
 
-## デプロイ後の使用方法
-
 デプロイ完了後、通知メールに記載された URL からブラウザベースの開発環境にアクセスし、パスワードを入力し環境にログインしてください。
 
+* パスワードは CloudFormation の出力 / Outputs で確認できます
 * 必要に応じ、Amazon Bedrock のモデルを有効化してください
-* Amazon Q Developer CLI が設定済みです。利用する場合、 `q login` を使用し認証を完了してください
+* Kiro CLI が設定済みです。利用する場合、 `kiro-cli login --use-device-flow` を使用し認証を完了してください
 
 ### 開発環境の特徴
 
 開発環境には以下のツールが事前インストールされています：
 
-- **AWS ツール**: AWS CLI v2、AWS SAM CLI、Amazon Q CLI
+- **AWS ツール**: AWS CLI v2、AWS SAM CLI、Kiro CLI
 - **開発ツール**: Git、Docker、Python、UV
 - **エディタ**: Code-Server
 
