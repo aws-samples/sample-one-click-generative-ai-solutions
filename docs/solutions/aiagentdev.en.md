@@ -12,7 +12,7 @@ AI Agent Development Code Server is a pre-configured development environment wit
 
 Community Articles
 
-* [Trying out "AI Agent Development Code Server" for One-Click Kiro-CLI Environment Setup](https://dev-classmethod-jp.translate.goog/articles/kiro-ai-agent-development-code-server/?_x_tr_sl=ja&_x_tr_tl=en&_x_tr_hl=ja&_x_tr_pto=wapp&_x_tr_hist=true)
+* [Trying out "AI Agent Development Code Server" for One-Click Kiro-CLI Environment Setup](https://dev.classmethod.jp/articles/kiro-ai-agent-development-code-server/)
 
 ## Deploy to AWS
 
@@ -44,10 +44,10 @@ You can configure the following parameters during deployment:
     - Full name used for Git configuration.
 - **InstanceType** (Default: t4g.medium)
     - EC2 instance type. Uses ARM64 architecture (Graviton) instances. Use the following as a guide for performance and pricing. We recommend checking the [latest pricing information](https://aws.amazon.com/ec2/pricing/on-demand/).
-    - t4g.small: 2 vCPU + 2GB memory, approximately $0.40/24 hours
-    - t4g.medium: 2 vCPU + 4GB memory, approximately $0.80/24 hours
-    - t4g.large: 2 vCPU + 8GB memory, approximately $1.70/24 hours
-    - t4g.xlarge: 4 vCPU + 16GB memory, approximately $3.20/24 hours
+    - t4g.small: 2 vCPU + 2GB memory, approximately $0.48/24 hours
+    - t4g.medium: 2 vCPU + 4GB memory, approximately $0.72/24 hours
+    - t4g.large: 2 vCPU + 8GB memory, approximately $1.68/24 hours
+    - t4g.xlarge: 4 vCPU + 16GB memory, approximately $3.12/24 hours
 - **InstanceVolumeSize** (Default: 40)
     - EBS volume size in GB.
 - **HomeFolder** (Default: /workshop)
@@ -90,7 +90,7 @@ Environment variables are automatically configured:
 
 Main costs come from the following resources:
 
-- **EC2 Instance** - Charged based on t4g.medium (2 vCPU, 4GB memory) runtime (approximately $0.80 for 24 hours on-demand with t4g.medium)
+- **EC2 Instance** - Charged based on t4g.medium (2 vCPU, 4GB memory) runtime (approximately $0.72 for 24 hours on-demand with t4g.medium)
 - **EBS Volume** - 40GB (default) gp3 storage charges
 - **CloudFront** - Charged based on data transfer volume
 - **Other** - Minimal costs for VPC, Secrets Manager, SNS, etc.

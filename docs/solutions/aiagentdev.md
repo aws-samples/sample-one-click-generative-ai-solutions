@@ -43,7 +43,7 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 - **UserFullName** (デフォルト: AIAgent Developer)
     - Git 設定に使用されるフルネームです。
 - **InstanceType** (デフォルト: t4g.medium)
-    - EC2 インスタンスタイプです。ARM64 アーキテクチャ (Graviton) のインスタンスを使用します。性能、価格は以下を目安にしてください。特に価格は[最新の情報](https://aws.amazon.com/jp/ec2/pricing/on-demand/)を確認することを推奨します。
+    - EC2 インスタンスタイプです。ARM64 アーキテクチャ (Graviton) のインスタンスを使用します。性能、価格は以下を目安にしてください。特に価格は[最新の情報](https://aws.amazon.com/jp/ec2/pricing/on-demand/)を確認することを推奨します。ハイパフォーマンスな環境が必要な場合、m7g/c7g を検討ください。
     - t4g.small : 2 vCPU + 2G メモリ, 24 時間で 60 円ぐらい
     - t4g.medium : 2 vCPU + 4G メモリ, 24 時間で 120 円ぐらい
     - t4g.large : 2 vCPU + 8G メモリ, 24 時間で 250 円ぐらい
