@@ -70,7 +70,7 @@ Once deployment is complete, access the browser-based development environment us
 The development environment comes with the following pre-installed tools:
 
 - **AWS Tools**: AWS CLI v2, AWS SAM CLI, Kiro CLI
-- **Development Tools**: Git, Docker, Python, UV
+- **Development Tools**: Git, Docker, Python, UV, NVM (Node.js LTS, NPM)
 - **Editor**: Code-Server
 
 Environment variables are automatically configured:
