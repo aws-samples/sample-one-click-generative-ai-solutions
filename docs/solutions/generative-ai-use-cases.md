@@ -85,7 +85,7 @@
 
     | Agent | Description |
     |:------|:------|
-    | 👩‍💻 [AWS サポートエージェント](https://icoxfog417.github.io/personal-account-manager/){:target="_blank"} | AWS を使う際の請求、また GenU の使い方など "よくある質問" にいつでもお答えるするエージェントです |
+    | 👩‍💻 [AWS サポートエージェント](https://aws-samples.github.io/sample-personal-aws-customer-assistant/){:target="_blank"} | AWS を使う際の請求、また GenU の使い方など "よくある質問" にいつでもお答えるするエージェントです |
 
     技術的には、Integration/GenU のタグがつけられた Stack を検索し、見つかった場合 GenU デプロイパラメーターの一つである `agentCoreExternalRuntimes` に Stack で出力されている "AgentCoreRuntimeArn" を `arn` 、 "AgentCoreRuntimeName" を `name` / `description` として登録します。  
     タグ / Stack の Outputs をこの設定で行いデプロイしておけば、**自作のエージェントを簡単に GenU で使うことができます**。

@@ -70,7 +70,7 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 開発環境には以下のツールが事前インストールされています：
 
 - **AWS ツール**: AWS CLI v2、AWS SAM CLI、Kiro CLI
-- **開発ツール**: Git、Docker、Python、UV
+- **開発ツール**: Git、Docker、Python、UV、NVM (Node.js LTS、NPM)
 - **エディタ**: Code-Server
 
 環境変数も自動設定されます：

@@ -271,18 +271,14 @@ Resources:
             action: aws:runShellScript
             inputs:
               runCommand:
-                - |
+                - !Sub |
                   USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   sudo -u $USERNAME git config --global user.email "{{ UserEmail }}"
                   sudo -u $USERNAME git config --global user.name "{{ UserFullName }}"
                   sudo -u $USERNAME git config --global init.defaultBranch "main"
-                - !Sub |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   echo 'export AWS_REGION=${AWS::Region}' >> /home/$USERNAME/.bashrc
                   echo 'export AWS_ACCOUNTID=${AWS::AccountId}' >> /home/$USERNAME/.bashrc
                   echo 'export PATH=$PATH:/home/$USERNAME/.local/bin' >> /home/$USERNAME/.bashrc
-                - !Sub |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   sudo -u $USERNAME mkdir -p /home/$USERNAME/.aws
                   sudo -u $USERNAME tee /home/$USERNAME/.aws/config <<EOF
                   [default]
@@ -304,9 +300,9 @@ Resources:
               runCommand:
                 - '#!/bin/bash'
                 - set -euo pipefail
-                - curl -fsSL https://cli.kiro.dev/install -o /tmp/install-kiro-cli.sh
                 - |
                   USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  curl -fsSL https://cli.kiro.dev/install -o /tmp/install-kiro-cli.sh
                   chown -R $USERNAME:$USERNAME /tmp/install-kiro-cli.sh
                   sudo -u $USERNAME bash /tmp/install-kiro-cli.sh 2>&1
                   echo "Kiro CLI installed. Checking configuration"
@@ -318,13 +314,23 @@ Resources:
                 - |
                   USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
-                - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   sudo -u $USERNAME bash /tmp/uv_install.sh
-                - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
                   sudo -u $USERNAME tee -a /home/$USERNAME/.bashrc > /dev/null << 'EOF'
                   eval "$(uv generate-shell-completion bash)"
+                  EOF
+          - name: InstallNVM
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  sudo -u $USERNAME curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -o /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash <<EOF
+                  export NVM_DIR="/home/$USERNAME/.nvm"
+                  source "\$NVM_DIR/nvm.sh"
+                  nvm install --lts
+                  nvm use --lts
                   EOF
           - name: CloneRepo
             action: aws:runShellScript
