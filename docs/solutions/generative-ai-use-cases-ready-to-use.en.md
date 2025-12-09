@@ -12,18 +12,3 @@ Click the export icon from the created use case screen to download the file.
 Click the import icon from the new usecase creation screen and select a file to insert the use case content.
 
 ![How to import a use case](../assets/images/solutions/generative-ai-use-cases-use-case-builder/import-usecase.png))
-
-## Ready-to-use use cases
-You can freely download the following use cases and import them into your environment to try them out.
-
-### Tools :hammer:
-
-|Title                |Description                                                                                     |Download Link|
-|:---------------------|:------------------------------------------------------------------------------------------------|:---:|
-|Usecase Builder - Builder|A use case that creates use cases themselves. It automatically generates prompt templates when given a use case description and input.|[Download](../assets/usecases/usecase_builder_builder.json){download="" }|
-
-
-### General Business :office:
-|Title                |Description                                                                                     |Download Link|
-|:---------------------|:------------------------------------------------------------------------------------------------|:---:|
-|Meeting Minutes Creation Assistant|A use case that generates meeting minutes. It automatically creates minutes when you input meeting transcripts or notes.|[Download](../assets/usecases/generate_meeting_minutes.json){download="" }|
