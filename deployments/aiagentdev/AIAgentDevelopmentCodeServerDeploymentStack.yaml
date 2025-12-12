@@ -244,6 +244,17 @@ Resources:
           UserFullName:
             type: String
         mainSteps:
+          - name: ComputeUsername
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  RAW_USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(echo "$RAW_USERNAME" | tr '[:upper:]' '[:lower:]' | sed 's/[.+]/_/g' | sed 's/[^a-z0-9_-]//g' | sed 's/^[-0-9]*//' | cut -c1-32)
+                  if [[ ! "$USERNAME" =~ ^[a-z_] ]]; then
+                    USERNAME="user$(echo "$RAW_USERNAME" | md5sum | cut -c1-8)"
+                  fi
+                  echo "$USERNAME" > /etc/aiagentdev-username
           - name: InstallPackages
             action: aws:runShellScript
             inputs:
@@ -258,7 +269,7 @@ Resources:
             inputs:
               runCommand:
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   if [ "$USERNAME" != "ubuntu" ]; then
                     adduser --disabled-password --gecos '' $USERNAME
                     usermod -aG sudo,docker $USERNAME
@@ -272,7 +283,7 @@ Resources:
             inputs:
               runCommand:
                 - !Sub |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   sudo -u $USERNAME git config --global user.email "{{ UserEmail }}"
                   sudo -u $USERNAME git config --global user.name "{{ UserFullName }}"
                   sudo -u $USERNAME git config --global init.defaultBranch "main"
@@ -301,7 +312,7 @@ Resources:
                 - '#!/bin/bash'
                 - set -euo pipefail
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   curl -fsSL https://cli.kiro.dev/install -o /tmp/install-kiro-cli.sh
                   chown -R $USERNAME:$USERNAME /tmp/install-kiro-cli.sh
                   sudo -u $USERNAME bash /tmp/install-kiro-cli.sh 2>&1
@@ -312,7 +323,7 @@ Resources:
             inputs:
               runCommand:
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
                   sudo -u $USERNAME bash /tmp/uv_install.sh
                   sudo -u $USERNAME tee -a /home/$USERNAME/.bashrc > /dev/null << 'EOF'
@@ -323,7 +334,7 @@ Resources:
             inputs:
               runCommand:
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   sudo -u $USERNAME curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -o /tmp/nvm_install.sh
                   sudo -u $USERNAME bash /tmp/nvm_install.sh
                   sudo -u $USERNAME bash <<EOF
@@ -337,7 +348,7 @@ Resources:
             inputs:
               runCommand:
                 - !Sub |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   if [ -n "${RepoUrl}" ]; then
                     mkdir -p ${HomeFolder}
                     chown $USERNAME:$USERNAME ${HomeFolder}
@@ -348,7 +359,7 @@ Resources:
             inputs:
               runCommand:
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   export HOME=/root
                   curl -fsSL https://code-server.dev/install.sh | sh
                   sudo -u $USERNAME mkdir -p /home/$USERNAME/.config/code-server
@@ -388,7 +399,7 @@ Resources:
                 - '#!/bin/bash'
                 - set -euo pipefail
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   function install_extension() {
                     local extension_name=$1
                     echo "Installing extension: $extension_name"
@@ -414,7 +425,7 @@ Resources:
             inputs:
               runCommand:
                 - |
-                  USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
+                  USERNAME=$(cat /etc/aiagentdev-username)
                   systemctl start code-server@$USERNAME
                   systemctl start docker
 
@@ -740,9 +751,6 @@ Outputs:
   URL:
     Description: AI Agent Development Code Server URL
     Value: !Sub https://${CloudFrontDistribution.DomainName}/?folder=${HomeFolder}
-  Username:
-    Description: Code Server Username
-    Value: !Select [0, !Split ['@', !Ref UserEmail]]
   Password:
     Description: Code Server Password
     Value: !GetAtt RunSSMDoc.Password
