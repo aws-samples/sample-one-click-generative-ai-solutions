@@ -249,9 +249,11 @@ Resources:
             inputs:
               runCommand:
                 - |
+                  # Sanitize email to Linux-compatible username: replace dots/plus with underscores, remove invalid chars, ensure valid start/end
                   RAW_USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
-                  USERNAME=$(echo "$RAW_USERNAME" | tr '[:upper:]' '[:lower:]' | sed 's/[.+]/_/g' | sed 's/[^a-z0-9_-]//g' | sed 's/^[-0-9]*//' | cut -c1-32)
-                  if [[ ! "$USERNAME" =~ ^[a-z_] ]]; then
+                  USERNAME=$(echo "$RAW_USERNAME" | tr '[:upper:]' '[:lower:]' | sed 's/[.+]/_/g' | sed 's/[^a-z0-9_-]//g' | sed 's/^[-0-9]*//' | cut -c1-32 | sed 's/[-_]*$//')
+                  # Fallback to generated username if empty or doesn't start with letter
+                  if [[ -z "$USERNAME" || ! "$USERNAME" =~ ^[a-z] ]]; then
                     USERNAME="user$(echo "$RAW_USERNAME" | md5sum | cut -c1-8)"
                   fi
                   echo "$USERNAME" > /etc/aiagentdev-username
