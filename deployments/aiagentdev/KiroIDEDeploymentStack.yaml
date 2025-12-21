@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Kiro IDE Deployment - Ubuntu x86_64
+Description: Kiro IDE Deployment - Amazon Linux 2023 x86_64 with ALB and CloudFront
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -42,17 +42,15 @@ Parameters:
     Description: Optional Git repository to clone for development
 
 Mappings:
-  AmdImage:
-    Ubuntu-24:
-      ImageId: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/noble/stable/current/amd64/hvm/ebs-gp3/ami-id}}'
-  AWSRegionsPrefixListID:
+  CloudFrontPrefixListID:
+    ap-northeast-1:
+      PrefixList: pl-58a04531
+    ap-northeast-3:
+      PrefixList: pl-31a14458
     us-east-1:
       PrefixList: pl-3b927c52
     us-west-2:
       PrefixList: pl-82a045eb
-
-Resources:
-  HasIpRestriction: !Not [!Equals [!Ref AllowedIpV4AddressRanges, '']]
 
 Resources:
   # VPC and Networking
@@ -79,7 +77,7 @@ Resources:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
-  PublicSubnet:
+  PublicSubnet1:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -88,7 +86,18 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub '${AWS::StackName}-Public-Subnet'
+          Value: !Sub '${AWS::StackName}-Public-Subnet-1'
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.1.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Public-Subnet-2'
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -106,13 +115,35 @@ Resources:
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref InternetGateway
 
-  PublicSubnetRouteTableAssociation:
+  PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
       RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnet
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   # Security Groups
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-ALB-SG'
+      GroupDescription: Security group for ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !FindInMap [CloudFrontPrefixListID, !Ref 'AWS::Region', PrefixList]
+          Description: HTTP from CloudFront only
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-ALB-SG'
+
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -123,11 +154,112 @@ Resources:
         - IpProtocol: tcp
           FromPort: 8443
           ToPort: 8443
-          SourcePrefixListId: !FindInMap [AWSRegionsPrefixListID, !Ref 'AWS::Region', PrefixList]
-          Description: NICE DCV access only via CloudFront
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+          Description: NICE DCV access from ALB only
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Instance-SG'
+
+  ALBToInstanceEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8443
+      ToPort: 8443
+      DestinationSecurityGroupId: !Ref InstanceSecurityGroup
+      Description: Allow ALB to DCV
+
+  # WaitCondition to delay CloudFormation completion until DCV is ready after reboot
+  DCVReadyHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  DCVReadyCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: RunSSMDoc
+    Properties:
+      Handle: !Ref DCVReadyHandle
+      Timeout: '900'
+      Count: 1
+
+  # Lambda to poll ALB target health and signal WaitCondition
+  HealthCheckLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 600
+      Role: !GetAtt HealthCheckLambdaRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import urllib.request
+          import json
+          import time
+          
+          def handler(event, context):
+              if event['RequestType'] == 'Delete':
+                  send_response(event, 'SUCCESS')
+                  return
+              
+              elbv2 = boto3.client('elbv2')
+              target_group_arn = event['ResourceProperties']['TargetGroupArn']
+              wait_url = event['ResourceProperties']['WaitConditionUrl']
+              
+              # Poll for up to 8 minutes
+              for i in range(96):
+                  try:
+                      resp = elbv2.describe_target_health(TargetGroupArn=target_group_arn)
+                      for target in resp['TargetHealthDescriptions']:
+                          if target['TargetHealth']['State'] == 'healthy':
+                              signal_wait_condition(wait_url, 'SUCCESS', 'DCV is healthy')
+                              send_response(event, 'SUCCESS')
+                              return
+                  except Exception as e:
+                      print(f"Error checking health: {e}")
+                  time.sleep(5)
+              
+              signal_wait_condition(wait_url, 'FAILURE', 'DCV health check timeout')
+              send_response(event, 'FAILED', 'Health check timeout')
+          
+          def signal_wait_condition(url, status, reason):
+              data = json.dumps({'Status': status, 'Reason': reason, 'UniqueId': 'dcv', 'Data': reason}).encode()
+              req = urllib.request.Request(url, data=data, method='PUT', headers={'Content-Type': ''})
+              urllib.request.urlopen(req)
+          
+          def send_response(event, status, reason=''):
+              data = json.dumps({'Status': status, 'Reason': reason or status, 'PhysicalResourceId': 'health-check', 'StackId': event['StackId'], 'RequestId': event['RequestId'], 'LogicalResourceId': event['LogicalResourceId']}).encode()
+              req = urllib.request.Request(event['ResponseURL'], data=data, method='PUT', headers={'Content-Type': ''})
+              urllib.request.urlopen(req)
+
+  HealthCheckLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ELBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: elasticloadbalancing:DescribeTargetHealth
+                Resource: '*'
+
+  HealthCheckTrigger:
+    Type: Custom::HealthCheck
+    DependsOn: RunSSMDoc
+    Properties:
+      ServiceToken: !GetAtt HealthCheckLambda.Arn
+      TargetGroupArn: !Ref ALBTargetGroup
+      WaitConditionUrl: !Ref DCVReadyHandle
 
   # IAM Role for EC2 Instance
   InstanceRole:
@@ -144,22 +276,13 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       Policies:
-        - PolicyName: SecretsManagerAccess
+        - PolicyName: DCVLicenseAccess
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref UserCredentials
-        - PolicyName: SSMParameterStoreAccess
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ssm:PutParameter
-                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/KiroIDE/${AWS::StackName}/Username'
+                Action: s3:GetObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::dcv-license.${AWS::Region}/*'
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
@@ -176,6 +299,54 @@ Resources:
         PasswordLength: 16
         ExcludePunctuation: true
 
+  # Generate username from email
+  UsernameGenerator:
+    Type: Custom::UsernameGenerator
+    Properties:
+      ServiceToken: !GetAtt UsernameGeneratorLambda.Arn
+      Email: !Ref UserEmail
+
+  UsernameGeneratorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 10
+      Role: !GetAtt UsernameGeneratorRole.Arn
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import re
+          import hashlib
+          def handler(event, context):
+              if event['RequestType'] == 'Delete':
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  return
+              try:
+                  email = event['ResourceProperties']['Email']
+                  raw = email.split('@')[0]
+                  username = re.sub(r'[.+]', '_', raw.lower())
+                  username = re.sub(r'[^a-z0-9_-]', '', username)
+                  username = re.sub(r'^[-0-9]+', '', username)[:32].rstrip('-_')
+                  if not username or not username[0].isalpha():
+                      username = 'user' + hashlib.md5(raw.encode()).hexdigest()[:8]
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {'Username': username})
+              except Exception as e:
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, str(e))
+
+  UsernameGeneratorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
   # SSM Document for Kiro IDE Installation
   KiroIDESSMDoc:
     Type: AWS::SSM::Document
@@ -186,28 +357,26 @@ Resources:
         parameters:
           UserPassword:
             type: String
-          UserEmail:
+          Username:
             type: String
           UserFullName:
             type: String
           HomeFolder:
             type: String
+          UserEmail:
+            type: String
           RepoUrl:
             type: String
-          StackName:
-            type: String
         mainSteps:
-          - name: InstallPrerequisites
+          - name: InstallDependencies
             action: aws:runShellScript
             inputs:
               runCommand:
                 - |
-                  apt-get update
-                  apt-get install -y jq unzip
-                  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
-                  unzip -q /tmp/awscliv2.zip -d /tmp
-                  /tmp/aws/install
-                  rm -rf /tmp/awscliv2.zip /tmp/aws
+                  # Update system packages
+                  dnf update -y -q
+                  # Install fundamental packages (git, jq not pre-installed on AL2023)
+                  dnf install -y git jq
 
           - name: SetupUser
             action: aws:runShellScript
@@ -217,12 +386,7 @@ Resources:
                   #!/bin/bash
                   set -e
                   
-                  # Create user from email
-                  RAW_USERNAME=$(echo "{{ UserEmail }}" | cut -d'@' -f1)
-                  USERNAME=$(echo "$RAW_USERNAME" | tr '[:upper:]' '[:lower:]' | sed 's/[.+]/_/g' | sed 's/[^a-z0-9_-]//g' | sed 's/^[-0-9]*//' | cut -c1-32 | sed 's/[-_]*$//')
-                  if [[ -z "$USERNAME" || ! "$USERNAME" =~ ^[a-z] ]]; then
-                    USERNAME="user$(echo "$RAW_USERNAME" | md5sum | cut -c1-8)"
-                  fi
+                  USERNAME="{{ Username }}"
                   
                   # Create user if not exists, update password if exists
                   if id "$USERNAME" &>/dev/null; then
@@ -231,27 +395,22 @@ Resources:
                     useradd -m -s /bin/bash "$USERNAME"
                   fi
                   echo "$USERNAME:{{ UserPassword }}" | chpasswd
-                  usermod -aG sudo "$USERNAME"
+                  usermod -aG wheel "$USERNAME"
                   
                   # Create home folder
                   mkdir -p "{{ HomeFolder }}"
                   chown "$USERNAME:$USERNAME" "{{ HomeFolder }}"
                   
                   echo "$USERNAME" > /etc/kiro-username
-                  
-                  # Store username in SSM Parameter Store for notification
-                  aws ssm put-parameter --name "/KiroIDE/{{ StackName }}/Username" --value "$USERNAME" --type String --overwrite
 
           - name: InstallDesktopEnvironment
             action: aws:runShellScript
             inputs:
               runCommand:
                 - |
-                  # Update system
-                  apt-get update
-                  
-                  # Install GNOME desktop minimal
-                  DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop-minimal
+                  # Install GNOME desktop
+                  dnf groupinstall -y "Desktop"
+                  dnf upgrade -y
                   
                   # Set graphical target
                   systemctl set-default graphical.target
@@ -261,10 +420,6 @@ Resources:
                   mkdir -p "/home/$USERNAME/.config"
                   touch "/home/$USERNAME/.config/gnome-initial-setup-done"
                   chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
-                  
-                  # Fix DNS after ubuntu-desktop-minimal installation (LP: #2097769)
-                  # Installing desktop switches renderer to NetworkManager but doesn't apply it
-                  netplan apply
 
           - name: InstallNICEDCV
             action: aws:runShellScript
@@ -272,17 +427,17 @@ Resources:
               runCommand:
                 - |
                   # Download and install NICE DCV
+                  rpm --import https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY
                   cd /tmp
-                  wget --tries=10 --retry-connrefused --waitretry=5 https://d1uj6qtbmh3dt5.cloudfront.net/nice-dcv-ubuntu2404-x86_64.tgz
-                  tar -xzf nice-dcv-ubuntu2404-x86_64.tgz
-                  cd nice-dcv-*-ubuntu2404-x86_64
-                  apt-get install -y ./nice-dcv-server_*.deb ./nice-dcv-web-viewer_*.deb ./nice-xdcv_*.deb
-                  
-                  # Add dcv user to video group
-                  usermod -aG video dcv
+                  wget -q https://d1uj6qtbmh3dt5.cloudfront.net/nice-dcv-amzn2023-x86_64.tgz
+                  tar -xzf nice-dcv-amzn2023-x86_64.tgz
+                  cd nice-dcv-*-amzn2023-x86_64
+                  dnf install -y nice-dcv-server-*.amzn2023.x86_64.rpm nice-dcv-web-viewer-*.amzn2023.x86_64.rpm
+                  cd /tmp
+                  rm -rf nice-dcv-*
                   
                   # Install XDummy driver for console sessions
-                  apt-get install -y xserver-xorg-video-dummy
+                  dnf install -y xorg-x11-drv-dummy
                   
                   # Configure XDummy
                   mkdir -p /etc/X11
@@ -335,19 +490,24 @@ Resources:
                   authentication=system
                   DCVEOF
                   
+                  # Set user password for DCV authentication (required for system auth)
+                  echo "$USERNAME:{{ UserPassword }}" | chpasswd
+                  
                   # Enable and start DCV
                   systemctl enable dcvserver
                   systemctl start dcvserver
 
-          - name: InstallChrome
+          - name: InstallBrowser
             action: aws:runShellScript
             inputs:
               runCommand:
                 - |
-                  # Install Google Chrome (official method)
-                  cd /tmp
-                  wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-                  apt-get install -y ./google-chrome-stable_current_amd64.deb
+                  # Install xdg-utils and configure Firefox as default browser
+                  dnf install -y xdg-utils
+                  USERNAME=$(cat /etc/kiro-username)
+                  sudo -u "$USERNAME" xdg-settings set default-web-browser firefox.desktop || true
+                  echo "export BROWSER=firefox" >> "/home/$USERNAME/.bashrc"
+                  chown "$USERNAME:$USERNAME" "/home/$USERNAME/.bashrc"
 
           - name: InstallKiroIDE
             action: aws:runShellScript
@@ -388,12 +548,26 @@ Resources:
                   mkdir -p "/home/$USERNAME/Desktop"
                   cp /usr/share/applications/kiro-ide.desktop "/home/$USERNAME/Desktop/"
                   chmod +x "/home/$USERNAME/Desktop/kiro-ide.desktop"
-                  chown "$USERNAME:$USERNAME" "/home/$USERNAME/Desktop/kiro-ide.desktop"
-                  
-                  # Install xdg-utils and set Chrome as default browser for authentication
-                  apt-get install -y xdg-utils
-                  sudo -u "$USERNAME" xdg-settings set default-web-browser google-chrome.desktop || true
-                  echo "export BROWSER=google-chrome" >> "/home/$USERNAME/.bashrc"
+                  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/Desktop"
+
+          - name: RebuildSQLite
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  # Rebuild SQLite module for AL2023 GLIBC 2.34 compatibility
+                  dnf install -y nodejs npm gcc-c++ make sqlite-devel
+                  cd /tmp
+                  npm install --build-from-source @vscode/sqlite3
+                  if [ -f /tmp/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node ]; then
+                      cp /opt/kiro-ide/resources/app/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node \
+                         /opt/kiro-ide/resources/app/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node.original
+                      cp /tmp/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node \
+                         /opt/kiro-ide/resources/app/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node
+                      USERNAME=$(cat /etc/kiro-username)
+                      chown "$USERNAME:$USERNAME" /opt/kiro-ide/resources/app/node_modules/@vscode/sqlite3/build/Release/vscode-sqlite3.node
+                  fi
+                  rm -rf /tmp/node_modules
 
           - name: ConfigureGitAndRepo
             action: aws:runShellScript
@@ -425,14 +599,14 @@ Resources:
   Instance:
     Type: AWS::EC2::Instance
     Properties:
-      ImageId: !FindInMap [AmdImage, Ubuntu-24, ImageId]
+      ImageId: '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64}}'
       InstanceType: !Ref InstanceType
       IamInstanceProfile: !Ref InstanceProfile
       SecurityGroupIds:
         - !Ref InstanceSecurityGroup
-      SubnetId: !Ref PublicSubnet
+      SubnetId: !Ref PublicSubnet1
       BlockDeviceMappings:
-        - DeviceName: /dev/sda1
+        - DeviceName: /dev/xvda
           Ebs:
             VolumeSize: !Ref InstanceVolumeSize
             VolumeType: gp3
@@ -445,6 +619,47 @@ Resources:
         - Key: Name
           Value: !Sub '${AWS::StackName}-KiroIDE-Instance'
 
+  # ALB for DCV access
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub '${AWS::StackName}-ALB'
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub '${AWS::StackName}-TG-DCV'
+      Port: 8443
+      Protocol: HTTPS
+      TargetType: instance
+      VpcId: !Ref VPC
+      HealthCheckPath: /
+      HealthCheckPort: '8443'
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200,404
+      Targets:
+        - Id: !Ref Instance
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+
   # CloudFront Distribution
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -452,27 +667,19 @@ Resources:
       DistributionConfig:
         Enabled: true
         DefaultCacheBehavior:
-          TargetOriginId: !Sub CloudFront-${AWS::StackName}
+          TargetOriginId: !Sub ALB-${AWS::StackName}
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods: [DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT]
           CachedMethods: [GET, HEAD]
           CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
           OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
-        CacheBehaviors:
-          - PathPattern: "/dcv*"
-            TargetOriginId: !Sub CloudFront-${AWS::StackName}
-            ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods: [DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT]
-            CachedMethods: [GET, HEAD]
-            CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
-            OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
         Origins:
-          - DomainName: !GetAtt Instance.PublicDnsName
-            Id: !Sub CloudFront-${AWS::StackName}
+          - DomainName: !GetAtt ALB.DNSName
+            Id: !Sub ALB-${AWS::StackName}
             CustomOriginConfig:
-              OriginProtocolPolicy: https-only
-              HTTPPort: 8443
-              HTTPSPort: 8443
+              OriginProtocolPolicy: http-only
+              HTTPPort: 80
+              HTTPSPort: 443
 
   # Custom resource to run SSM document
   RunSSMDoc:
@@ -482,11 +689,11 @@ Resources:
       InstanceId: !Ref Instance
       DocumentName: !Ref KiroIDESSMDoc
       SecretArn: !Ref UserCredentials
+      Username: !GetAtt UsernameGenerator.Username
       UserEmail: !Ref UserEmail
       UserFullName: !Ref UserFullName
       HomeFolder: !Ref HomeFolder
       RepoUrl: !Ref RepoUrl
-      StackName: !Ref AWS::StackName
 
   RunSSMDocLambda:
     Type: AWS::Lambda::Function
@@ -588,47 +795,41 @@ Resources:
       Handler: index.handler
       Timeout: 30
       Code:
-        ZipFile: !Sub |
-          import boto3
-          
-          sns = boto3.client('sns')
-          ssm = boto3.client('ssm')
-          secretsmanager = boto3.client('secretsmanager')
-          
-          def handler(event, context):
-              try:
-                  detail = event['detail']
-                  status = detail['status-details']['status']
-                  stack_id = detail['stack-id']
-                  
-                  # Get password from Secrets Manager
-                  password = secretsmanager.get_secret_value(SecretId="${UserCredentials}")['SecretString']
-                  
-                  # Get username from SSM Parameter Store
-                  param_name = "/KiroIDE/${AWS::StackName}/Username"
-                  try:
-                      username = ssm.get_parameter(Name=param_name)['Parameter']['Value']
-                  except:
-                      username = "Check /etc/kiro-username on instance"
-                  
-                  message = "Kiro IDE Deployment " + status + " for ${UserEmail}\n\n"
-                  message += "Stack ID: " + stack_id + "\n\n"
-                  message += "Access Information:\n"
-                  message += "URL: https://${CloudFrontDistribution.DomainName}/dcv\n"
-                  message += "Username: " + username + "\n"
-                  message += "Password: " + password + "\n\n"
-                  message += "Please enter the username and password when prompted to access your Kiro IDE environment."
-                  
-                  sns.publish(
-                      TopicArn='${DeploymentNotificationTopic}',
-                      Message=message,
-                      Subject='Kiro IDE Deployment ' + status
-                  )
-                  
-                  return {'statusCode': 200}
-              except Exception as e:
-                  print('Error: ' + str(e))
-                  return {'statusCode': 500}
+        ZipFile: !Sub
+          - |
+            import boto3
+            
+            sns = boto3.client('sns')
+            secretsmanager = boto3.client('secretsmanager')
+            
+            def handler(event, context):
+                try:
+                    detail = event['detail']
+                    status = detail['status-details']['status']
+                    stack_id = detail['stack-id']
+                    
+                    password = secretsmanager.get_secret_value(SecretId="${UserCredentials}")['SecretString']
+                    username = "${Username}"
+                    
+                    message = "Kiro IDE Deployment " + status + " for ${UserEmail}\n\n"
+                    message += "Stack ID: " + stack_id + "\n\n"
+                    message += "Access Information:\n"
+                    message += "URL: https://${CloudFrontDistribution.DomainName}/dcv\n"
+                    message += "Username: " + username + "\n"
+                    message += "Password: " + password + "\n\n"
+                    message += "Please enter the username and password when prompted to access your Kiro IDE environment."
+                    
+                    sns.publish(
+                        TopicArn='${DeploymentNotificationTopic}',
+                        Message=message,
+                        Subject='Kiro IDE Deployment ' + status
+                    )
+                    
+                    return {'statusCode': 200}
+                except Exception as e:
+                    print('Error: ' + str(e))
+                    return {'statusCode': 500}
+          - Username: !GetAtt UsernameGenerator.Username
       Role: !GetAtt NotificationLambdaRole.Arn
 
   NotificationLambdaRole:
@@ -654,9 +855,6 @@ Resources:
               - Effect: Allow
                 Action: secretsmanager:GetSecretValue
                 Resource: !Ref UserCredentials
-              - Effect: Allow
-                Action: ssm:GetParameter
-                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/KiroIDE/${AWS::StackName}/Username'
 
   NotificationLambdaPermission:
     Type: AWS::Lambda::Permission
@@ -671,18 +869,14 @@ Outputs:
     Description: Kiro IDE Access URL via CloudFront
     Value: !Sub 'https://${CloudFrontDistribution.DomainName}/dcv'
   
+  Username:
+    Description: Username for Kiro IDE login
+    Value: !GetAtt UsernameGenerator.Username
+  
   Password:
-    Description: User Password for Kiro IDE access
+    Description: Password for Kiro IDE login
     Value: !GetAtt RunSSMDoc.Password
   
   InstanceId:
     Description: EC2 Instance ID
     Value: !Ref Instance
-  
-  UserCredentialsSecret:
-    Description: Secrets Manager secret containing user credentials
-    Value: !Ref UserCredentials
-  
-  UserEmail:
-    Description: User email address
-    Value: !Ref UserEmail
