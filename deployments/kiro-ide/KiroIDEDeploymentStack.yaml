@@ -32,10 +32,6 @@ Parameters:
     Type: Number
     Default: 40
     Description: EBS volume size in GB
-  HomeFolder:
-    Type: String
-    Default: /workspace
-    Description: User home directory path
   RepoUrl:
     Type: String
     Default: ''
@@ -361,8 +357,6 @@ Resources:
             type: String
           UserFullName:
             type: String
-          HomeFolder:
-            type: String
           UserEmail:
             type: String
           RepoUrl:
@@ -396,10 +390,6 @@ Resources:
                   fi
                   echo "$USERNAME:{{ UserPassword }}" | chpasswd
                   usermod -aG wheel "$USERNAME"
-                  
-                  # Create home folder
-                  mkdir -p "{{ HomeFolder }}"
-                  chown "$USERNAME:$USERNAME" "{{ HomeFolder }}"
                   
                   echo "$USERNAME" > /etc/kiro-username
 
@@ -569,6 +559,57 @@ Resources:
                   fi
                   rm -rf /tmp/node_modules
 
+          - name: InstallAWSTools
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/aws-cli.zip
+                - unzip -o -q /tmp/aws-cli.zip -d /tmp && /tmp/aws/install
+                - curl -fsSL https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-arm64.zip -o /tmp/aws-sam-cli-linux-arm64.zip
+                - unzip -o /tmp/aws-sam-cli-linux-arm64.zip -d /tmp/sam-installation && sudo /tmp/sam-installation/install
+
+          - name: InstallKiroCLI
+            action: aws:runShellScript
+            inputs:
+              timeoutSeconds: 300
+              runCommand:
+                - '#!/bin/bash'
+                - set -euo pipefail
+                - |
+                  USERNAME=$(cat /etc/kiro-username)
+                  curl -fsSL https://cli.kiro.dev/install -o /tmp/install-kiro-cli.sh
+                  chown -R $USERNAME:$USERNAME /tmp/install-kiro-cli.sh
+                  sudo -u $USERNAME bash /tmp/install-kiro-cli.sh 2>&1
+                  echo "Kiro CLI installed. Checking configuration"
+                  sudo -i -u $USERNAME kiro-cli --version
+
+          - name: Installuv
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(cat /etc/kiro-username)
+                  sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
+                  sudo -u $USERNAME bash /tmp/uv_install.sh
+                  sudo -u $USERNAME tee -a /home/$USERNAME/.bashrc > /dev/null << 'EOF'
+                  eval "$(uv generate-shell-completion bash)"
+                  EOF
+
+          - name: InstallNVM
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  USERNAME=$(cat /etc/kiro-username)
+                  sudo -u $USERNAME curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -o /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash <<EOF
+                  export NVM_DIR="/home/$USERNAME/.nvm"
+                  source "\$NVM_DIR/nvm.sh"
+                  nvm install --lts
+                  nvm use --lts
+                  EOF
+
           - name: ConfigureGitAndRepo
             action: aws:runShellScript
             inputs:
@@ -581,10 +622,9 @@ Resources:
                   sudo -u "$USERNAME" git config --global user.name "{{ UserFullName }}"
                   
                   # Clone repository if provided and directory doesn't exist
-                  if [ -n "{{ RepoUrl }}" ] && [ ! -d "{{ HomeFolder }}/project" ]; then
-                    cd "{{ HomeFolder }}"
-                    sudo -u "$USERNAME" git clone "{{ RepoUrl }}" project
-                    chown -R "$USERNAME:$USERNAME" "{{ HomeFolder }}/project"
+                  if [ -n "{{ RepoUrl }}" ]; then
+                    cd "/home/$USERNAME/Documents/"
+                    sudo -u "$USERNAME" git clone "{{ RepoUrl }}"
                   fi
 
           - name: FinalizeSetup
@@ -692,7 +732,6 @@ Resources:
       Username: !GetAtt UsernameGenerator.Username
       UserEmail: !Ref UserEmail
       UserFullName: !Ref UserFullName
-      HomeFolder: !Ref HomeFolder
       RepoUrl: !Ref RepoUrl
 
   RunSSMDocLambda:
