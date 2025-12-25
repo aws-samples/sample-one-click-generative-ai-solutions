@@ -13,6 +13,7 @@ Metadata:
           - InstanceVolumeSize
           - HomeFolder
           - RepoUrl
+          - Language
 
 Parameters:
   UserEmail:
@@ -36,6 +37,13 @@ Parameters:
     Type: String
     Default: ''
     Description: Optional Git repository to clone for development
+  Language:
+    Type: String
+    Default: EN
+    Description: Language for the OS (EN for English, JP for Japanese)
+    AllowedValues:
+      - EN
+      - JP
 
 Mappings:
   CloudFrontPrefixListID:
@@ -361,6 +369,8 @@ Resources:
             type: String
           RepoUrl:
             type: String
+          Language:
+            type: String
         mainSteps:
           - name: InstallDependencies
             action: aws:runShellScript
@@ -410,6 +420,36 @@ Resources:
                   mkdir -p "/home/$USERNAME/.config"
                   touch "/home/$USERNAME/.config/gnome-initial-setup-done"
                   chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
+                  
+                  # Configure language settings based on parameter
+                  if [ "{{ Language }}" = "JP" ]; then
+                    # Install Japanese language pack and fonts
+                    sudo dnf install -y glibc-langpack-ja google-noto-sans-cjk-jp-fonts
+                    
+                    # Set system locale to Japanese
+                    localectl set-locale LANG=ja_JP.UTF-8
+                    sudo timedatectl set-timezone "Asia/Tokyo"
+                    sudo gsettings set org.gnome.system.locale region "ja_JP.utf8"
+                    
+                    # Install Japanese input method (ibus-kkc)
+                    sudo dnf install -y ibus
+                    
+                    # Configure IBus
+                    export GTK_IM_MODULE=ibus
+                    export QT_IM_MODULE=ibus
+                    export XMODIFIERS=@im=ibus
+
+                    # Add to bashrc for persistence
+                    echo 'export GTK_IM_MODULE=ibus' >> "/home/$USERNAME/.bashrc"
+                    echo 'export QT_IM_MODULE=ibus' >> "/home/$USERNAME/.bashrc"
+                    echo 'export XMODIFIERS=@im=ibus' >> "/home/$USERNAME/.bashrc"
+
+                    # Configure IBus for Japanese input
+                    sudo -u "$USERNAME" ibus-daemon -drx
+                    sudo -u "$USERNAME" gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'anthy'), ('xkb', 'jp')]"
+                    sudo -u "$USERNAME" gsettings set org.gnome.desktop.wm.keybindings switch-input-source "['Zenkaku_Hankaku']"
+                    sudo -u "$USERNAME" gsettings set org.gnome.desktop.wm.keybindings switch-input-source-backward "['<Shift>Zenkaku_Hankaku']"
+                  fi
 
           - name: InstallNICEDCV
             action: aws:runShellScript
@@ -563,10 +603,10 @@ Resources:
             action: aws:runShellScript
             inputs:
               runCommand:
-                - curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip -o /tmp/aws-cli.zip
+                - curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/aws-cli.zip
                 - unzip -o -q /tmp/aws-cli.zip -d /tmp && /tmp/aws/install
-                - curl -fsSL https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-arm64.zip -o /tmp/aws-sam-cli-linux-arm64.zip
-                - unzip -o /tmp/aws-sam-cli-linux-arm64.zip -d /tmp/sam-installation && sudo /tmp/sam-installation/install
+                - curl -fsSL https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -o /tmp/aws-sam-cli-linux-x86_64.zip
+                - unzip -o /tmp/aws-sam-cli-linux-x86_64.zip -d /tmp/sam-installation && sudo /tmp/sam-installation/install
 
           - name: InstallKiroCLI
             action: aws:runShellScript
@@ -623,7 +663,7 @@ Resources:
                   
                   # Clone repository if provided and directory doesn't exist
                   if [ -n "{{ RepoUrl }}" ]; then
-                    cd "/home/$USERNAME/Documents/"
+                    cd "/home/$USERNAME/"
                     sudo -u "$USERNAME" git clone "{{ RepoUrl }}"
                   fi
 
@@ -733,6 +773,7 @@ Resources:
       UserEmail: !Ref UserEmail
       UserFullName: !Ref UserFullName
       RepoUrl: !Ref RepoUrl
+      Language: !Ref Language
 
   RunSSMDocLambda:
     Type: AWS::Lambda::Function
