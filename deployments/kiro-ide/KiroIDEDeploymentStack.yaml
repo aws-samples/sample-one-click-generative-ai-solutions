@@ -400,6 +400,8 @@ Resources:
                   fi
                   echo "$USERNAME:{{ UserPassword }}" | chpasswd
                   usermod -aG wheel "$USERNAME"
+                  echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/kiro-ide-nopasswd"
+                  chmod 440 "/etc/sudoers.d/kiro-ide-nopasswd"
                   
                   echo "$USERNAME" > /etc/kiro-username
 
@@ -424,7 +426,9 @@ Resources:
                   # Configure language settings based on parameter
                   if [ "{{ Language }}" = "JP" ]; then
                     # Install Japanese language pack and fonts
-                    sudo dnf install -y glibc-langpack-ja google-noto-sans-cjk-jp-fonts
+                    sudo dnf install -y glibc-langpack-ja
+                    sudo dnf install -y google-noto-sans-jp-fonts google-noto-sans-mono-fonts
+                    fc-cache -fv
                     
                     # Set system locale to Japanese
                     localectl set-locale LANG=ja_JP.UTF-8
@@ -432,7 +436,7 @@ Resources:
                     sudo gsettings set org.gnome.system.locale region "ja_JP.utf8"
                     
                     # Install Japanese input method (ibus-kkc)
-                    sudo dnf install -y ibus
+                    sudo dnf install -y ibus ibus-anthy
                     
                     # Configure IBus
                     export GTK_IM_MODULE=ibus
@@ -447,8 +451,6 @@ Resources:
                     # Configure IBus for Japanese input
                     sudo -u "$USERNAME" ibus-daemon -drx
                     sudo -u "$USERNAME" gsettings set org.gnome.desktop.input-sources sources "[('ibus', 'anthy'), ('xkb', 'jp')]"
-                    sudo -u "$USERNAME" gsettings set org.gnome.desktop.wm.keybindings switch-input-source "['Zenkaku_Hankaku']"
-                    sudo -u "$USERNAME" gsettings set org.gnome.desktop.wm.keybindings switch-input-source-backward "['<Shift>Zenkaku_Hankaku']"
                   fi
 
           - name: InstallNICEDCV
@@ -481,9 +483,8 @@ Resources:
                   
                   Section "Monitor"
                       Identifier "DummyMonitor"
-                      HorizSync   5.0 - 1000.0
-                      VertRefresh 5.0 - 200.0
-                      Option "ReducedBlanking"
+                      HorizSync   30.0 - 110.0
+                      VertRefresh 50.0 - 75.0
                   EndSection
                   
                   Section "Screen"
@@ -494,7 +495,7 @@ Resources:
                       SubSection "Display"
                           Viewport 0 0
                           Depth 24
-                          Virtual 4096 2160
+                          Virtual 1920 1080
                       EndSubSection
                   EndSection
                   XORGEOF

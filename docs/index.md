@@ -353,36 +353,18 @@
           <div class="challenge-card">
             <div class="challenge-header">
               <span class="challenge-icon">🤖</span>
-              <h4>開発スキルのばらつき</h4>
+              <h4>生成 AI を活かした開発の加速</h4>
             </div>
             <p class="challenge-description">
               <ul>
-                <li>開発の熟練度や使用する言語の習熟度にばらつきがある</li>
-                <li>不慣れな言語ではレビューやテストでの手戻りが多発</li>
-                <li>人手不足が深刻になる中、十分な経験者をアサインするのは実質困難</li>
+                <li>生成 AI による直接のコーディングは品質に課題</li>
+                <li>生成したコードの根拠となる文書が存在しない課題</li>
+                <li>人により指示の与え方が大きく異なりスキルギャップが存在</li>
               </ul>
             <p>
             <div class="solution-badges">
-              <strong>💡 プロジェクトに応じた開発アシスタント構築</strong> : <a href="solutions/bedrock-engineer/"> Bedrock Engineer : 開発支援 AI エージェント作成・利用基盤</a><br/>
-              <span>📚 開発エージェントによるスキル拡張</span> : <a href="https://aws.amazon.com/jp/q/developer/customers/" target="_blank">テクノブレイブ様での開発環境構築・リアルタイム開発支援事例</a><br/>
-            </div>
-          </div>
-
-          <div class="challenge-card">
-            <div class="challenge-header">
-              <span class="challenge-icon">⚙️</span>
-              <h4>開発品質管理</h4>
-            </div>
-            <p class="challenge-description">
-              <ul>
-                <li>特に本番のプロダクト開発ではセキュリティやパフォーマンスの懸念点を事前に特定する必要がある</li>
-                <li>レビューに割ける時間に限りがあり、不慣れな領域では見逃しもリスク</li>
-                <li>大きな機能・修正の場合指摘が多岐にわたり複数回のレビューバックが発生</li>
-              </ul>
-            <p>
-            <div class="solution-badges">
-              <strong>💡 部分的な開発の自動化</strong> : <a href="solutions/remote-swe-agents/">Remote SWE Agents : 自律的ソフトウェア開発エージェント</a><br/>
-              <span>📚 レビューの半自動化</span> : <a href="https://aws.amazon.com/jp/solutions/case-studies/kinto-technologies/" target="_blank">KINTOテクノロジーズ様での Pull Request 一次レビュー自動化</a><br/>
+              <strong>💡 "仕様定義"から始まる開発工程を Step by Step で支援</strong> : <a href="solutions/bedrock-engineer/"> Kiro IDE : 仕様駆動の開発を支援する統合開発環境</a><br/>
+              <span>📚 仕様駆動による開発生産性向上</span> : <a href="https://aws.amazon.com/jp/q/developer/customers/" target="_blank">エスツーアイ株式会社様での開発事例・10 日で経費精算システム開発</a><br/>
             </div>
           </div>
 
@@ -400,6 +382,26 @@
             <p>
             <div class="solution-badges">
               <strong>💡 クラウド上の開発環境</strong> : <a href="solutions/aiagentdev/">AI Agent Development Code Server : クラウド上の AI エージェント開発環境</a><br/>
+              <span>📚 ワンクリックでの AI エージェント開発環境構築</span> : <a href="https://dev.classmethod.jp/articles/kiro-ai-agent-development-code-server/" target="_blank">約 7 分で開発環境を立上げ</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">⚙️</span>
+              <h4>開発品質管理</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>プロダクト開発においてセキュリティやパフォーマンスの懸念点を事前に特定する必要がある</li>
+                <li>レビューに割ける時間に限りがあり、不慣れな領域では見逃しもリスク</li>
+                <li>大きな機能・修正の場合指摘が多岐にわたり複数回のレビューバックが発生</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 カスタムエージェントと協調し開発</strong> : <a href="solutions/bedrock-engineer/">Bedrock Engineer : "あなた"のための開発エージェント</a><br/>
+              <strong>💡 レビューや修正の自動化</strong> : <a href="solutions/remote-swe-agents/">Remote SWE Agents : 自律的ソフトウェア開発エージェント</a><br/>
+              <span>📚 レビューの半自動化</span> : <a href="https://aws.amazon.com/jp/solutions/case-studies/kinto-technologies/" target="_blank">KINTOテクノロジーズ様での Pull Request 一次レビュー自動化</a><br/>
             </div>
           </div>
 
@@ -899,15 +901,45 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<div class="solution-card" data-category="popular chat">
+<div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
+      <img src="./assets/images/solutions/kiro-ide/kiro.png" alt="Kiro IDE Remote" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/brchat/">Bedrock Chat</a></div>
+      <div class="solution-card__title"><a href="solutions/kiro-ide/">Kiro IDE Remote</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。
+        Kiro は仕様の作成から設計、コーディングまでの開発工程全体を支援してくれる "仕様駆動" の開発環境です。Kiro IDE Remote は、Kiro はもちろんコマンドラインから使える Kiro CLI や AWS CLI などがインストールされた環境にブラウザから直接アクセスして開発作業を行うことができます。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
+        <option value="us-east-1">バージニア</option>
+        <option value="us-west-2">オレゴン</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=KiroIDEDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/KiroIDEDeploymentStack.yaml&param_Language=JP" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/kiro-ide/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-icon.png" alt="AI Agent Development Code Server" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> は、Amazon Bedrock Agent Core を活用した AI エージェント開発のための専用開発環境です。ブラウザベースの VS Code (code-server) で、AWS 上で完全に動作する開発環境を提供します。
       </div>
     </div>
   </div>
@@ -919,10 +951,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/brchat/" class="detail-button">
+      <a href="solutions/aiagentdev/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>
@@ -990,15 +1022,16 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<div class="solution-card" data-category="document">
+
+<div class="solution-card" data-category="popular chat">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
+      <img src="./assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
+      <div class="solution-card__title"><a href="solutions/brchat/">Bedrock Chat</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution" target="_blank">Customer 360 Data Fusion</a> は、別々のブランドや商品の販売データを統合し自然言語処理での分析を可能にします。これによりクロスセルやブランド訴求価値についてデータからインサイトを得ることができるソリューションです。
+        <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> は、Amazon Bedrock を活用した多言語対応の生成 AI プラットフォームです。シンプルなチャット機能だけでなく、ナレッジベース (RAG) を活用したカスタムボット作成、ボットストアを通じたボット共有、エージェント機能によるタスク自動化をサポートしています。
       </div>
     </div>
   </div>
@@ -1006,13 +1039,14 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="solution-card__deployment">
       <select class="region-selector">
         <option value="ap-northeast-1">東京</option>
+        <option value="ap-northeast-3">大阪</option>
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/c360/" class="detail-button">
+      <a href="solutions/brchat/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>
@@ -1081,15 +1115,15 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-<div class="solution-card" data-category="development">
+<div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+      <img src="./assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
+      <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding" target="_blank">AI Agent Development Code Server</a> は、Amazon Bedrock Agent Core を活用した AI エージェント開発のための専用開発環境です。ブラウザベースの VS Code (code-server) で、AWS 上で完全に動作する開発環境を提供します。
+        <a href="https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution" target="_blank">Customer 360 Data Fusion</a> は、別々のブランドや商品の販売データを統合し自然言語処理での分析を可能にします。これによりクロスセルやブランド訴求価値についてデータからインサイトを得ることができるソリューションです。
       </div>
     </div>
   </div>
@@ -1097,14 +1131,13 @@ document.addEventListener('DOMContentLoaded', function() {
     <div class="solution-card__deployment">
       <select class="region-selector">
         <option value="ap-northeast-1">東京</option>
-        <option value="ap-northeast-3">大阪</option>
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/aiagentdev/" class="detail-button">
+      <a href="solutions/c360/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>

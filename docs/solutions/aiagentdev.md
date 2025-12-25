@@ -2,6 +2,8 @@
 
 AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した AI エージェントの開発に必要なソフトウェア等が事前セットアップされた開発環境です。ブラウザベースの VS Code ([Code-Server](https://github.com/coder/code-server)) を使用し、AWS 上に開発環境を構築します。
 
+![overview](../assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png)
+
 ## 主な機能
 
 - **ブラウザベース開発環境** - code-server による VS Code 互換の開発体験
