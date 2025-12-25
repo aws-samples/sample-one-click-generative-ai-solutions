@@ -305,91 +305,30 @@ function filterSolutions(category) {
   </div>
 </div>
 
-<div class="solution-card" data-category="popular chat">
+
+<div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="../assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
+      <img src="./assets/images/solutions/kiro-ide/kiro.png" alt="Kiro IDE Remote" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/brchat/">Bedrock Chat</a></div>
+      <div class="solution-card__title"><a href="solutions/kiro-ide/">Kiro IDE Remote</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> is a multilingual generative AI platform powered by Amazon Bedrock. It supports not only simple chat functionality but also custom bot creation using knowledge bases (RAG), bot sharing through a bot store, and task automation using agent functionality.
+        Kiro is a "specification-driven" development environment that supports the entire development process from specification creation to design and coding. Kiro IDE Remote allows you to access a development environment with Kiro, Kiro CLI, AWS CLI, and other tools pre-installed directly from your browser.
       </div>
     </div>
   </div>
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
-      </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-        <i class="fa-solid fa-rocket"></i>　Deploy
-      </a>
-      <a href="solutions/brchat/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Details
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="solution-card" data-category="creative">
-  <div class="solution-card__top">
-    <div class="solution-card__image">
-      <img src="../assets/images/solutions/genai-design-studio/demo.gif" alt="GenAI Design Studio Demo" style="display: block;">
-    </div>
-    <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/genai-design-studio/">GenAI Design Studio</a></div>
-      <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> is a virtual try-on solution powered by Amazon Nova Canvas. It aims to streamline various processes in the apparel industry and e-commerce services, from fashion design to actual model photography.
-      </div>
-    </div>
-  </div>
-  <div class="solution-card__actions">
-    <div class="solution-card__deployment">
-      <select class="region-selector">
         <option value="ap-northeast-1">Tokyo</option>
-        <option value="us-east-1">Virginia</option>
-        <option value="eu-west-1">Ireland</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=KiroIDEDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/KiroIDEDeploymentStack.yaml&param_Language=EN" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/genai-design-studio/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        Details
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="solution-card" data-category="creative">
-  <div class="solution-card__top">
-    <div class="solution-card__image">
-      <img src="../assets/images/solutions/comfyui/comfy.png" alt="ComfyUI Demo" style="display: block;">
-    </div>
-    <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/comfyui/">ComfyUI</a></div>
-      <div class="solution-card__description">
-        <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">ComfyUI</a> is a node-based generative AI image generation tool that combines Stable Diffusion and various models to generate high-quality images. It's ideal for visually building complex workflows and having fine-grained control over the image generation process.
-      </div>
-    </div>
-  </div>
-  <div class="solution-card__actions">
-    <div class="solution-card__deployment">
-      <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
-        <option value="us-east-1">Virginia</option>
-        <option value="us-west-2">Oregon</option>
-      </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-        <i class="fa-solid fa-rocket"></i>　Deploy
-      </a>
-      <a href="solutions/comfyui/" class="detail-button">
+      <a href="solutions/kiro-ide/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
@@ -412,12 +351,12 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIAgentDevDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIAgentDevelopmentCodeServerDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/aiagentdev/" class="detail-button">
@@ -481,6 +420,100 @@ function filterSolutions(category) {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/roleplay/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<div class="solution-card" data-category="popular chat">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/bedrock-chat/demo.gif" alt="Bedrock Chat Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/brchat/">Bedrock Chat</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/bedrock-chat" target="_blank">Bedrock Chat</a> is a multilingual generative AI platform powered by Amazon Bedrock. It supports not only simple chat functionality but also custom bot creation using knowledge bases (RAG), bot sharing through a bot store, and task automation using agent functionality.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/brchat/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+
+<div class="solution-card" data-category="creative">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/genai-design-studio/demo.gif" alt="GenAI Design Studio Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/genai-design-studio/">GenAI Design Studio</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-genai-design-studio" target="_blank">GenAI Design Studio</a> is a virtual try-on solution powered by Amazon Nova Canvas. It aims to streamline various processes in the apparel industry and e-commerce services, from fashion design to actual model photography.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="eu-west-1">Ireland</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/genai-design-studio/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="creative">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/comfyui/comfy.png" alt="ComfyUI Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/comfyui/">ComfyUI</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/comfyanonymous/ComfyUI" target="_blank">ComfyUI</a> is a node-based generative AI image generation tool that combines Stable Diffusion and various models to generate high-quality images. It's ideal for visually building complex workflows and having fine-grained control over the image generation process.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/comfyui/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
