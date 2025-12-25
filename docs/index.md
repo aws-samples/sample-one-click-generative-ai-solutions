@@ -363,7 +363,7 @@
               </ul>
             <p>
             <div class="solution-badges">
-              <strong>💡 "仕様定義"から始まる開発工程を Step by Step で支援</strong> : <a href="solutions/bedrock-engineer/"> Kiro IDE : 仕様駆動の開発を支援する統合開発環境</a><br/>
+              <strong>💡 "仕様定義"から始まる開発工程を Step by Step で支援</strong> : <a href="solutions/kiro-ide/"> Kiro IDE : 仕様駆動の開発を支援する統合開発環境</a><br/>
               <span>📚 仕様駆動による開発生産性向上</span> : <a href="https://aws.amazon.com/jp/q/developer/customers/" target="_blank">エスツーアイ株式会社様での開発事例・10 日で経費精算システム開発</a><br/>
             </div>
           </div>
