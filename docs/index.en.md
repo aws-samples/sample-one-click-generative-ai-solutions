@@ -309,7 +309,7 @@ function filterSolutions(category) {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/kiro-ide/kiro.png" alt="Kiro IDE Remote" style="display: block;">
+      <img src="../assets/images/solutions/kiro-ide/kiro.png" alt="Kiro IDE Remote" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/kiro-ide/">Kiro IDE Remote</a></div>
@@ -339,7 +339,7 @@ function filterSolutions(category) {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
+      <img src="../assets/images/solutions/aiagentdev/ai-agent-dev-code-server-top.png" alt="AI Agent Development Code Server" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/aiagentdev/">AI Agent Development Code Server</a></div>
