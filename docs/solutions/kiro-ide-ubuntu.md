@@ -73,7 +73,7 @@
 ### 日本語サポート
 Languageパラメータを"JP"に設定すると:
 - 日本語言語パックとフォント（Noto CJK）
-- 日本語入力メソッド（ibus-mozc）
+- 日本語入力メソッド（fcitx5-mozc）
 - タイムゾーンをAsia/Tokyoに設定
 - ロケールをja_JP.UTF-8に設定
 
