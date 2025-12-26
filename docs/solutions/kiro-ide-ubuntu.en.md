@@ -73,7 +73,7 @@ When deployment starts, an email will be sent to the email address set in `UserE
 ### Japanese Language Support
 When Language parameter is set to "JP":
 - Japanese language packs and fonts (Noto CJK)
-- Japanese input method (ibus-mozc)
+- Japanese input method (fcitx5-mozc)
 - Timezone set to Asia/Tokyo
 - Locale set to ja_JP.UTF-8
 
@@ -148,7 +148,7 @@ Typical monthly costs (us-east-1):
 | GUI App Support | Requires additional setup | Optimized out-of-box |
 | Community Support | AWS-focused | Large Ubuntu community |
 | LTS Support | ~2 years | 5 years |
-| Japanese Input | ibus-anthy | ibus-mozc |
+| Japanese Input | ibus-anthy | fcitx5-mozc |
 
 ## When to Use Ubuntu Edition
 
