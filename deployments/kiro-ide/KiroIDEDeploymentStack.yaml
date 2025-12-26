@@ -442,6 +442,11 @@ Resources:
                   USERNAME=$(cat /etc/kiro-username)
                   mkdir -p "/home/$USERNAME/.config"
                   touch "/home/$USERNAME/.config/gnome-initial-setup-done"
+                  
+                  # Configure GNOME dock favorites (sidebar)
+                  mkdir -p "/home/$USERNAME/.config/dconf"
+                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['kiro-ide.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']"
+                  
                   chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
 
                   # Configure GDM for automatic login and disable Wayland
@@ -693,9 +698,6 @@ Resources:
                   cp /usr/share/applications/kiro-ide.desktop "/home/$USERNAME/Desktop/"
                   chmod +x "/home/$USERNAME/Desktop/kiro-ide.desktop"
                   chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/Desktop"
-                  
-                  # Trust the desktop shortcut (allow launching)
-                  sudo -u "$USERNAME" gio set "/home/$USERNAME/Desktop/kiro-ide.desktop" metadata::trusted true
 
           - name: InstallAWSTools
             action: aws:runShellScript
