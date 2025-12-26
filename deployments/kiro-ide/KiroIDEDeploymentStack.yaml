@@ -419,7 +419,7 @@ Resources:
                   export DEBIAN_FRONTEND=noninteractive
 
                   # Install Ubuntu Desktop (GNOME) if not already installed
-                  apt-get install -y ubuntu-desktop-minimal gnome-shell gnome-terminal
+                  apt-get install -y ubuntu-desktop-minimal gnome-shell gnome-terminal dbus-x11
 
                   # Set graphical target
                   systemctl set-default graphical.target
@@ -440,14 +440,12 @@ Resources:
 
                   # Skip GNOME initial setup wizard
                   USERNAME=$(cat /etc/kiro-username)
-                  mkdir -p "/home/$USERNAME/.config"
+                  mkdir -p "/home/$USERNAME/.config/dconf"
+                  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
                   touch "/home/$USERNAME/.config/gnome-initial-setup-done"
                   
                   # Configure GNOME dock favorites (sidebar)
-                  mkdir -p "/home/$USERNAME/.config/dconf"
-                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['kiro-ide.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']"
-                  
-                  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
+                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['kiro-ide.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']" || true
 
                   # Configure GDM for automatic login and disable Wayland
                   # DCV does not support Wayland protocol (AWS documentation requirement)
@@ -674,12 +672,12 @@ Resources:
                   tar -xzf kiro-ide.tar.gz -C /opt/kiro-ide --strip-components=1
                   rm kiro-ide.tar.gz
                   
-                  # Fix chrome-sandbox permissions for Electron
+                  # Set ownership - user owns everything except chrome-sandbox
+                  chown -R "$USERNAME:$USERNAME" /opt/kiro-ide
+                  
+                  # Fix chrome-sandbox permissions for Electron (must be root with setuid)
                   chown root:root /opt/kiro-ide/chrome-sandbox
                   chmod 4755 /opt/kiro-ide/chrome-sandbox
-                  
-                  chown -R "$USERNAME:$USERNAME" /opt/kiro-ide
-                  chown root:root /opt/kiro-ide/chrome-sandbox
 
                   # Create symlink
                   ln -sf /opt/kiro-ide/kiro /usr/local/bin/kiro-ide
@@ -741,6 +739,9 @@ Resources:
                   #!/bin/bash
                   set -e
                   USERNAME=$(cat /etc/kiro-username)
+                  # Ensure .config directory is owned by user
+                  mkdir -p /home/$USERNAME/.config
+                  chown -R $USERNAME:$USERNAME /home/$USERNAME/.config
                   sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
                   sudo -u $USERNAME bash /tmp/uv_install.sh
                   sudo -u $USERNAME tee -a /home/$USERNAME/.bashrc > /dev/null << 'EOF'

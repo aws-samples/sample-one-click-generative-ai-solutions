@@ -57,9 +57,17 @@ When deployment is complete, you will receive an email with the following inform
 
 Access the URL and log in with the displayed username and password.
 
-* You will be prompted to log in twice - once for Amazon DCV and once for the OS - but the password is the same for both.
-* If the font appears stretched when opening a terminal in Kiro, open `File > Preference > Settings`, search for `terminal spacing`, and adjust the `Integrated: Letter Spacing` value to around -2 to -3.
+### Initial Setup
+
+* **It is recommended to change your password after logging in**. You can change it using the `passwd` command.
+* The Kiro desktop icon is initially disabled. Right-click to allow launching.
+
+![desktop](../assets/images/solutions/kiro-ide/kiro-desktop.png)
+
+### Other Notes
+
 * If authentication with Kiro CLI is slow to proceed, try `kiro-cli login --use-device-flow`.
+* Copy & Paste to terminal uses **Ctrl + Shift + V**. This is standard Linux behavior.
 
 ## Related Links
 
