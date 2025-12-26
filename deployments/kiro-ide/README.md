@@ -28,7 +28,7 @@ This directory contains CloudFormation templates for deploying Kiro IDE Remote o
 - Base OS: Ubuntu 24.04 LTS
 - Desktop: Pre-configured GNOME (ubuntu-desktop-minimal)
 - Package Manager: APT
-- Japanese Input: ibus-mozc
+- Japanese Input: fcitx5-mozc
 - Streamlined setup process
 
 ## Deployment Comparison
