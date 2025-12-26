@@ -73,7 +73,7 @@ When deployment starts, an email will be sent to the email address set in `UserE
 ### Japanese Language Support
 When Language parameter is set to "JP":
 - Japanese language packs and fonts (Noto CJK)
-- Japanese input method (ibus-mozc)
+- Japanese input method (fcitx5-mozc)
 - Timezone set to Asia/Tokyo
 - Locale set to ja_JP.UTF-8
 
