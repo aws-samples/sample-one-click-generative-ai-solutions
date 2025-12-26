@@ -57,9 +57,23 @@
 
 URL にアクセスし、表示されたユーザー名とパスワードでログインしてください。
 
-* Amazon DCV へのログイン、OS へのログインが 2 回必要求められますがパスワードは同じです。
-* Kiro の中でターミナルを立ち上げたとき、フォントが間延びして見える場合は `File > Preference > Settings` を開き、 `terminal spacing` で検索し `Integrated: Letter Spacing` の値を -2~-3 ぐらいに調整してみてください
+### 初期設定
+
+* **パスワードはログイン後変更を推奨します**。`passwd` コマンドで変更できます
+* デスクトップアイコンの Kiro は最初無効化されています。右クリックで起動を許可してください
+
+![desktop](../assets/images/solutions/kiro-ide/kiro-desktop.png)
+
+### 日本語入力
+
+Ctrl + Space で直接 / 日本語を切り替えられますが、半角・全角キーでの切り替えを行いたい場合一度設定を再起動してください。
+
+![japanese](../assets/images/solutions/kiro-ide/kiro-japanese.png)
+
+### その他
+
 * Kiro CLI で認証がなかなか進まない場合、`kiro-cli login --use-device-flow` を試してみてください
+* ターミナルへの Copy & Paste は **Ctrl + Shift + V** になります。これは Linux の仕様です
 
 ## 関連リンク
 
