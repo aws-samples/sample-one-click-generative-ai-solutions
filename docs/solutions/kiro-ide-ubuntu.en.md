@@ -148,7 +148,7 @@ Typical monthly costs (us-east-1):
 | GUI App Support | Requires additional setup | Optimized out-of-box |
 | Community Support | AWS-focused | Large Ubuntu community |
 | LTS Support | ~2 years | 5 years |
-| Japanese Input | ibus-anthy | ibus-mozc |
+| Japanese Input | ibus-anthy | fcitx5-mozc |
 
 ## When to Use Ubuntu Edition
 
