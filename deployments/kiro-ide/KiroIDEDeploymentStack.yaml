@@ -657,8 +657,12 @@ Resources:
 
                   # Get latest version and download tar.gz
                   cd /tmp
-                  VERSION=$(curl -s https://prod.download.desktop.kiro.dev/stable/metadata-linux-x64-stable.json | jq -r .currentRelease)
-                  curl -o kiro-ide.tar.gz "https://prod.download.desktop.kiro.dev/releases/stable/linux-x64/signed/$VERSION/tar/kiro-ide-$VERSION-stable-linux-x64.tar.gz"
+                  VERSION=$(curl -sf https://prod.download.desktop.kiro.dev/stable/metadata-linux-x64-stable.json | jq -er .currentRelease)
+                  if [ -z "$VERSION" ] || [ "$VERSION" = "null" ]; then
+                    echo "Failed to determine Kiro IDE version from metadata." >&2
+                    exit 1
+                  fi
+                  curl -fsS -o kiro-ide.tar.gz "https://prod.download.desktop.kiro.dev/releases/stable/linux-x64/signed/$VERSION/tar/kiro-ide-$VERSION-stable-linux-x64.tar.gz"
 
                   # Install to /opt
                   mkdir -p /opt/kiro-ide
