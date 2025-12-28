@@ -192,7 +192,7 @@ Resources:
     Properties:
       Runtime: python3.13
       Handler: index.handler
-      Timeout: 600
+      Timeout: 900
       Role: !GetAtt HealthCheckLambdaRole.Arn
       Code:
         ZipFile: |
@@ -210,8 +210,8 @@ Resources:
               target_group_arn = event['ResourceProperties']['TargetGroupArn']
               wait_url = event['ResourceProperties']['WaitConditionUrl']
 
-              # Poll for up to 8 minutes
-              for i in range(96):
+              # Poll for up to 14 minutes
+              for i in range(168):
                   try:
                       resp = elbv2.describe_target_health(TargetGroupArn=target_group_arn)
                       for target in resp['TargetHealthDescriptions']:
