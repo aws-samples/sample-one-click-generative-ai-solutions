@@ -27,13 +27,13 @@
 
 Monthly cost estimation for main components (24/7 operation):
 
-- **EC2 (t3.xlarge)**: ~$156/month
+- **EC2 (t3.xlarge)**: ~$140/month
 - **EBS (40 GB)**: ~$4/month
-- **Application Load Balancer**: ~$23/month
+- **Application Load Balancer**: ~$20/month
 - **CloudFront**: Based on data transfer (minimum charges apply)
 - **Other Services**: ~$1-2/month
 
-**Total Estimate**: ~$185/month (excluding data transfer)
+**Total Estimate**: ~$165-170/month (excluding data transfer)
 
 > **Note**: Actual costs vary by usage and region. For development use only, you can reduce costs by stopping the instance when not in use. Please refer to the [AWS Pricing page](https://aws.amazon.com/pricing/) for the latest pricing information.
 
