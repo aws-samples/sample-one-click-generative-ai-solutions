@@ -12,6 +12,31 @@
 - **日本語対応**: OS 及び日本語入力をあらかじめセットアップ
 - **セキュアなアクセス**: CloudFront と ALB を経由した安全な接続
 
+## 構成と概算コスト
+
+### システム構成
+
+- **EC2 インスタンス**: t3.xlarge (4 vCPU, 16 GiB RAM)
+- **EBS ボリューム**: 40 GB (デフォルト、変更可能)
+- **ネットワーク**: VPC、サブネット、Internet Gateway
+- **ロードバランサー**: Application Load Balancer
+- **配信**: CloudFront
+- **その他**: Lambda、Secrets Manager、SNS
+
+### 概算コスト（東京リージョン）
+
+主要コンポーネントの月額概算（24時間稼働の場合）:
+
+- **EC2 (t3.xlarge)**: 約 $156/月
+- **EBS (40 GB)**: 約 $4/月
+- **Application Load Balancer**: 約 $23/月
+- **CloudFront**: データ転送量による（最小料金あり）
+- **その他サービス**: 約 $1-2/月
+
+**合計概算**: 約 $185/月（データ転送料を除く）
+
+> **注**: 実際のコストは使用量とリージョンにより異なります。開発中のみ使用する場合は、未使用時にインスタンスを停止することでコストを削減できます。最新の料金については [AWS 料金ページ](https://aws.amazon.com/pricing/)をご確認ください。
+
 ## AWS へのデプロイ
 
 次のボタンからデプロイできます。AWS へログイン後クリックしてください。
@@ -36,7 +61,7 @@
 * UserFullName
     * ユーザーのフルネームです。Git の設定などに使用されます（デフォルト: Kiro IDE Developer）。
 * InstanceType
-    * EC2 インスタンスタイプです（デフォルト: t3.medium）。
+    * EC2 インスタンスタイプです（デフォルト: t3.xlarge）。
 * InstanceVolumeSize
     * EBS ボリュームサイズ（GB）です（デフォルト: 40）。
 * RepoUrl

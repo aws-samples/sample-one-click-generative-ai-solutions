@@ -27,7 +27,7 @@ Parameters:
     Default: Kiro IDE Developer
   InstanceType:
     Type: String
-    Default: t3.medium
+    Default: t3.xlarge
     Description: EC2 instance type (x86_64 architecture required for Kiro IDE)
   InstanceVolumeSize:
     Type: Number

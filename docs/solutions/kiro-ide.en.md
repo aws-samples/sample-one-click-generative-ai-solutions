@@ -12,6 +12,31 @@
 - **English Language Support**: OS and input methods are pre-configured
 - **Secure Access**: Safe connection via CloudFront and ALB
 
+## Configuration and Estimated Cost
+
+### System Configuration
+
+- **EC2 Instance**: t3.xlarge (4 vCPU, 16 GiB RAM)
+- **EBS Volume**: 40 GB (default, configurable)
+- **Networking**: VPC, Subnets, Internet Gateway
+- **Load Balancer**: Application Load Balancer
+- **Distribution**: CloudFront
+- **Other**: Lambda, Secrets Manager, SNS
+
+### Estimated Cost (Tokyo Region)
+
+Monthly cost estimation for main components (24/7 operation):
+
+- **EC2 (t3.xlarge)**: ~$156/month
+- **EBS (40 GB)**: ~$4/month
+- **Application Load Balancer**: ~$23/month
+- **CloudFront**: Based on data transfer (minimum charges apply)
+- **Other Services**: ~$1-2/month
+
+**Total Estimate**: ~$185/month (excluding data transfer)
+
+> **Note**: Actual costs vary by usage and region. For development use only, you can reduce costs by stopping the instance when not in use. Please refer to the [AWS Pricing page](https://aws.amazon.com/pricing/) for the latest pricing information.
+
 ## Deploy to AWS
 
 You can deploy using the button below. Click after logging into AWS.
@@ -36,7 +61,7 @@ You can deploy using the button below. Click after logging into AWS.
 * UserFullName
     * User's full name. Used for Git configuration and other settings (default: Kiro IDE Developer).
 * InstanceType
-    * EC2 instance type (default: t3.medium).
+    * EC2 instance type (default: t3.xlarge).
 * InstanceVolumeSize
     * EBS volume size in GB (default: 40).
 * RepoUrl
