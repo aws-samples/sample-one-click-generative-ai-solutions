@@ -269,15 +269,15 @@ Resources:
                   }
 
                   function findAvailableModel(originalModelId, availableModels) {
-                    const baseModelId = originalModelId.replace(/^(us|apac|eu)\./, '');
+                    const baseModelId = originalModelId.replace(/^(us|apac|eu|jp)\./, '');
 
                     if (availableModels.includes(originalModelId)) {
                       return { modelId: originalModelId, converted: false, reason: 'Original available' };
                     }
-                    
-                    const inferenceProfile = availableModels.find(modelId => 
-                      modelId !== baseModelId && 
-                      modelId.replace(/^(us|apac|eu)\./, '') === baseModelId
+
+                    const inferenceProfile = availableModels.find(modelId =>
+                      modelId !== baseModelId &&
+                      modelId.replace(/^(us|apac|eu|jp)\./, '') === baseModelId
                     );
                     
                     if (inferenceProfile) {
