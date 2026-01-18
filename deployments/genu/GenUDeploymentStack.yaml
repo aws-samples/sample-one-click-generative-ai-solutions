@@ -56,7 +56,7 @@ Parameters:
 
   AdditionalModels:
     Type: String
-    Default: "us.anthropic.claude-opus-4-1-20250805-v1:0"
+    Default: ""
     Description: Additional models to be added to the deployment (comma separated)
 
   RAGEnabled:
