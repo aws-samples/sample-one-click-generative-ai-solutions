@@ -271,11 +271,6 @@ Resources:
                   function findAvailableModel(originalModelId, availableModels, region) {
                     const baseModelId = originalModelId.replace(/^(us|apac|eu|jp|global)\./, '');
 
-                    // If original model ID exists exactly, use it
-                    if (availableModels.includes(originalModelId)) {
-                      return { modelId: originalModelId, converted: false, reason: 'Original available' };
-                    }
-
                     // Determine priority order based on region
                     // Priority: domestic (jp/us) -> regional (apac/eu) -> global -> base model
                     let prefixPriority;
@@ -289,12 +284,18 @@ Resources:
                       prefixPriority = ['global'];
                     }
 
-                    // Search for inference profile in priority order
+                    // Search for inference profile in priority order (always prefer inference profiles)
                     for (const prefix of prefixPriority) {
                       const preferredModelId = `${prefix}.${baseModelId}`;
                       if (availableModels.includes(preferredModelId)) {
-                        return { modelId: preferredModelId, converted: true, reason: `${prefix} inference profile` };
+                        const converted = preferredModelId !== originalModelId;
+                        return { modelId: preferredModelId, converted, reason: `${prefix} inference profile` };
                       }
+                    }
+
+                    // Fall back to original model ID if it exists
+                    if (availableModels.includes(originalModelId)) {
+                      return { modelId: originalModelId, converted: false, reason: 'Original available' };
                     }
 
                     // Fall back to base model ID if available
