@@ -1,0 +1,1083 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Cursor IDE Deployment - Ubuntu 24.04 LTS with GUI and NICE DCV, ALB and CloudFront
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Cursor IDE Deployment Parameters"
+        Parameters:
+          - UserEmail
+          - UserFullName
+          - InstanceType
+          - InstanceVolumeSize
+          - RepoUrl
+          - Language
+
+Parameters:
+  UserEmail:
+    Type: String
+    Description: User email address (used for notifications and system configuration)
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    ConstraintDescription: Must be a valid email address
+  UserFullName:
+    Type: String
+    Description: Full name for system configuration
+    Default: Cursor Developer
+  InstanceType:
+    Type: String
+    Default: t3.xlarge
+    Description: EC2 instance type (x86_64 architecture required for Cursor)
+  InstanceVolumeSize:
+    Type: Number
+    Default: 40
+    Description: EBS volume size in GB
+  RepoUrl:
+    Type: String
+    Default: ''
+    Description: Optional Git repository to clone for development
+  Language:
+    Type: String
+    Default: EN
+    Description: Language for the OS (EN for English, JP for Japanese)
+    AllowedValues:
+      - EN
+      - JP
+
+Mappings:
+  CloudFrontPrefixListID:
+    ap-northeast-1:
+      PrefixList: pl-58a04531
+    ap-northeast-3:
+      PrefixList: pl-31a14458
+    us-east-1:
+      PrefixList: pl-3b927c52
+    us-west-2:
+      PrefixList: pl-82a045eb
+
+Resources:
+  # VPC and Networking
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.1.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-VPC'
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-IGW'
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: 10.1.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Public-Subnet-1'
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: 10.1.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Public-Subnet-2'
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Public-Routes'
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  # Security Groups
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-ALB-SG'
+      GroupDescription: Security group for ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourcePrefixListId: !FindInMap [CloudFrontPrefixListID, !Ref 'AWS::Region', PrefixList]
+          Description: HTTP from CloudFront only
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-ALB-SG'
+
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub '${AWS::StackName}-Instance-SG'
+      GroupDescription: Security group for Cursor IDE instance
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 8443
+          ToPort: 8443
+          SourceSecurityGroupId: !Ref ALBSecurityGroup
+          Description: NICE DCV access from ALB only
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Instance-SG'
+
+  ALBToInstanceEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !Ref ALBSecurityGroup
+      IpProtocol: tcp
+      FromPort: 8443
+      ToPort: 8443
+      DestinationSecurityGroupId: !Ref InstanceSecurityGroup
+      Description: Allow ALB to DCV
+
+  # WaitCondition to delay CloudFormation completion until DCV is ready after reboot
+  DCVReadyHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  DCVReadyCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: RunSSMDoc
+    Properties:
+      Handle: !Ref DCVReadyHandle
+      Timeout: '900'
+      Count: 1
+
+  # Lambda to poll ALB target health and signal WaitCondition
+  HealthCheckLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 900
+      Role: !GetAtt HealthCheckLambdaRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import urllib.request
+          import json
+          import time
+
+          def handler(event, context):
+              if event['RequestType'] == 'Delete':
+                  send_response(event, 'SUCCESS')
+                  return
+
+              elbv2 = boto3.client('elbv2')
+              target_group_arn = event['ResourceProperties']['TargetGroupArn']
+              wait_url = event['ResourceProperties']['WaitConditionUrl']
+
+              # Poll for up to 14 minutes
+              for i in range(168):
+                  try:
+                      resp = elbv2.describe_target_health(TargetGroupArn=target_group_arn)
+                      for target in resp['TargetHealthDescriptions']:
+                          if target['TargetHealth']['State'] == 'healthy':
+                              signal_wait_condition(wait_url, 'SUCCESS', 'DCV is healthy')
+                              send_response(event, 'SUCCESS')
+                              return
+                  except Exception as e:
+                      print(f"Error checking health: {e}")
+                  time.sleep(5)
+
+              signal_wait_condition(wait_url, 'FAILURE', 'DCV health check timeout')
+              send_response(event, 'FAILED', 'Health check timeout')
+
+          def signal_wait_condition(url, status, reason):
+              data = json.dumps({'Status': status, 'Reason': reason, 'UniqueId': 'dcv', 'Data': reason}).encode()
+              req = urllib.request.Request(url, data=data, method='PUT', headers={'Content-Type': ''})
+              urllib.request.urlopen(req)
+
+          def send_response(event, status, reason=''):
+              data = json.dumps({'Status': status, 'Reason': reason or status, 'PhysicalResourceId': 'health-check', 'StackId': event['StackId'], 'RequestId': event['RequestId'], 'LogicalResourceId': event['LogicalResourceId']}).encode()
+              req = urllib.request.Request(event['ResponseURL'], data=data, method='PUT', headers={'Content-Type': ''})
+              urllib.request.urlopen(req)
+
+  HealthCheckLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ELBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: elasticloadbalancing:DescribeTargetHealth
+                Resource: '*'
+
+  HealthCheckTrigger:
+    Type: Custom::HealthCheck
+    DependsOn: RunSSMDoc
+    Properties:
+      ServiceToken: !GetAtt HealthCheckLambda.Arn
+      TargetGroupArn: !Ref ALBTargetGroup
+      WaitConditionUrl: !Ref DCVReadyHandle
+
+  # IAM Role for EC2 Instance
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+      Policies:
+        - PolicyName: DCVLicenseAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub 'arn:${AWS::Partition}:s3:::dcv-license.${AWS::Region}/*'
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref InstanceRole
+
+  # Secrets Manager for User Credentials
+  UserCredentials:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'Cursor-Ubuntu-${AWS::StackName}'
+      GenerateSecretString:
+        PasswordLength: 16
+        ExcludePunctuation: true
+
+  # Generate username from email
+  UsernameGenerator:
+    Type: Custom::UsernameGenerator
+    Properties:
+      ServiceToken: !GetAtt UsernameGeneratorLambda.Arn
+      Email: !Ref UserEmail
+
+  UsernameGeneratorLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 10
+      Role: !GetAtt UsernameGeneratorRole.Arn
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import re
+          import hashlib
+          def handler(event, context):
+              if event['RequestType'] == 'Delete':
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  return
+              try:
+                  email = event['ResourceProperties']['Email']
+                  raw = email.split('@')[0]
+                  username = re.sub(r'[.+]', '_', raw.lower())
+                  username = re.sub(r'[^a-z0-9_-]', '', username)
+                  username = re.sub(r'^[-0-9]+', '', username)[:32].rstrip('-_')
+                  if not username or not username[0].isalpha():
+                      username = 'user' + hashlib.md5(raw.encode()).hexdigest()[:8]
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {'Username': username})
+              except Exception as e:
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, str(e))
+
+  UsernameGeneratorRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # SSM Document for Cursor IDE Installation on Ubuntu
+  CursorSSMDoc:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentType: Command
+      Content:
+        schemaVersion: '2.2'
+        parameters:
+          UserPassword:
+            type: String
+          Username:
+            type: String
+          UserFullName:
+            type: String
+          UserEmail:
+            type: String
+          RepoUrl:
+            type: String
+          Language:
+            type: String
+        mainSteps:
+          - name: InstallDependencies
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  # Update system packages
+                  export DEBIAN_FRONTEND=noninteractive
+                  apt-get update -y
+                  apt-get upgrade -y
+                  # Install fundamental packages
+                  apt-get install -y git jq curl wget unzip build-essential libfuse2
+
+          - name: SetupUser
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+
+                  USERNAME="{{ Username }}"
+
+                  # Create user if not exists, update password if exists
+                  if id "$USERNAME" &>/dev/null; then
+                    echo "User $USERNAME already exists, updating password"
+                  else
+                    useradd -m -s /bin/bash "$USERNAME"
+                  fi
+                  echo "$USERNAME:{{ UserPassword }}" | chpasswd
+                  usermod -aG sudo "$USERNAME"
+                  echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/cursor-nopasswd"
+                  chmod 440 "/etc/sudoers.d/cursor-nopasswd"
+
+                  echo "$USERNAME" > /etc/cursor-username
+
+          - name: InstallDesktopEnvironment
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  export DEBIAN_FRONTEND=noninteractive
+
+                  # Install Ubuntu Desktop (GNOME) if not already installed
+                  apt-get install -y ubuntu-desktop-minimal gnome-shell gnome-terminal dbus-x11
+
+                  # Set graphical target
+                  systemctl set-default graphical.target
+
+                  # Fix DNS issue after desktop installation (Ubuntu bug #2097769)
+                  # Desktop installation can break DNS resolution
+                  netplan apply
+
+                  # Wait for DNS to recover (up to 60 seconds)
+                  for i in {1..12}; do
+                    if nslookup google.com > /dev/null 2>&1; then
+                      echo "DNS resolution working"
+                      break
+                    fi
+                    echo "Waiting for DNS recovery... ($i/12)"
+                    sleep 5
+                  done
+
+                  # Skip GNOME initial setup wizard
+                  USERNAME=$(cat /etc/cursor-username)
+                  mkdir -p "/home/$USERNAME/.config/dconf"
+                  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
+                  touch "/home/$USERNAME/.config/gnome-initial-setup-done"
+
+                  # Configure GNOME dock favorites (sidebar)
+                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['cursor.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']" || true
+
+                  # Configure GDM for automatic login and disable Wayland
+                  # DCV does not support Wayland protocol (AWS documentation requirement)
+                  mkdir -p /etc/gdm3
+                  cat > /etc/gdm3/custom.conf << GDMEOF
+                  [daemon]
+                  AutomaticLoginEnable=true
+                  AutomaticLogin=$USERNAME
+                  WaylandEnable=false
+                  GDMEOF
+
+                  # Configure language settings based on parameter
+                  if [ "{{ Language }}" = "JP" ]; then
+                    # Install Japanese language pack and fonts
+                    apt-get install -y language-pack-ja language-pack-gnome-ja fonts-noto-cjk
+                    fc-cache -fv
+                    update-locale LANG=ja_JP.UTF-8
+                    timedatectl set-timezone "Asia/Tokyo"
+
+                    # Install fcitx5-mozc for Japanese input
+                    add-apt-repository -y ppa:ikuya-fruitsbasket/fcitx5
+                    apt-get update
+                    apt-get install -y fcitx5-mozc
+                    im-config -n fcitx5
+
+                    # Configure fcitx5 environment
+                    cat >> "/home/$USERNAME/.bashrc" << FCITXENV
+                  export GTK_IM_MODULE=fcitx
+                  export QT_IM_MODULE=fcitx
+                  export XMODIFIERS=@im=fcitx
+                  FCITXENV
+
+                    # Configure fcitx5 autostart
+                    mkdir -p "/home/$USERNAME/.config/autostart"
+                    cat > "/home/$USERNAME/.config/autostart/fcitx5.desktop" << FCITXAUTO
+                  [Desktop Entry]
+                  Type=Application
+                  Exec=fcitx5
+                  Hidden=false
+                  NoDisplay=false
+                  X-GNOME-Autostart-enabled=true
+                  Name=Fcitx 5
+                  Comment=Start Input Method
+                  FCITXAUTO
+
+                    # Configure fcitx5 default input method
+                    mkdir -p "/home/$USERNAME/.config/fcitx5"
+                    cat > "/home/$USERNAME/.config/fcitx5/profile" << FCITXPROFILE
+                  [Groups/0]
+                  Name=Default
+                  Default Layout=jp
+                  DefaultIM=mozc
+
+                  [Groups/0/Items/0]
+                  Name=mozc
+                  Layout=
+
+                  [Groups/0/Items/1]
+                  Name=keyboard-jp
+                  Layout=
+
+                  [GroupOrder]
+                  0=Default
+                  FCITXPROFILE
+
+                    # Configure fcitx5 hotkey (Zenkaku_Hankaku to toggle)
+                    mkdir -p "/home/$USERNAME/.config/fcitx5/conf"
+                    cat > "/home/$USERNAME/.config/fcitx5/conf/global.conf" << FCITXGLOBAL
+                  [Hotkey/TriggerKeys]
+                  0=Zenkaku_Hankaku
+                  1=Control+space
+                  FCITXGLOBAL
+
+                    chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/.config"
+                  fi
+
+          - name: InstallNICEDCV
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  export DEBIAN_FRONTEND=noninteractive
+
+                  # Download and install NICE DCV for Ubuntu following official guide
+                  cd /tmp
+                  wget https://d1uj6qtbmh3dt5.cloudfront.net/nice-dcv-ubuntu2404-x86_64.tgz
+                  tar -xzf nice-dcv-ubuntu2404-x86_64.tgz
+                  cd nice-dcv-*-ubuntu2404-x86_64
+
+                  # Import GPG key
+                  wget -qO - https://d1uj6qtbmh3dt5.cloudfront.net/NICE-GPG-KEY | gpg --dearmor -o /usr/share/keyrings/nice-dcv-archive-keyring.gpg
+
+                  # Install DCV server and web viewer
+                  apt-get install -y ./nice-dcv-server_*_amd64.ubuntu2404.deb
+                  apt-get install -y ./nice-dcv-web-viewer_*_amd64.ubuntu2404.deb
+
+                  cd /tmp
+                  rm -rf nice-dcv-*
+
+                  # Install X server and drivers
+                  apt-get install -y xserver-xorg-video-dummy mesa-utils
+
+                  # Configure X with dummy driver
+                  mkdir -p /etc/X11
+                  cat > /etc/X11/xorg.conf << 'XORGEOF'
+                  Section "Device"
+                      Identifier "DummyDevice"
+                      Driver "dummy"
+                      Option "UseEDID" "false"
+                      VideoRam 512000
+                  EndSection
+
+                  Section "Monitor"
+                      Identifier "DummyMonitor"
+                      HorizSync   30.0 - 110.0
+                      VertRefresh 50.0 - 75.0
+                  EndSection
+
+                  Section "Screen"
+                      Identifier "DummyScreen"
+                      Device "DummyDevice"
+                      Monitor "DummyMonitor"
+                      DefaultDepth 24
+                      SubSection "Display"
+                          Viewport 0 0
+                          Depth 24
+                          Virtual 1920 1080
+                      EndSubSection
+                  EndSection
+                  XORGEOF
+
+                  # Configure DCV for automatic console session
+                  USERNAME=$(cat /etc/cursor-username)
+                  mkdir -p /etc/dcv
+                  cat > /etc/dcv/dcv.conf << DCVEOF
+                  [license]
+                  [log]
+                  level=info
+                  [session-management]
+                  create-session=true
+                  [session-management/defaults]
+                  [session-management/automatic-console-session]
+                  owner="$USERNAME"
+                  storage-root="%home%"
+                  [display]
+                  [connectivity]
+                  enable-quic-frontend=true
+                  web-url-path="/dcv"
+                  [security]
+                  authentication=system
+                  DCVEOF
+
+                  # Enable and start DCV
+                  systemctl enable dcvserver
+                  systemctl start dcvserver
+
+          - name: InstallBrowser
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  export DEBIAN_FRONTEND=noninteractive
+
+                  # Firefox is usually pre-installed on Ubuntu Desktop
+                  # Install if missing
+                  apt-get install -y firefox xdg-utils
+
+                  USERNAME=$(cat /etc/cursor-username)
+                  sudo -u "$USERNAME" xdg-settings set default-web-browser firefox.desktop || true
+                  echo "export BROWSER=firefox" >> "/home/$USERNAME/.bashrc"
+                  chown "$USERNAME:$USERNAME" "/home/$USERNAME/.bashrc"
+
+                  # Configure Firefox policies to suppress popups
+                  mkdir -p /etc/firefox/policies
+                  cat > /etc/firefox/policies/policies.json << 'FIREFOXPOLICY'
+                  {
+                    "policies": {
+                      "OfferToSaveLogins": false,
+                      "PasswordManagerEnabled": false,
+                      "FirefoxSuggest": {
+                        "WebSuggestions": false,
+                        "SponsoredSuggestions": false,
+                        "ImproveSuggest": false
+                      },
+                      "UserMessaging": {
+                        "WhatsNew": false,
+                        "ExtensionRecommendations": false,
+                        "FeatureRecommendations": false,
+                        "SkipOnboarding": true
+                      },
+                      "DisableTelemetry": true,
+                      "OverrideFirstRunPage": "",
+                      "DontCheckDefaultBrowser": true
+                    }
+                  }
+                  FIREFOXPOLICY
+
+          - name: InstallCursor
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+
+                  # Install Cursor IDE using AppImage
+                  USERNAME=$(cat /etc/cursor-username)
+
+                  cd /tmp
+
+                  # Download latest Cursor AppImage for Linux x64
+                  curl -fsSL "https://downloader.cursor.sh/linux/appImage/x64" -o cursor.AppImage
+
+                  # Make executable and move to /opt
+                  chmod +x cursor.AppImage
+                  mkdir -p /opt/cursor
+                  mv cursor.AppImage /opt/cursor/cursor.AppImage
+
+                  # Extract AppImage for better integration
+                  cd /opt/cursor
+                  ./cursor.AppImage --appimage-extract
+                  mv squashfs-root cursor-extracted
+
+                  # Set ownership
+                  chown -R "$USERNAME:$USERNAME" /opt/cursor
+
+                  # Fix chrome-sandbox permissions for Electron (must be root with setuid)
+                  if [ -f /opt/cursor/cursor-extracted/chrome-sandbox ]; then
+                    chown root:root /opt/cursor/cursor-extracted/chrome-sandbox
+                    chmod 4755 /opt/cursor/cursor-extracted/chrome-sandbox
+                  fi
+
+                  # Create wrapper script
+                  cat > /usr/local/bin/cursor << 'CURSORWRAPPER'
+                  #!/bin/bash
+                  exec /opt/cursor/cursor-extracted/cursor "$@"
+                  CURSORWRAPPER
+                  chmod +x /usr/local/bin/cursor
+
+                  # Find icon path
+                  ICON_PATH=$(find /opt/cursor/cursor-extracted -name "cursor.png" -o -name "*.png" | head -1)
+                  if [ -z "$ICON_PATH" ]; then
+                    ICON_PATH="/opt/cursor/cursor-extracted/cursor.png"
+                  fi
+
+                  # Create desktop entry
+                  cat > /usr/share/applications/cursor.desktop << CURSOREOF
+                  [Desktop Entry]
+                  Version=1.0
+                  Type=Application
+                  Name=Cursor
+                  Comment=AI-powered Code Editor
+                  Icon=$ICON_PATH
+                  Exec=env XDG_CURRENT_DESKTOP=GNOME /usr/local/bin/cursor %F
+                  Terminal=false
+                  Categories=Development;IDE;TextEditor;
+                  MimeType=text/plain;inode/directory;
+                  StartupWMClass=Cursor
+                  CURSOREOF
+                  chmod 644 /usr/share/applications/cursor.desktop
+
+                  # Create desktop shortcut for user
+                  mkdir -p "/home/$USERNAME/Desktop"
+                  cp /usr/share/applications/cursor.desktop "/home/$USERNAME/Desktop/"
+                  chmod +x "/home/$USERNAME/Desktop/cursor.desktop"
+                  chown -R "$USERNAME:$USERNAME" "/home/$USERNAME/Desktop"
+
+          - name: InstallAWSTools
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  # Install AWS CLI
+                  curl -fsSL https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip -o /tmp/aws-cli.zip
+                  unzip -o -q /tmp/aws-cli.zip -d /tmp && /tmp/aws/install
+
+                  # Install AWS SAM CLI
+                  curl -fsSL https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip -o /tmp/aws-sam-cli-linux-x86_64.zip
+                  unzip -o /tmp/aws-sam-cli-linux-x86_64.zip -d /tmp/sam-installation && /tmp/sam-installation/install
+
+          - name: Installuv
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  USERNAME=$(cat /etc/cursor-username)
+                  # Ensure .config directory is owned by user
+                  mkdir -p /home/$USERNAME/.config
+                  chown -R $USERNAME:$USERNAME /home/$USERNAME/.config
+                  sudo -u $USERNAME curl -fsSL https://astral.sh/uv/install.sh -o /tmp/uv_install.sh
+                  sudo -u $USERNAME bash /tmp/uv_install.sh
+                  sudo -u $USERNAME tee -a /home/$USERNAME/.bashrc > /dev/null << 'EOF'
+                  eval "$(uv generate-shell-completion bash)"
+                  EOF
+
+          - name: InstallNVM
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  USERNAME=$(cat /etc/cursor-username)
+                  sudo -u $USERNAME curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh -o /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash /tmp/nvm_install.sh
+                  sudo -u $USERNAME bash <<EOF
+                  export NVM_DIR="/home/$USERNAME/.nvm"
+                  source "\$NVM_DIR/nvm.sh"
+                  nvm install --lts
+                  nvm use --lts
+                  EOF
+
+          - name: ConfigureGitAndRepo
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  set -e
+                  USERNAME=$(cat /etc/cursor-username)
+
+                  # Configure git
+                  sudo -u "$USERNAME" git config --global user.email "{{ UserEmail }}"
+                  sudo -u "$USERNAME" git config --global user.name "{{ UserFullName }}"
+
+                  # Clone repository if provided and directory doesn't exist
+                  if [ -n "{{ RepoUrl }}" ]; then
+                    cd "/home/$USERNAME/"
+                    sudo -u "$USERNAME" git clone "{{ RepoUrl }}"
+                  fi
+
+          - name: FinalizeSetup
+            action: aws:runShellScript
+            inputs:
+              runCommand:
+                - |
+                  #!/bin/bash
+                  # Optimize boot time - disable unnecessary services
+                  systemctl disable systemd-networkd-wait-online.service
+                  systemctl disable fwupd-refresh.service
+
+                  # Reboot to ensure all services start properly
+                  reboot
+
+  # EC2 Instance
+  Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      # Using Ubuntu 24.04 LTS x86_64
+      ImageId: '{{resolve:ssm:/aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id}}'
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup
+      SubnetId: !Ref PublicSubnet1
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: !Ref InstanceVolumeSize
+            VolumeType: gp3
+            DeleteOnTermination: true
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          echo "Bootstrap complete - setup handled by SSM document"
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-Cursor-Ubuntu-Instance'
+
+  # ALB for DCV access
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Type: application
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 8443
+      Protocol: HTTPS
+      TargetType: instance
+      VpcId: !Ref VPC
+      HealthCheckPath: /
+      HealthCheckPort: '8443'
+      HealthCheckProtocol: HTTPS
+      HealthCheckTimeoutSeconds: 10
+      HealthyThresholdCount: 2
+      Matcher:
+        HttpCode: 200,404
+      Targets:
+        - Id: !Ref Instance
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub ALB-${AWS::StackName}
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT]
+          CachedMethods: [GET, HEAD]
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          OriginRequestPolicyId: 216adef6-5c7f-47e4-b989-5492eafa07d3
+        Origins:
+          - DomainName: !GetAtt ALB.DNSName
+            Id: !Sub ALB-${AWS::StackName}
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              HTTPPort: 80
+              HTTPSPort: 443
+
+  # Custom resource to run SSM document
+  RunSSMDoc:
+    Type: Custom::RunSSMDoc
+    Properties:
+      ServiceToken: !GetAtt RunSSMDocLambda.Arn
+      InstanceId: !Ref Instance
+      DocumentName: !Ref CursorSSMDoc
+      SecretArn: !Ref UserCredentials
+      Username: !GetAtt UsernameGenerator.Username
+      UserEmail: !Ref UserEmail
+      UserFullName: !Ref UserFullName
+      RepoUrl: !Ref RepoUrl
+      Language: !Ref Language
+
+  RunSSMDocLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      MemorySize: 128
+      Timeout: 600
+      Architectures: [x86_64]
+      Handler: index.lambda_handler
+      Role: !GetAtt RunSSMDocLambdaRole.Arn
+      Code:
+        ZipFile: |
+          import cfnresponse
+          import boto3
+          import json
+
+          def lambda_handler(event, context):
+              if event['RequestType'] != 'Create':
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+                  return
+              try:
+                  props = event['ResourceProperties']
+
+                  # Retrieve password from Secrets Manager
+                  secretsmanager = boto3.client('secretsmanager')
+                  secret_arn = props['SecretArn']
+                  secret_response = secretsmanager.get_secret_value(SecretId=secret_arn)
+                  password = secret_response['SecretString']
+
+                  # Prepare parameters with resolved password
+                  params = {k: [v] for k, v in props.items()
+                           if k not in ['ServiceToken', 'InstanceId', 'DocumentName', 'SecretArn']}
+                  params['UserPassword'] = [password]
+
+                  response = boto3.client('ssm').send_command(
+                      InstanceIds=[props['InstanceId']],
+                      DocumentName=props['DocumentName'],
+                      Parameters=params)
+                  cfnresponse.send(event, context, cfnresponse.SUCCESS,
+                      {'CommandId': response['Command']['CommandId'], 'Password': password})
+              except Exception as e:
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {}, str(e))
+
+  RunSSMDocLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: SSMAccess
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:SendCommand
+                  - secretsmanager:GetSecretValue
+                Resource: '*'
+
+  # SNS Topic for Notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: Cursor IDE Ubuntu Deployment Notifications
+      TopicName: !Sub 'Cursor-Ubuntu-Notification-${AWS::StackName}'
+
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref UserEmail
+
+  StackStatusRule:
+    Type: AWS::Events::Rule
+    Properties:
+      EventPattern:
+        source: ["aws.cloudformation"]
+        detail-type: ["CloudFormation Stack Status Change"]
+        detail:
+          stack-id: [!Ref AWS::StackId]
+          status-details:
+            status: ["CREATE_COMPLETE", "CREATE_FAILED", "UPDATE_COMPLETE", "UPDATE_FAILED"]
+      Targets:
+        - Arn: !GetAtt NotificationLambda.Arn
+          Id: "StackStatusTarget"
+
+  NotificationLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.13
+      Handler: index.handler
+      Timeout: 30
+      Code:
+        ZipFile: !Sub
+          - |
+            import boto3
+
+            sns = boto3.client('sns')
+            secretsmanager = boto3.client('secretsmanager')
+
+            def handler(event, context):
+                try:
+                    detail = event['detail']
+                    status = detail['status-details']['status']
+                    stack_id = detail['stack-id']
+
+                    password = secretsmanager.get_secret_value(SecretId="${UserCredentials}")['SecretString']
+                    username = "${Username}"
+
+                    message = "Cursor IDE Ubuntu Deployment " + status + " for ${UserEmail}\n\n"
+                    message += "Stack ID: " + stack_id + "\n\n"
+                    message += "Access Information:\n"
+                    message += "URL: https://${CloudFrontDistribution.DomainName}/dcv\n"
+                    message += "Username: " + username + "\n"
+                    message += "Password: " + password + "\n\n"
+                    message += "Please enter the username and password when prompted to access your Cursor IDE environment."
+
+                    sns.publish(
+                        TopicArn='${DeploymentNotificationTopic}',
+                        Message=message,
+                        Subject='Cursor IDE Ubuntu Deployment ' + status
+                    )
+
+                    return {'statusCode': 200}
+                except Exception as e:
+                    print('Error: ' + str(e))
+                    return {'statusCode': 500}
+          - Username: !GetAtt UsernameGenerator.Username
+      Role: !GetAtt NotificationLambdaRole.Arn
+
+  NotificationLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: NotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: sns:Publish
+                Resource: !Ref DeploymentNotificationTopic
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref UserCredentials
+
+  NotificationLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref NotificationLambda
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt StackStatusRule.Arn
+
+Outputs:
+  CursorURL:
+    Description: Cursor IDE Access URL via CloudFront
+    Value: !Sub 'https://${CloudFrontDistribution.DomainName}/dcv'
+
+  Username:
+    Description: Username for Cursor IDE login
+    Value: !GetAtt UsernameGenerator.Username
+
+  Password:
+    Description: Password for Cursor IDE login
+    Value: !GetAtt RunSSMDoc.Password
+
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref Instance
