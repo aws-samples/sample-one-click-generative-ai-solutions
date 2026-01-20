@@ -912,7 +912,7 @@ Resources:
       HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 2
       Matcher:
-        HttpCode: 200
+        HttpCode: 200,404
       Targets:
         - Id: !Ref Instance
 
