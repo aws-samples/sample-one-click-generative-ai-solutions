@@ -677,6 +677,14 @@ Resources:
                   # Set ownership
                   chown -R "$USERNAME:$USERNAME" /opt/cursor
 
+                  # Fix chrome-sandbox permissions for Electron sandbox
+                  # The sandbox binary must be owned by root with SUID bit set
+                  SANDBOX_PATH="/opt/cursor/cursor-extracted/usr/share/cursor/chrome-sandbox"
+                  if [ -f "$SANDBOX_PATH" ]; then
+                    chown root:root "$SANDBOX_PATH"
+                    chmod 4755 "$SANDBOX_PATH"
+                  fi
+
                   # Create AppArmor profile for Cursor to allow user namespaces
                   # This is the recommended secure approach for Ubuntu 24.04+
                   # which restricts unprivileged user namespaces by default
@@ -700,10 +708,10 @@ Resources:
                   CURSORWRAPPER
                   chmod +x /usr/local/bin/cursor
 
-                  # Find icon path
-                  ICON_PATH=$(find /opt/cursor/cursor-extracted -name "cursor.png" -o -name "*.png" | head -1)
-                  if [ -z "$ICON_PATH" ]; then
-                    ICON_PATH="/opt/cursor/cursor-extracted/cursor.png"
+                  # Use 256x256 icon for better quality in dock/menu
+                  ICON_PATH="/opt/cursor/cursor-extracted/usr/share/icons/hicolor/256x256/apps/cursor.png"
+                  if [ ! -f "$ICON_PATH" ]; then
+                    ICON_PATH="/opt/cursor/cursor-extracted/co.anysphere.cursor.png"
                   fi
 
                   # Create desktop entry
