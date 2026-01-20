@@ -92,6 +92,7 @@ nav:
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
     - 'Kiro IDE Remote': 'solutions/kiro-ide.md'
+    - 'Cursor IDE Remote': 'solutions/cursor-ide.md'
     - 'AI Agent Development Code Server': 'solutions/aiagentdev.md'
     - 'RAPID': 'solutions/rapid.md'
     - 'AI Sales Roleplay': 'solutions/roleplay.md'

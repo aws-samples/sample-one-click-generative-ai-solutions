@@ -934,6 +934,36 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
+      <img src="./assets/images/solutions/cursor-ide/cursor.png" alt="Cursor IDE Remote" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/cursor-ide/">Cursor IDE Remote</a></div>
+      <div class="solution-card__description">
+        Cursor は AI を活用したコードエディタで、開発者の生産性を大幅に向上させます。Cursor IDE Remote は、Cursor や AWS CLI などがインストールされた環境にブラウザから直接アクセスして開発作業を行うことができます。Ubuntu 24.04 で AppArmor によるセキュアな環境を提供します。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">東京</option>
+        <option value="us-east-1">バージニア</option>
+        <option value="us-west-2">オレゴン</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=CursorIDEDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/CursorDeploymentStack.yaml&amp;param_Language=JP" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/cursor-ide/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
       <img src="./assets/images/solutions/aiagentdev/ai-agent-dev-code-server-icon.png" alt="AI Agent Development Code Server" style="display: block;">
     </div>
     <div class="solution-card__content">
