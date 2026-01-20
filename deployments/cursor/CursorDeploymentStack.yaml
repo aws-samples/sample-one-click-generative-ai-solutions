@@ -660,7 +660,8 @@ Resources:
                   cd /tmp
 
                   # Download latest Cursor AppImage for Linux x64
-                  curl -fsSL "https://downloader.cursor.sh/linux/appImage/x64" -o cursor.AppImage
+                  # Using official Cursor API endpoint that redirects to latest version
+                  curl -fsSL "https://api2.cursor.sh/updates/download/golden/linux-x64/cursor/latest" -o cursor.AppImage
 
                   # Make executable and move to /opt
                   chmod +x cursor.AppImage
