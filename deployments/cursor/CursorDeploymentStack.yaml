@@ -383,7 +383,13 @@ Resources:
                   apt-get update -y
                   apt-get upgrade -y
                   # Install fundamental packages
-                  apt-get install -y git jq curl wget unzip build-essential libfuse2
+                  # libfuse2t64 is the Ubuntu 24.04 name for libfuse2 (needed for AppImage)
+                  apt-get install -y git jq curl wget unzip build-essential libfuse2t64
+
+                  # Enable unprivileged user namespaces for Electron sandbox support
+                  # This is required for chrome-sandbox to work properly
+                  sysctl -w kernel.unprivileged_userns_clone=1 || true
+                  echo "kernel.unprivileged_userns_clone=1" > /etc/sysctl.d/99-electron-sandbox.conf
 
           - name: SetupUser
             action: aws:runShellScript
