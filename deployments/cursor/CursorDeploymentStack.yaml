@@ -470,12 +470,14 @@ Resources:
                   netplan apply
 
                   # Wait for DNS to recover (up to 60 seconds)
-                  for i in {1..12}; do
+                  # 12 attempts × 5s sleep = 60s total wait time
+                  MAX_DNS_RECOVERY_ATTEMPTS=12
+                  for i in $(seq 1 "$MAX_DNS_RECOVERY_ATTEMPTS"); do
                     if nslookup google.com > /dev/null 2>&1; then
                       echo "DNS resolution working"
                       break
                     fi
-                    echo "Waiting for DNS recovery... ($i/12)"
+                    echo "Waiting for DNS recovery... ($i/$MAX_DNS_RECOVERY_ATTEMPTS)"
                     sleep 5
                   done
 
