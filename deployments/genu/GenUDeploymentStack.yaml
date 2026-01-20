@@ -56,7 +56,7 @@ Parameters:
 
   AdditionalModels:
     Type: String
-    Default: "us.anthropic.claude-opus-4-1-20250805-v1:0"
+    Default: ""
     Description: Additional models to be added to the deployment (comma separated)
 
   RAGEnabled:
@@ -268,35 +268,50 @@ Resources:
                     return [...inferenceProfiles, ...foundationModels];
                   }
 
-                  function findAvailableModel(originalModelId, availableModels) {
-                    const baseModelId = originalModelId.replace(/^(us|apac|eu)\./, '');
+                  function findAvailableModel(originalModelId, availableModels, region) {
+                    const baseModelId = originalModelId.replace(/^(us|apac|eu|jp|global)\./, '');
 
+                    // Determine priority order based on region
+                    // Priority: domestic (jp/us) -> regional (apac/eu) -> global -> base model
+                    let prefixPriority;
+                    if (region === 'ap-northeast-1' || region === 'ap-northeast-3') {
+                      prefixPriority = ['jp', 'apac', 'global'];
+                    } else if (region.startsWith('us-')) {
+                      prefixPriority = ['us', 'global'];
+                    } else if (region.startsWith('eu-')) {
+                      prefixPriority = ['eu', 'global'];
+                    } else {
+                      prefixPriority = ['global'];
+                    }
+
+                    // Search for inference profile in priority order (always prefer inference profiles)
+                    for (const prefix of prefixPriority) {
+                      const preferredModelId = `${prefix}.${baseModelId}`;
+                      if (availableModels.includes(preferredModelId)) {
+                        const converted = preferredModelId !== originalModelId;
+                        return { modelId: preferredModelId, converted, reason: `${prefix} inference profile` };
+                      }
+                    }
+
+                    // Fall back to original model ID if it exists
                     if (availableModels.includes(originalModelId)) {
                       return { modelId: originalModelId, converted: false, reason: 'Original available' };
                     }
-                    
-                    const inferenceProfile = availableModels.find(modelId => 
-                      modelId !== baseModelId && 
-                      modelId.replace(/^(us|apac|eu)\./, '') === baseModelId
-                    );
-                    
-                    if (inferenceProfile) {
-                      return { modelId: inferenceProfile, converted: true, reason: 'Inference profile' };
-                    }
-                    
+
+                    // Fall back to base model ID if available
                     if (availableModels.includes(baseModelId)) {
                       return { modelId: baseModelId, converted: true, reason: 'In-region model' };
                     }
-                    
+
                     return { modelId: originalModelId, converted: false, reason: 'No matching model found' };
                   }
 
                   async function convertModels(modelIds, region) {
                     const availableModels = await getAvailableModels(region);
-                    const results = [];                    
-                    
+                    const results = [];
+
                     for (const modelId of modelIds) {
-                      const result = findAvailableModel(modelId, availableModels);
+                      const result = findAvailableModel(modelId, availableModels, region);
                       
                       if (result.reason !== 'No matching model found') {
                         results.push(result.modelId);
