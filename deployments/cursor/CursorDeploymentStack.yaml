@@ -386,11 +386,6 @@ Resources:
                   # libfuse2t64 is the Ubuntu 24.04 name for libfuse2 (needed for AppImage)
                   apt-get install -y git jq curl wget unzip build-essential libfuse2t64
 
-                  # Enable unprivileged user namespaces for Electron sandbox support
-                  # This is required for chrome-sandbox to work properly
-                  sysctl -w kernel.unprivileged_userns_clone=1 || true
-                  echo "kernel.unprivileged_userns_clone=1" > /etc/sysctl.d/99-electron-sandbox.conf
-
           - name: SetupUser
             action: aws:runShellScript
             inputs:
@@ -682,11 +677,20 @@ Resources:
                   # Set ownership
                   chown -R "$USERNAME:$USERNAME" /opt/cursor
 
-                  # Fix chrome-sandbox permissions for Electron (must be root with setuid)
-                  if [ -f /opt/cursor/cursor-extracted/chrome-sandbox ]; then
-                    chown root:root /opt/cursor/cursor-extracted/chrome-sandbox
-                    chmod 4755 /opt/cursor/cursor-extracted/chrome-sandbox
-                  fi
+                  # Create AppArmor profile for Cursor to allow user namespaces
+                  # This is the recommended secure approach for Ubuntu 24.04+
+                  # which restricts unprivileged user namespaces by default
+                  cat > /etc/apparmor.d/cursor << 'APPARMOR_PROFILE'
+                  abi <abi/4.0>,
+                  include <tunables/global>
+
+                  profile cursor /opt/cursor/cursor-extracted/cursor flags=(unconfined) {
+                    userns,
+                  }
+                  APPARMOR_PROFILE
+
+                  # Load the AppArmor profile
+                  apparmor_parser -r /etc/apparmor.d/cursor || true
 
                   # Create wrapper script
                   cat > /usr/local/bin/cursor << 'CURSORWRAPPER'
