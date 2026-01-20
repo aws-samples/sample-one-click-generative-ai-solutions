@@ -680,11 +680,12 @@ Resources:
                   # Create AppArmor profile for Cursor to allow user namespaces
                   # This is the recommended secure approach for Ubuntu 24.04+
                   # which restricts unprivileged user namespaces by default
+                  # The actual binary is at usr/bin/cursor inside the extracted AppImage
                   cat > /etc/apparmor.d/cursor << 'APPARMOR_PROFILE'
                   abi <abi/4.0>,
                   include <tunables/global>
 
-                  profile cursor /opt/cursor/cursor-extracted/cursor flags=(unconfined) {
+                  profile cursor /opt/cursor/cursor-extracted/usr/bin/cursor flags=(unconfined) {
                     userns,
                   }
                   APPARMOR_PROFILE
@@ -692,10 +693,10 @@ Resources:
                   # Load the AppArmor profile
                   apparmor_parser -r /etc/apparmor.d/cursor || true
 
-                  # Create wrapper script
+                  # Create wrapper script using AppRun for proper environment setup
                   cat > /usr/local/bin/cursor << 'CURSORWRAPPER'
                   #!/bin/bash
-                  exec /opt/cursor/cursor-extracted/cursor "$@"
+                  exec /opt/cursor/cursor-extracted/AppRun "$@"
                   CURSORWRAPPER
                   chmod +x /usr/local/bin/cursor
 
