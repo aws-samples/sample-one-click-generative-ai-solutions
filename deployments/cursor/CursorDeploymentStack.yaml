@@ -281,6 +281,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: elasticloadbalancing:DescribeTargetHealth
+                # DescribeTargetHealth does not support resource-level permissions per AWS docs
                 Resource: '*'
 
   HealthCheckTrigger:
@@ -1020,10 +1021,13 @@ Resources:
             Version: 2012-10-17
             Statement:
               - Effect: Allow
-                Action:
-                  - ssm:SendCommand
-                  - secretsmanager:GetSecretValue
-                Resource: '*'
+                Action: ssm:SendCommand
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:document/${CursorSSMDoc}'
+                  - !Sub 'arn:${AWS::Partition}:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+              - Effect: Allow
+                Action: secretsmanager:GetSecretValue
+                Resource: !Ref UserCredentials
 
   # SNS Topic for Notifications
   DeploymentNotificationTopic:
