@@ -159,6 +159,33 @@ Resources:
           ToPort: 8443
           SourceSecurityGroupId: !Ref ALBSecurityGroup
           Description: NICE DCV access from ALB only
+      # Explicit egress rules instead of default allow-all
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS for package downloads, APIs, and AWS services
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+          Description: HTTP for package mirrors
+        - IpProtocol: udp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 0.0.0.0/0
+          Description: DNS resolution (UDP)
+        - IpProtocol: tcp
+          FromPort: 53
+          ToPort: 53
+          CidrIp: 0.0.0.0/0
+          Description: DNS resolution (TCP)
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: SSH for git operations
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-Instance-SG'
@@ -404,7 +431,21 @@ Resources:
                   fi
                   echo "$USERNAME:{{ UserPassword }}" | chpasswd
                   usermod -aG sudo "$USERNAME"
-                  echo "$USERNAME ALL=(ALL) NOPASSWD: ALL" > "/etc/sudoers.d/cursor-nopasswd"
+
+                  # Configure passwordless sudo for common development commands only
+                  # Other sudo operations will require password (user knows their password)
+                  cat > "/etc/sudoers.d/cursor-nopasswd" << SUDOERSEOF
+                  # Package management
+                  $USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt, /usr/bin/apt-get, /usr/bin/apt-cache, /usr/bin/dpkg, /usr/bin/snap
+                  # Service management
+                  $USERNAME ALL=(ALL) NOPASSWD: /usr/bin/systemctl
+                  # Docker (if installed)
+                  $USERNAME ALL=(ALL) NOPASSWD: /usr/bin/docker, /usr/bin/docker-compose
+                  # AppArmor (for Electron apps)
+                  $USERNAME ALL=(ALL) NOPASSWD: /usr/sbin/apparmor_parser
+                  # Network configuration
+                  $USERNAME ALL=(ALL) NOPASSWD: /usr/sbin/netplan
+                  SUDOERSEOF
                   chmod 440 "/etc/sudoers.d/cursor-nopasswd"
 
                   echo "$USERNAME" > /etc/cursor-username
