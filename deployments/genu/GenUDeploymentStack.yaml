@@ -252,6 +252,134 @@ Resources:
                   import fs from 'fs';
                   import { execSync } from 'child_process';
 
+                  // GenU supported model IDs (from generative-ai-use-cases model.ts)
+                  // Only inference profiles that GenU explicitly supports should be used
+                  const GENU_SUPPORTED_MODELS = new Set([
+                    // Anthropic Claude - Base models
+                    'anthropic.claude-3-5-sonnet-20241022-v2:0',
+                    'anthropic.claude-3-5-haiku-20241022-v1:0',
+                    'anthropic.claude-3-5-sonnet-20240620-v1:0',
+                    'anthropic.claude-3-opus-20240229-v1:0',
+                    'anthropic.claude-3-sonnet-20240229-v1:0',
+                    'anthropic.claude-3-haiku-20240307-v1:0',
+                    // Anthropic Claude - US inference profiles
+                    'us.anthropic.claude-opus-4-1-20250805-v1:0',
+                    'us.anthropic.claude-opus-4-20250514-v1:0',
+                    'us.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    'us.anthropic.claude-haiku-4-5-20251001-v1:0',
+                    'us.anthropic.claude-sonnet-4-20250514-v1:0',
+                    'us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+                    'us.anthropic.claude-3-5-sonnet-20241022-v2:0',
+                    'us.anthropic.claude-3-5-haiku-20241022-v1:0',
+                    'us.anthropic.claude-3-5-sonnet-20240620-v1:0',
+                    'us.anthropic.claude-3-opus-20240229-v1:0',
+                    'us.anthropic.claude-3-sonnet-20240229-v1:0',
+                    'us.anthropic.claude-3-haiku-20240307-v1:0',
+                    // Anthropic Claude - EU inference profiles
+                    'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    'eu.anthropic.claude-haiku-4-5-20251001-v1:0',
+                    'eu.anthropic.claude-sonnet-4-20250514-v1:0',
+                    'eu.anthropic.claude-3-7-sonnet-20250219-v1:0',
+                    'eu.anthropic.claude-3-5-sonnet-20240620-v1:0',
+                    'eu.anthropic.claude-3-sonnet-20240229-v1:0',
+                    'eu.anthropic.claude-3-haiku-20240307-v1:0',
+                    // Anthropic Claude - APAC inference profiles
+                    'apac.anthropic.claude-sonnet-4-20250514-v1:0',
+                    'apac.anthropic.claude-3-7-sonnet-20250219-v1:0',
+                    'apac.anthropic.claude-3-5-sonnet-20241022-v2:0',
+                    'apac.anthropic.claude-3-5-sonnet-20240620-v1:0',
+                    'apac.anthropic.claude-3-sonnet-20240229-v1:0',
+                    'apac.anthropic.claude-3-haiku-20240307-v1:0',
+                    // Anthropic Claude - JP inference profiles
+                    'jp.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    'jp.anthropic.claude-haiku-4-5-20251001-v1:0',
+                    // Anthropic Claude - Global inference profiles
+                    'global.anthropic.claude-opus-4-5-20251101-v1:0',
+                    'global.anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    'global.anthropic.claude-haiku-4-5-20251001-v1:0',
+                    // Amazon Titan & Nova - Base models
+                    'amazon.titan-text-express-v1',
+                    'amazon.titan-text-premier-v1:0',
+                    'amazon.nova-pro-v1:0',
+                    'amazon.nova-lite-v1:0',
+                    'amazon.nova-micro-v1:0',
+                    // Amazon Nova - US inference profiles
+                    'us.amazon.nova-premier-v1:0',
+                    'us.amazon.nova-pro-v1:0',
+                    'us.amazon.nova-lite-v1:0',
+                    'us.amazon.nova-micro-v1:0',
+                    'us.amazon.nova-2-lite-v1:0',
+                    // Amazon Nova - EU inference profiles
+                    'eu.amazon.nova-pro-v1:0',
+                    'eu.amazon.nova-lite-v1:0',
+                    'eu.amazon.nova-micro-v1:0',
+                    // Amazon Nova - APAC inference profiles
+                    'apac.amazon.nova-pro-v1:0',
+                    'apac.amazon.nova-lite-v1:0',
+                    'apac.amazon.nova-micro-v1:0',
+                    // Amazon Nova - JP inference profiles
+                    'jp.amazon.nova-2-lite-v1:0',
+                    // Amazon Nova - Global inference profiles
+                    'global.amazon.nova-2-lite-v1:0',
+                    // Meta Llama - Base models
+                    'meta.llama3-8b-instruct-v1:0',
+                    'meta.llama3-70b-instruct-v1:0',
+                    'meta.llama3-1-8b-instruct-v1:0',
+                    'meta.llama3-1-70b-instruct-v1:0',
+                    'meta.llama3-1-405b-instruct-v1:0',
+                    // Meta Llama - US inference profiles
+                    'us.meta.llama3-2-1b-instruct-v1:0',
+                    'us.meta.llama3-2-3b-instruct-v1:0',
+                    'us.meta.llama3-2-11b-instruct-v1:0',
+                    'us.meta.llama3-2-90b-instruct-v1:0',
+                    'us.meta.llama3-3-70b-instruct-v1:0',
+                    'us.meta.llama4-maverick-17b-instruct-v1:0',
+                    'us.meta.llama4-scout-17b-instruct-v1:0',
+                    // Mistral - Base models
+                    'mistral.mistral-7b-instruct-v0:2',
+                    'mistral.mixtral-8x7b-instruct-v0:1',
+                    'mistral.mistral-small-2402-v1:0',
+                    'mistral.mistral-large-2402-v1:0',
+                    'mistral.mistral-large-2407-v1:0',
+                    'mistral.mistral-large-3-675b-instruct',
+                    'mistral.ministral-3-3b-instruct',
+                    'mistral.ministral-3-8b-instruct',
+                    'mistral.ministral-3-14b-instruct',
+                    'mistral.magistral-small-2509',
+                    // Mistral - Inference profiles
+                    'us.mistral.pixtral-large-2502-v1:0',
+                    'eu.mistral.pixtral-large-2502-v1:0',
+                    // Cohere
+                    'cohere.command-r-v1:0',
+                    'cohere.command-r-plus-v1:0',
+                    // DeepSeek
+                    'deepseek.v3-v1:0',
+                    'us.deepseek.r1-v1:0',
+                    // Qwen
+                    'qwen.qwen3-235b-a22b-2507-v1:0',
+                    'qwen.qwen3-32b-v1:0',
+                    'qwen.qwen3-coder-480b-a35b-v1:0',
+                    'qwen.qwen3-coder-30b-a3b-v1:0',
+                    'qwen.qwen3-next-80b-a3b',
+                    'qwen.qwen3-vl-235b-a22b',
+                    // Writer
+                    'us.writer.palmyra-x4-v1:0',
+                    'us.writer.palmyra-x5-v1:0',
+                    // OpenAI
+                    'openai.gpt-oss-120b-1:0',
+                    'openai.gpt-oss-20b-1:0',
+                    // Google Gemma
+                    'google.gemma-3-4b-it',
+                    'google.gemma-3-12b-it',
+                    'google.gemma-3-27b-it',
+                    // Other models
+                    'minimax.minimax-m2',
+                    'moonshot.kimi-k2-thinking',
+                    'nvidia.nemotron-nano-9b-v2',
+                    'nvidia.nemotron-nano-12b-v2',
+                    'nvidia.nemotron-nano-3-30b',
+                  ]);
+
                   // Model conversion functions
                   async function getAvailableModels(region) {
                     let inferenceProfiles = [];
@@ -285,25 +413,26 @@ Resources:
                     }
 
                     // Search for inference profile in priority order (always prefer inference profiles)
+                    // Only select inference profiles that GenU explicitly supports
                     for (const prefix of prefixPriority) {
                       const preferredModelId = `${prefix}.${baseModelId}`;
-                      if (availableModels.includes(preferredModelId)) {
+                      if (availableModels.includes(preferredModelId) && GENU_SUPPORTED_MODELS.has(preferredModelId)) {
                         const converted = preferredModelId !== originalModelId;
                         return { modelId: preferredModelId, converted, reason: `${prefix} inference profile` };
                       }
                     }
 
-                    // Fall back to original model ID if it exists
-                    if (availableModels.includes(originalModelId)) {
+                    // Fall back to original model ID if it exists and is supported by GenU
+                    if (availableModels.includes(originalModelId) && GENU_SUPPORTED_MODELS.has(originalModelId)) {
                       return { modelId: originalModelId, converted: false, reason: 'Original available' };
                     }
 
-                    // Fall back to base model ID if available
-                    if (availableModels.includes(baseModelId)) {
+                    // Fall back to base model ID if available and supported by GenU
+                    if (availableModels.includes(baseModelId) && GENU_SUPPORTED_MODELS.has(baseModelId)) {
                       return { modelId: baseModelId, converted: true, reason: 'In-region model' };
                     }
 
-                    return { modelId: originalModelId, converted: false, reason: 'No matching model found' };
+                    return { modelId: originalModelId, converted: false, reason: 'No matching model found (not supported by GenU)' };
                   }
 
                   async function convertModels(modelIds, region) {
