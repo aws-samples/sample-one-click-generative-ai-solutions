@@ -259,8 +259,17 @@ Resources:
                     try {
                       const modelTs = fs.readFileSync(modelTsPath, 'utf8');
                       // Model IDs are object keys in modelMetadata: 'model-id': { ... }
+                      // Model IDs only use lowercase letters (e.g., anthropic.claude-3-5-haiku-20241022-v1:0)
                       const modelIds = [...modelTs.matchAll(/'([a-z0-9.-]+\.[a-z0-9.-]+[^']*)':\s*\{/g)]
                         .map(m => m[1]);
+
+                      // If no models were extracted, return null to disable filtering
+                      // This prevents filtering out all models if GenU's model.ts format changes
+                      if (modelIds.length === 0) {
+                        console.warn('Warning: No model IDs extracted from GenU model.ts, inference profile filtering disabled');
+                        return null;
+                      }
+
                       console.log(`Extracted ${modelIds.length} supported model IDs from GenU`);
                       return new Set(modelIds);
                     } catch (error) {
@@ -335,14 +344,15 @@ Resources:
 
                     for (const modelId of modelIds) {
                       const result = findAvailableModel(modelId, availableModels, region);
-                      
-                      if (result.reason !== 'No matching model found') {
+
+                      // Use startsWith to handle both original and extended error messages
+                      if (!result.reason.startsWith('No matching model found')) {
                         results.push(result.modelId);
                       }
-                      
+
                       if (result.converted) {
                         console.log(`✓ ${modelId} -> ${result.modelId} (${result.reason})`);
-                      } else if (result.reason === 'No matching model found') {
+                      } else if (result.reason.startsWith('No matching model found')) {
                         console.log(`⚠ ${modelId} (${result.reason}) - FILTERED OUT`);
                       } else {
                         console.log(`✓ ${modelId} (${result.reason})`);
