@@ -264,7 +264,7 @@ Resources:
                       console.log(`Extracted ${modelIds.length} supported model IDs from GenU`);
                       return new Set(modelIds);
                     } catch (error) {
-                      console.error(`Warning: Could not read ${modelTsPath}, inference profile filtering disabled`);
+                      console.error(`Warning: Could not read ${modelTsPath}: ${error.message}, inference profile filtering disabled`);
                       return null; // Return null to disable filtering
                     }
                   }
