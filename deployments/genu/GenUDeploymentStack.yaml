@@ -252,6 +252,34 @@ Resources:
                   import fs from 'fs';
                   import { execSync } from 'child_process';
 
+                  // Extract supported model IDs from GenU's model.ts
+                  // This avoids maintaining a duplicate list
+                  function extractGenUSupportedModels() {
+                    const modelTsPath = 'packages/common/src/application/model.ts';
+                    try {
+                      const modelTs = fs.readFileSync(modelTsPath, 'utf8');
+                      // Model IDs are object keys in modelMetadata: 'model-id': { ... }
+                      // Model IDs only use lowercase letters (e.g., anthropic.claude-3-5-haiku-20241022-v1:0)
+                      const modelIds = [...modelTs.matchAll(/'([a-z0-9.-]+\.[a-z0-9.-]+[^']*)':\s*\{/g)]
+                        .map(m => m[1]);
+
+                      // If no models were extracted, return null to disable filtering
+                      // This prevents filtering out all models if GenU's model.ts format changes
+                      if (modelIds.length === 0) {
+                        console.warn('Warning: No model IDs extracted from GenU model.ts, inference profile filtering disabled');
+                        return null;
+                      }
+
+                      console.log(`Extracted ${modelIds.length} supported model IDs from GenU`);
+                      return new Set(modelIds);
+                    } catch (error) {
+                      console.error(`Warning: Could not read ${modelTsPath}: ${error.message}, inference profile filtering disabled`);
+                      return null; // Return null to disable filtering
+                    }
+                  }
+
+                  const GENU_SUPPORTED_MODELS = extractGenUSupportedModels();
+
                   // Model conversion functions
                   async function getAvailableModels(region) {
                     let inferenceProfiles = [];
@@ -284,26 +312,30 @@ Resources:
                       prefixPriority = ['global'];
                     }
 
+                    // Helper to check if model is supported by GenU (returns true for all models if extraction failed)
+                    const isGenUSupported = (modelId) => !GENU_SUPPORTED_MODELS || GENU_SUPPORTED_MODELS.has(modelId);
+
                     // Search for inference profile in priority order (always prefer inference profiles)
+                    // Only select inference profiles that GenU explicitly supports
                     for (const prefix of prefixPriority) {
                       const preferredModelId = `${prefix}.${baseModelId}`;
-                      if (availableModels.includes(preferredModelId)) {
+                      if (availableModels.includes(preferredModelId) && isGenUSupported(preferredModelId)) {
                         const converted = preferredModelId !== originalModelId;
                         return { modelId: preferredModelId, converted, reason: `${prefix} inference profile` };
                       }
                     }
 
-                    // Fall back to original model ID if it exists
-                    if (availableModels.includes(originalModelId)) {
+                    // Fall back to original model ID if it exists and is supported by GenU
+                    if (availableModels.includes(originalModelId) && isGenUSupported(originalModelId)) {
                       return { modelId: originalModelId, converted: false, reason: 'Original available' };
                     }
 
-                    // Fall back to base model ID if available
-                    if (availableModels.includes(baseModelId)) {
+                    // Fall back to base model ID if available and supported by GenU
+                    if (availableModels.includes(baseModelId) && isGenUSupported(baseModelId)) {
                       return { modelId: baseModelId, converted: true, reason: 'In-region model' };
                     }
 
-                    return { modelId: originalModelId, converted: false, reason: 'No matching model found' };
+                    return { modelId: originalModelId, converted: false, reason: 'No matching model found (not supported by GenU)' };
                   }
 
                   async function convertModels(modelIds, region) {
@@ -312,14 +344,15 @@ Resources:
 
                     for (const modelId of modelIds) {
                       const result = findAvailableModel(modelId, availableModels, region);
-                      
-                      if (result.reason !== 'No matching model found') {
+
+                      // Use startsWith to handle both original and extended error messages
+                      if (!result.reason.startsWith('No matching model found')) {
                         results.push(result.modelId);
                       }
-                      
+
                       if (result.converted) {
                         console.log(`✓ ${modelId} -> ${result.modelId} (${result.reason})`);
-                      } else if (result.reason === 'No matching model found') {
+                      } else if (result.reason.startsWith('No matching model found')) {
                         console.log(`⚠ ${modelId} (${result.reason}) - FILTERED OUT`);
                       } else {
                         console.log(`✓ ${modelId} (${result.reason})`);
