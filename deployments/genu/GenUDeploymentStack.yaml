@@ -303,7 +303,7 @@ Resources:
                       prefixPriority = ['global'];
                     }
 
-                    // Helper to check if model is supported by GenU (skip check if extraction failed)
+                    // Helper to check if model is supported by GenU (returns true for all models if extraction failed)
                     const isGenUSupported = (modelId) => !GENU_SUPPORTED_MODELS || GENU_SUPPORTED_MODELS.has(modelId);
 
                     // Search for inference profile in priority order (always prefer inference profiles)
