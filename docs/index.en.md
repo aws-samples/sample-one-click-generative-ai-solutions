@@ -400,7 +400,7 @@ function filterSolutions(category) {
 <div class="solution-card" data-category="chat">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/roleplay/demo.png" alt="AI Sales Roleplay Demo" style="display: block;">
+      <img src="../assets/images/solutions/roleplay/demo.png" alt="AI Sales Roleplay Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/roleplay/">AI Sales Roleplay</a></div>
@@ -524,7 +524,7 @@ function filterSolutions(category) {
 <div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
+      <img src="../assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
@@ -609,7 +609,7 @@ function filterSolutions(category) {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/langfuse/langfuse-traces.png" alt="Langfuse Traces" style="display: block;">
+      <img src="../assets/images/solutions/langfuse/langfuse-traces.png" alt="Langfuse Traces" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/langfuse/">Langfuse</a></div>
