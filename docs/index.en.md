@@ -251,15 +251,15 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&amp;param_UsePreviousDeploymentParameter=true&amp;templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenUDeploymentStack&amp;param_UsePreviousDeploymentParameter=true&amp;templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenUDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-sync"></i>　Update
       </a>
       <a href="solutions/generative-ai-use-cases/" class="detail-button">
@@ -289,12 +289,12 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=DifyDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/DifyDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/dify/" class="detail-button">
@@ -382,11 +382,11 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="us-west-2">Oregon</option>
         <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RapidDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RapidDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/rapid/" class="detail-button">
@@ -412,11 +412,11 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RoleplayDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RoleplayDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RoleplayDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RoleplayDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/roleplay/" class="detail-button">
@@ -443,12 +443,12 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=BrChatDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/BrChatDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/brchat/" class="detail-button">
@@ -475,11 +475,11 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
         <option value="us-east-1">Virginia</option>
+        <option value="ap-northeast-1">Tokyo</option>
         <option value="eu-west-1">Ireland</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=GenStudioDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/GenStudioDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/genai-design-studio/" class="detail-button">
@@ -505,12 +505,12 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="ap-northeast-3">Osaka</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="ap-northeast-3">Osaka</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=ComfyUIDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/ComfyUIDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/comfyui/" class="detail-button">
@@ -591,11 +591,11 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
-        <option value="us-west-2">Oregon</option>
         <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
       </select>
-      <a href="https://us-west-2.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=RemoteSweDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/RemoteSweDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/remote-swe-agents/" class="detail-button">
@@ -621,11 +621,11 @@ function filterSolutions(category) {
   <div class="solution-card__actions">
     <div class="solution-card__deployment">
       <select class="region-selector">
-        <option value="ap-northeast-1">Tokyo</option>
         <option value="us-east-1">Virginia</option>
         <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=LangfuseDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/LangfuseDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/langfuse/" class="detail-button">
