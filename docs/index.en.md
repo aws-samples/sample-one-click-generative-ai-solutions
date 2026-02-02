@@ -36,6 +36,354 @@ Please create an AWS account and sign in by referring to "Point 2: How to start 
 
 Once you've decided on the AWS solution you want to use, select a region and click Deploy. If you need guides such as explanations of deployment options, please refer to the detailed documentation.
 
+### Find by Challenge
+
+<div class="ask-expert-section">
+  <div class="ask-expert-header">
+    <h3 class="ask-expert-title">
+      <i class="fa-solid fa-compass"></i>
+      Select Solutions by Industry Challenges
+    </h3>
+  </div>
+
+  <div class="industry-tabs-container">
+    <div class="industry-tabs" role="tablist">
+      <button class="industry-tab active" data-industry="finance" role="tab">
+        <span class="tab-icon">💰</span>
+        <span class="tab-label">Finance</span>
+      </button>
+      <button class="industry-tab" data-industry="manufacturing" role="tab">
+        <span class="tab-icon">🏭</span>
+        <span class="tab-label">Manufacturing</span>
+      </button>
+      <button class="industry-tab" data-industry="retail" role="tab">
+        <span class="tab-icon">🛒</span>
+        <span class="tab-label">Retail & Services</span>
+      </button>
+      <button class="industry-tab" data-industry="public" role="tab">
+        <span class="tab-icon">🏥</span>
+        <span class="tab-label">Public & Healthcare</span>
+      </button>
+      <button class="industry-tab" data-industry="development" role="tab">
+        <span class="tab-icon">💻</span>
+        <span class="tab-label">Development & IT</span>
+      </button>
+    </div>
+
+    <div class="tab-content-area">
+      <div class="tab-content active" id="finance-content">
+        <div class="challenge-grid">
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🖨</span>
+              <h4>Document/Form Reading (OCR)</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Large volume of documents to read, including financial reports</li>
+                <li>Manual entry is time-consuming and preventing human errors is a challenge</li>
+                <li>Becomes a bottleneck for expediting reviews and decisions based on input data</li>
+              </ul>
+            </p>
+            <div class="solution-badges">
+              <strong>💡 Document reading with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Document reading with various models</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📄</span>
+              <h4>Document Review & Assessment</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Enormous volume of documents to review including applications, contracts, and financial reports</li>
+                <li>Review items span many areas, with periodic revisions due to regulatory and policy changes</li>
+                <li>Work concentrates on specific experts, making review time a bottleneck</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Document review support with generative AI</strong> : <a href="solutions/rapid/">RAPID: Document review solution</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📞</span>
+              <h4>Call Center</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Wide range of financial products and insurance services to handle</li>
+                <li>Need to understand plan details, coverage amounts, and new/discontinued plans</li>
+                <li>Significant training time required for new operators to become proficient</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Sales training with generative AI</strong> : <a href="solutions/roleplay/">AI Sales Roleplay</a><br/>
+              <strong>💡 Response support with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Document-based response support</a><br/>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-content" id="manufacturing-content">
+        <div class="challenge-grid">
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📋</span>
+              <h4>Requirements Review & Estimation</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Requirement specifications for product development and projects can span hundreds of pages</li>
+                <li>Accurate understanding of specifications is essential for accurate estimates, with no room for oversight</li>
+                <li>Cross-referencing with past cases is indispensable, but documents are often scattered</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Document review support with generative AI</strong> : <a href="solutions/rapid/">RAPID: Document review solution</a><br/>
+              <strong>💡 Knowledge base construction with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Knowledge base construction</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📊</span>
+              <h4>Data Utilization in Manufacturing Processes</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>IoT adoption generates diverse data, but the volume is enormous</li>
+                <li>Shortage of personnel who can interpret the meaning of data</li>
+                <li>Beyond dashboards, obtaining data-driven answers based on context is essential</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Analytics workflow with generative AI</strong> : <a href="solutions/dify/">Dify: Build AI workflows through GUI</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🔍</span>
+              <h4>Quality Inspection Optimization</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Visual inspection remains a critical process in quality inspection</li>
+                <li>Large machinery and vehicles are sizable with extensive inspection items</li>
+                <li>Labor shortages lead to resource constraints and missed defects</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Image recognition with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Image & video analysis</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🛠</span>
+              <h4>Maintenance & After-Sales Service</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Wide variety of product lineups including machinery and precision instruments</li>
+                <li>Difficult to track specifications, required parts, and equipment for each product</li>
+                <li>Efficiency issues such as missing necessary parts during on-site repairs</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Response support with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Document-based response support</a><br/>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="tab-content" id="retail-content">
+        <div class="challenge-grid">
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📝</span>
+              <h4>Marketing Content Creation</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Personalization is important but difficult to customize content for each individual member</li>
+                <li>Want to send timely communications about new products, but limited writers constrain frequency</li>
+                <li>Template-based efficiency risks creating déjà vu and reducing customer loyalty</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Writing support with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Document creation</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">👗</span>
+              <h4>Product Creative Production</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Growing demand for product images with the spread of e-commerce</li>
+                <li>Limited photo opportunities for seasonal and expensive products, with scheduling challenges</li>
+                <li>Different image size and specification requirements across e-commerce platforms</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Apparel image generation with generative AI</strong> : <a href="solutions/genai-design-studio/">GenAI Design Studio: Virtual try-on</a><br/>
+              <strong>💡 Image & description generation with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Image generation & description creation</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🤵‍♀️</span>
+              <h4>Customer Service</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>In-store experience remains a crucial customer touchpoint even with e-commerce growth</li>
+                <li>Labor shortages make adequate service and training difficult</li>
+                <li>Addressing customer harassment, which has become a social issue, is essential</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Customer service with generative AI</strong> : <a href="solutions/brchat/">BrChat: From internal validation to external API deployment</a><br/>
+              <strong>💡 Sales training with generative AI</strong> : <a href="solutions/roleplay/">AI Sales Roleplay</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🌎</span>
+              <h4>Building Healthy Customer Communities</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Customer reviews and communities are important parts of the product experience</li>
+                <li>Malicious or offensive posts from trolls pose a significant risk to communities</li>
+                <li>The volume of reviews and comments is enormous, making thorough checks difficult</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Comment detection with generative AI</strong> : <a href="solutions/brchat/">BrChat: From internal validation to integration with internal systems via API</a><br/>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-content" id="public-content">
+        <div class="challenge-grid">
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">📝</span>
+              <h4>Public Document Creation</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Public documents come in various formats, each requiring specific formatting</li>
+                <li>Time spent on document creation reduces time for engaging with residents and patients, increasing overtime</li>
+                <li>Variations in content across different authors make data utilization difficult</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Document creation support with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Generative AI platform deployable even in closed networks</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🖨</span>
+              <h4>Document Scanning</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Paper-based data still persists in public institutions and healthcare settings</li>
+                <li>Significant effort required to read and digitize handwritten information</li>
+                <li>Valuable human resources are allocated to mechanical tasks amid growing labor shortages</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Document scanning with generative AI</strong> : <a href="solutions/generative-ai-use-cases/">GenU: Image reading with various models</a><br/>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="tab-content" id="development-content">
+        <div class="challenge-grid">
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🤖</span>
+              <h4>Accelerating Development with Generative AI</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Direct code generation by AI faces quality challenges</li>
+                <li>Lack of documentation to support generated code</li>
+                <li>Significant skill gaps in how people provide instructions</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Step-by-step support for development starting from "specification definition"</strong> : <a href="solutions/kiro-ide/">Kiro IDE: Spec-driven development IDE</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">🏗️</span>
+              <h4>Development Environment</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>AI agent development requires installing various frameworks and configuring deployments</li>
+                <li>Frequent installation errors and configuration issues</li>
+                <li>Environment differences and setup effort become bottlenecks for democratizing AI agent development</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Cloud-based development environment</strong> : <a href="solutions/aiagentdev/">AI Agent Development Code Server: Cloud-based AI agent development environment</a><br/>
+            </div>
+          </div>
+
+          <div class="challenge-card">
+            <div class="challenge-header">
+              <span class="challenge-icon">⚙️</span>
+              <h4>Development Quality Management</h4>
+            </div>
+            <p class="challenge-description">
+              <ul>
+                <li>Need to identify security and performance concerns early in product development</li>
+                <li>Limited review time and risk of oversights in unfamiliar areas</li>
+                <li>Large features/fixes lead to wide-ranging feedback requiring multiple review cycles</li>
+              </ul>
+            <p>
+            <div class="solution-badges">
+              <strong>💡 Develop in collaboration with custom agents</strong> : <a href="solutions/bedrock-engineer/">Bedrock Engineer: A development agent for "you"</a><br/>
+              <strong>💡 Automate reviews and fixes</strong> : <a href="solutions/remote-swe-agents/">Remote SWE Agents: Autonomous software development agents</a><br/>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+### Find from List
+
 <div class="filter-bar">
   <button class="filter-btn active" onclick="filterSolutions('all')">All</button>
   <button class="filter-btn" onclick="filterSolutions('popular')">🌟 Popular</button>
@@ -180,12 +528,185 @@ Once you've decided on the AWS solution you want to use, select a region and cli
   .solution-card__top {
     flex-direction: column;
   }
-  
+
   .solution-card__image {
     flex: none;
     height: 150px;
     border-right: none;
     border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Ask Expert Section Styles */
+.ask-expert-section {
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.ask-expert-header {
+  background: linear-gradient(135deg, var(--md-primary-fg-color) 0%, #4338ca 100%);
+  color: white;
+  padding: 1.2rem;
+  text-align: center;
+}
+
+.ask-expert-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.industry-tabs-container {
+  background: #ffffff;
+}
+
+.industry-tabs {
+  display: flex;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.industry-tab {
+  flex: 1;
+  min-width: 120px;
+  padding: 1.2rem 1rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.industry-tab:hover {
+  background: rgba(var(--md-primary-fg-color-rgb), 0.05);
+}
+
+.industry-tab.active {
+  border-bottom-color: var(--md-primary-fg-color);
+  background: white;
+}
+
+.tab-icon {
+  font-size: 1.5rem;
+}
+
+.tab-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.industry-tab.active .tab-label {
+  color: var(--md-primary-fg-color);
+}
+
+.tab-content-area {
+  min-height: 300px;
+}
+
+.tab-content {
+  display: none;
+  padding: 2rem;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.challenge-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.challenge-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.challenge-card:hover {
+  border-color: var(--md-primary-fg-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.challenge-icon {
+  font-size: 1.5rem;
+}
+
+.challenge-header h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.challenge-description {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.industry-link {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.industry-link a {
+  color: var(--md-primary-fg-color);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.industry-link a:hover {
+  text-decoration: underline;
+}
+
+@media screen and (max-width: 768px) {
+  .ask-expert-header {
+    padding: 1.5rem;
+  }
+
+  .ask-expert-title {
+    font-size: 1.25rem;
+  }
+
+  .tab-content {
+    padding: 1.5rem;
+  }
+
+  .industry-tabs {
+    flex-wrap: wrap;
+  }
+
+  .industry-tab {
+    flex: 1 1 50%;
+    min-width: 100px;
   }
 }
 </style>
@@ -210,10 +731,10 @@ function toggleDemo(tagElement, demoType) {
 function filterSolutions(category) {
   const cards = document.querySelectorAll('.solution-card');
   const buttons = document.querySelectorAll('.filter-btn');
-  
+
   buttons.forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
-  
+
   cards.forEach(card => {
     const categories = card.dataset.category || '';
     if (category === 'all' || categories.includes(category)) {
@@ -223,6 +744,51 @@ function filterSolutions(category) {
     }
   });
 }
+
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const tabs = document.querySelectorAll('.industry-tab');
+  const contents = document.querySelectorAll('.tab-content');
+  const industries = ['finance', 'manufacturing', 'retail', 'public', 'development'];
+
+  function activateTab(industry) {
+    tabs.forEach(t => t.classList.remove('active'));
+    contents.forEach(c => c.classList.remove('active'));
+
+    const targetTab = document.querySelector(`[data-industry="${industry}"]`);
+    const targetContent = document.getElementById(industry + '-content');
+
+    if (targetTab && targetContent) {
+      targetTab.classList.add('active');
+      targetContent.classList.add('active');
+    }
+  }
+
+  // Check URL parameter first, then day of week
+  const urlParams = new URLSearchParams(window.location.search);
+  const industryParam = urlParams.get('industry');
+
+  if (industryParam && industries.includes(industryParam)) {
+    activateTab(industryParam);
+  } else {
+    // Select tab based on day of week (0=Sunday, 1=Monday, etc.)
+    const dayOfWeek = new Date().getDay();
+    const selectedIndustry = industries[dayOfWeek % industries.length];
+    activateTab(selectedIndustry);
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', function() {
+      const industry = this.dataset.industry;
+      activateTab(industry);
+
+      // Update URL parameter
+      const url = new URL(window.location);
+      url.searchParams.set('industry', industry);
+      window.history.replaceState({}, '', url);
+    });
+  });
+});
 </script>
 
 <div class="solution-card" data-category="popular chat">
@@ -329,6 +895,36 @@ function filterSolutions(category) {
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
       <a href="solutions/kiro-ide/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/cursor-ide/cursor.png" alt="Cursor IDE Remote" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/cursor-ide/">Cursor IDE Remote</a></div>
+      <div class="solution-card__description">
+        Cursor is an AI-powered code editor that significantly boosts developer productivity. Cursor IDE Remote allows you to access a development environment with Cursor, AWS CLI, and other tools pre-installed directly from your browser. It provides a secure environment with AppArmor on Ubuntu 24.04.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="ap-northeast-1">Tokyo</option>
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+      </select>
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=CursorIDEDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/CursorDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/cursor-ide/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
