@@ -64,7 +64,13 @@
 
 ### リソースの削除
 
-デプロイしたリソースを削除するには、CloudFormation コンソールから以下のスタックを削除します：
+デプロイしたリソースを削除するには、CloudFormation コンソールから以下のスタックを **この順序で** 削除します：
 
-1. `VtoAppStack` スタック（アプリケーション本体）
-2. `GenStudioDeploymentStack` スタック（デプロイ用スタック）
+1. `VtoAppStack` スタック（アプリケーション本体） - **デプロイ先リージョン**
+2. `VtoAppFrontendWafStack` スタック（CloudFront 用 WAF） - **us-east-1（バージニア北部）**
+3. `GenStudioDeploymentStack` スタック（デプロイ用スタック） - **デプロイ先リージョン**
+
+!!! warning "削除時の注意事項"
+    - `VtoAppFrontendWafStack` は CloudFront 用の WAF スタックで、デプロイ先リージョンに関わらず **常に us-east-1** に作成されます。削除する際は CloudFormation コンソールのリージョンを **us-east-1（バージニア北部）** に切り替えてください。
+    - `VtoAppStack` が `VtoAppFrontendWafStack` のエクスポート値（WebAcl ARN）を参照しているため、**必ず `VtoAppStack` を先に削除** してください。
+    - 削除が不完全な状態で再デプロイすると、クロスリージョンエクスポートの競合によりデプロイが失敗します。
