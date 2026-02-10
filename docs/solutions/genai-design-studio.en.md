@@ -64,7 +64,13 @@ Once deployment is complete, you will receive a notification email containing:
 
 ### Resource Cleanup
 
-To delete deployed resources, remove the following stacks from the CloudFormation console:
+To delete deployed resources, remove the following stacks from the CloudFormation console **in this order**:
 
-1. `VtoAppStack` stack (main application)
-2. `GenStudioDeploymentStack` stack (deployment stack)
+1. `VtoAppStack` stack (main application) - **deployment region**
+2. `VtoAppFrontendWafStack` stack (WAF for CloudFront) - **us-east-1 (N. Virginia)**
+3. `GenStudioDeploymentStack` stack (deployment stack) - **deployment region**
+
+!!! warning "Important Notes on Deletion"
+    - `VtoAppFrontendWafStack` is the WAF stack for CloudFront and is **always created in us-east-1** regardless of the deployment region. When deleting, switch the CloudFormation console region to **us-east-1 (N. Virginia)**.
+    - `VtoAppStack` references an exported value (WebAcl ARN) from `VtoAppFrontendWafStack`, so **`VtoAppStack` must be deleted first**.
+    - If stacks are not fully deleted before redeployment, the deployment will fail due to cross-region export conflicts.
