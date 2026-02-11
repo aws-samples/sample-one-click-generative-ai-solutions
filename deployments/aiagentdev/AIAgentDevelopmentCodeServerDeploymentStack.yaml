@@ -12,6 +12,7 @@ Metadata:
           - InstanceVolumeSize
           - HomeFolder
           - RepoUrl
+          - EnableAdministratorAccess
 
 Parameters:
   UserEmail:
@@ -35,6 +36,16 @@ Parameters:
   RepoUrl:
     Type: String
     Default: 'https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding.git'
+  EnableAdministratorAccess:
+    Type: String
+    Default: 'false'
+    Description: Attach AdministratorAccess policy to instance role (required for CDK deployments)
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+Conditions:
+  HasAdministratorAccess: !Equals [!Ref EnableAdministratorAccess, 'true']
 
 Mappings:
   ArmImage:
@@ -493,6 +504,10 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess
         - arn:aws:iam::aws:policy/CloudWatchLogsFullAccess
         - arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess
+        - !If
+          - HasAdministratorAccess
+          - arn:aws:iam::aws:policy/AdministratorAccess
+          - !Ref AWS::NoValue
       Policies:
         - PolicyName: AgentCoreDevelopmentPolicy
           PolicyDocument:

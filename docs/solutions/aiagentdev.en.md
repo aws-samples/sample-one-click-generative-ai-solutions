@@ -56,6 +56,8 @@ You can configure the following parameters during deployment:
     - Working directory path. This is where repositories will be cloned.
 - **RepoUrl** (Default: https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding.git)
     - Git repository URL to automatically clone.
+- **EnableAdministratorAccess** (Default: false)
+    - Whether to attach the AdministratorAccess policy to the EC2 instance role. Set to `true` if you need to manage AWS resources from the IDE, such as CDK bootstrap and deploy.
 
 ### Post-Deployment Setup
 

@@ -69,6 +69,8 @@ You can deploy using the button below. Click after logging into AWS.
     * Git repository URL to automatically clone for development (optional).
 * Language
     * OS language setting. Choose EN (English) or JP (Japanese) (default: EN).
+* EnableAdministratorAccess
+    * Whether to attach the AdministratorAccess policy to the EC2 instance role (default: false). Set to `true` if you need to manage AWS resources from the IDE, such as CDK bootstrap and deploy.
 
 When deployment starts, an email will be sent to the email address set in `UserEmail` to enable notification subscription. Please subscribe from the email to receive notifications.
 

@@ -13,6 +13,7 @@ Metadata:
           - InstanceVolumeSize
           - RepoUrl
           - Language
+          - EnableAdministratorAccess
 
 Parameters:
   UserEmail:
@@ -43,6 +44,16 @@ Parameters:
     AllowedValues:
       - EN
       - JP
+  EnableAdministratorAccess:
+    Type: String
+    Default: 'false'
+    Description: Attach AdministratorAccess policy to instance role (required for CDK deployments)
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+Conditions:
+  HasAdministratorAccess: !Equals [!Ref EnableAdministratorAccess, 'true']
 
 Mappings:
   CloudFrontPrefixListID:
@@ -306,6 +317,10 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - !If
+          - HasAdministratorAccess
+          - arn:aws:iam::aws:policy/AdministratorAccess
+          - !Ref AWS::NoValue
       Policies:
         - PolicyName: DCVLicenseAccess
           PolicyDocument:

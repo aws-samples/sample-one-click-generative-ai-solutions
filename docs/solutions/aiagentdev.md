@@ -56,6 +56,8 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
     - 作業ディレクトリのパスです。リポジトリがクローンされる場所になります。
 - **RepoUrl** (デフォルト: https://github.com/aws-samples/sample-amazon-bedrock-agentcore-onboarding.git)
     - 自動的にクローンする Git リポジトリの URL です。
+- **EnableAdministratorAccess** (デフォルト: false)
+    - EC2 インスタンスロールに AdministratorAccess ポリシーをアタッチするかどうかを指定します。CDK のブートストラップやデプロイなど、IDE から AWS リソースを操作する場合は `true` に設定してください。
 
 ### デプロイ後の設定
 
