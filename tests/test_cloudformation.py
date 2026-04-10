@@ -19,6 +19,10 @@ TEMPLATES = [
     {
         "name": "BrChat",
         "path": REPO_ROOT / "deployments" / "brchat" / "BrChatDeploymentStack.yaml"
+    },
+    {
+        "name": "AIPersona",
+        "path": REPO_ROOT / "deployments" / "ai-persona" / "AIPersonaDeploymentStack.yaml"
     }
 ]
 

@@ -11,6 +11,7 @@ Metadata:
           - Region
           - EnableLongTermMemory
           - EnableWaf
+          - Version
 
 Parameters:
   NotificationEmailAddress:
@@ -39,6 +40,11 @@ Parameters:
     AllowedValues: [true, false]
     Default: false
     Description: 'Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)'
+
+  Version:
+    Type: String
+    Default: main
+    Description: 'Git branch, tag, or commit hash to deploy (e.g., main, v1.0.0)'
 
 Resources:
 
@@ -124,6 +130,8 @@ Resources:
             Value: !Ref DeploymentNotificationTopic
           - Name: DEPLOYMENT_STACK_NAME
             Value: !Ref AWS::StackName
+          - Name: VERSION
+            Value: !Ref Version
       Source:
         Type: NO_SOURCE
         BuildSpec: |
@@ -136,13 +144,14 @@ Resources:
                 - echo "Starting AI Persona System deployment"
                 - aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Started" --message "Deployment of AI Persona System has started. You will receive another notification when deployment is complete."
                 - git clone https://github.com/aws-samples/sample-ai-persona.git
+                - cd $CODEBUILD_SRC_DIR/sample-ai-persona && git checkout ${VERSION}
             pre_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR/sample-ai-persona
                 - chmod +x deploy.sh
                 - |
                   if [ "${EnableWaf}" = "true" ]; then
-                    sed -i '/log_info "parameters.ts を生成しました"/a\sed -i "s/enableWaf: false/enableWaf: true/" "${PROJECT_ROOT}/cdk/parameters.ts" && log_info "enableWaf を true に設定しました"' deploy.sh
+                    sed -i 's/ENABLE_WAF="false"/ENABLE_WAF="true"/' deploy.sh
                   fi
                 - |
                   echo "Pre-pulling base images via ECR public to avoid Docker Hub rate limits..."
