@@ -54,14 +54,14 @@ The following parameters can be configured during deployment:
 * **EnableWaf** (default: false): Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)
 
 !!! warning "Security Note"
-    After deployment, Cognito self-signup is enabled by default. If not needed, it is recommended to disable "Sign-up" in the Cognito User Pool settings.
+    After deployment, Cognito self-signup is disabled by default. An administrator needs to create users in the Cognito User Pool. If you want to enable self-signup, change the setting in the Cognito User Pool configuration.
 
 ## Post-Deployment Setup
 
 ### User Management
 
 1. Access the user management console URL provided in the deployment completion notification email
-2. Create users in the Amazon Cognito User Pool (or use self-signup)
+2. Create users in the Amazon Cognito User Pool
 3. Log in from the application URL
 
 ### Accessing the Application

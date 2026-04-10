@@ -191,7 +191,7 @@ Resources:
                     User Registration Console: ${USER_REGISTRATION_URL:-Not available}
                     Next Steps:
                     1. Access the application using the URL above
-                    2. Create users in the Cognito User Pool (self-signup is enabled by default)
+                    2. Create users in the Cognito User Pool using the AWS Console
                     3. Users can sign in with their credentials"
                     aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Completed" --message "$MESSAGE"
                     echo "=== DEPLOYMENT SUMMARY ==="
