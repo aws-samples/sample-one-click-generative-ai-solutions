@@ -96,6 +96,7 @@ nav:
     - 'AI Agent Development Code Server': 'solutions/aiagentdev.md'
     - 'RAPID': 'solutions/rapid.md'
     - 'AI Sales Roleplay': 'solutions/roleplay.md'
+    - 'AI Persona System': 'solutions/ai-persona.md'
     - 'Bedrock Chat': 'solutions/brchat.md'
     - 'GenAI Design Studio': 'solutions/genai-design-studio.md'
     - 'ComfyUI': 'solutions/comfyui.md'

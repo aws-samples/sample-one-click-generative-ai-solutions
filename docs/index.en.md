@@ -1023,6 +1023,36 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<div class="solution-card" data-category="chat">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/ai-persona/demo.jpg" alt="AI Persona System Demo" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/ai-persona/">AI Persona System</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-ai-persona" target="_blank">AI Persona System</a> is a sample implementation powered by Amazon Bedrock that builds AI personas and generates insights for product planning and marketing strategy through discussions, interviews, and surveys among those personas.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+      </select>
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=AIPersonaDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/AIPersonaDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/ai-persona/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
 
 <div class="solution-card" data-category="popular chat">
   <div class="solution-card__top">

@@ -1,0 +1,287 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AI Persona System one click deployment'
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "AI Persona System Deployment Parameters"
+        Parameters:
+          - NotificationEmailAddress
+          - Region
+          - EnableLongTermMemory
+          - EnableWaf
+          - Version
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: 'Email address to receive deployment notifications (Example: test@example.co.jp)'
+    AllowedPattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    ConstraintDescription: Must be a valid email address
+
+  Region:
+    Type: String
+    Default: us-east-1
+    AllowedValues:
+      - us-east-1
+      - us-west-2
+      - ap-northeast-1
+    Description: 'Region to deploy the AI Persona System'
+
+  EnableLongTermMemory:
+    Type: String
+    AllowedValues: [true, false]
+    Default: true
+    Description: 'Enable AgentCore Memory for long-term memory feature'
+
+  EnableWaf:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)'
+
+  Version:
+    Type: String
+    Default: main
+    Description: 'Git branch, tag, or commit hash to deploy (e.g., main, v1.0.0)'
+
+Resources:
+
+  # SNS Topic for deployment notifications
+  DeploymentNotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: AI Persona System Deployment Notifications
+      TopicName: !Sub 'Notification-for-${AWS::StackName}'
+      KmsMasterKeyId: 'alias/aws/sns'
+
+  # SNS Subscription for email notifications
+  DeploymentNotificationSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref DeploymentNotificationTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  # IAM Role for CodeBuild
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AdministratorAccess"
+
+  # IAM Policy for CodeBuild
+  CodeBuildServiceRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: CodeBuildServiceRolePolicy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Effect: Allow
+            Resource:
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${AIPersonaDeploymentProject}:*"
+              - !Sub "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${AIPersonaDeploymentProject}"
+          - Action:
+              - sns:Publish
+            Effect: Allow
+            Resource: !Ref DeploymentNotificationTopic
+      Roles:
+        - !Ref CodeBuildServiceRole
+
+  # CodeBuild Project
+  AIPersonaDeploymentProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub 'CodeBuild-for-${AWS::StackName}'
+      Description: 'Deploys AI Persona System'
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      LogsConfig:
+        CloudWatchLogs:
+          Status: ENABLED
+      TimeoutInMinutes: 90
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/amazonlinux-x86_64-standard:5.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: DEPLOY_REGION
+            Value: !Ref Region
+          - Name: EnableLongTermMemory
+            Value: !Ref EnableLongTermMemory
+          - Name: EnableWaf
+            Value: !Ref EnableWaf
+          - Name: SNSTopicArn
+            Value: !Ref DeploymentNotificationTopic
+          - Name: DEPLOYMENT_STACK_NAME
+            Value: !Ref AWS::StackName
+          - Name: VERSION
+            Value: !Ref Version
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+              commands:
+                - echo "Starting AI Persona System deployment"
+                - aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Started" --message "Deployment of AI Persona System has started. You will receive another notification when deployment is complete."
+                - git clone https://github.com/aws-samples/sample-ai-persona.git
+                - cd $CODEBUILD_SRC_DIR/sample-ai-persona && git checkout ${VERSION}
+            pre_build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-ai-persona
+                - chmod +x deploy.sh
+                - |
+                  if [ "${EnableWaf}" = "true" ]; then
+                    sed -i 's/ENABLE_WAF="false"/ENABLE_WAF="true"/' deploy.sh
+                  fi
+                - |
+                  echo "Pre-pulling base images via ECR public to avoid Docker Hub rate limits..."
+                  docker pull public.ecr.aws/docker/library/python:3.13-slim-bookworm && docker tag public.ecr.aws/docker/library/python:3.13-slim-bookworm python:3.13-slim-bookworm || echo "ECR public pull failed, will fall back to Docker Hub"
+            build:
+              commands:
+                - cd $CODEBUILD_SRC_DIR/sample-ai-persona
+                - |
+                  DEPLOY_OPTS="--region ${DEPLOY_REGION}"
+                  if [ "${EnableLongTermMemory}" = "false" ]; then
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --skip-memory"
+                  fi
+                  if aws cloudformation describe-stacks --stack-name "AIPersonaCognito-dev" --region ${DEPLOY_REGION} > /dev/null 2>&1; then
+                    echo "Existing Cognito stack detected, adding --skip-cognito"
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --skip-cognito"
+                  fi
+                  if aws cloudformation describe-stacks --stack-name "AIPersonaMemory-dev" --region ${DEPLOY_REGION} > /dev/null 2>&1; then
+                    echo "Existing Memory stack detected, adding --skip-memory"
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --skip-memory"
+                  fi
+                  echo "Running deploy.sh with options: ${DEPLOY_OPTS}"
+                  ./deploy.sh ${DEPLOY_OPTS}
+            post_build:
+              commands:
+                - |
+                  if [ $CODEBUILD_BUILD_SUCCEEDING -eq 1 ]; then
+                    echo "Deployment completed successfully!"
+                    CLOUDFRONT_URL=$(aws cloudformation describe-stacks --stack-name "AIPersona-dev" --region ${DEPLOY_REGION} --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDomainName'].OutputValue" --output text 2>/dev/null || echo "")
+                    COGNITO_USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name "AIPersonaCognito-dev" --region ${DEPLOY_REGION} --query "Stacks[0].Outputs[?OutputKey=='UserPoolId'].OutputValue" --output text 2>/dev/null || echo "")
+                    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                    USER_REGISTRATION_URL=""
+                    if [ -n "$COGNITO_USER_POOL_ID" ]; then
+                      USER_REGISTRATION_URL="https://${AWS_ACCOUNT_ID}.${DEPLOY_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${COGNITO_USER_POOL_ID}/user-management/users?region=${DEPLOY_REGION}"
+                    fi
+                    MESSAGE="AI Persona System deployment completed successfully at $(date).
+                    Application URL: https://${CLOUDFRONT_URL:-Not available}
+                    User Registration Console: ${USER_REGISTRATION_URL:-Not available}
+                    Next Steps:
+                    1. Access the application using the URL above
+                    2. Create users in the Cognito User Pool (self-signup is enabled by default)
+                    3. Users can sign in with their credentials"
+                    aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Completed" --message "$MESSAGE"
+                    echo "=== DEPLOYMENT SUMMARY ==="
+                    echo "Application URL: https://$CLOUDFRONT_URL"
+                    echo "User Pool ID: $COGNITO_USER_POOL_ID"
+                    echo "=========================="
+                  else
+                    echo "Deployment failed!"
+                    aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Failed" --message "AI Persona System deployment failed at $(date). Please check the CodeBuild logs for details."
+                    exit 1
+                  fi
+
+  # Lambda function to trigger CodeBuild
+  TriggerLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-trigger'
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt TriggerLambdaRole.Arn
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+          import json
+          
+          def lambda_handler(event, context):
+              try:
+                  print(f"Event: {json.dumps(event)}")
+                  
+                  if event['RequestType'] == 'Create':
+                      codebuild = boto3.client('codebuild')
+                      project_name = event['ResourceProperties']['ProjectName']
+                      
+                      print(f"Starting build for project: {project_name}")
+                      response = codebuild.start_build(projectName=project_name)
+                      build_id = response['build']['id']
+                      
+                      print(f"Build started with ID: {build_id}")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'BuildId': build_id,
+                          'Message': f'Build started successfully with ID: {build_id}'
+                      })
+                  else:
+                      print("Non-create event, skipping build trigger")
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'Message': 'No action required for non-create events'
+                      })
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {
+                      'Error': str(e)
+                  })
+
+  # IAM Role for Lambda trigger function
+  TriggerLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CodeBuildTriggerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt AIPersonaDeploymentProject.Arn
+
+  # Custom resource to trigger deployment
+  DeploymentTrigger:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt TriggerLambdaFunction.Arn
+      ProjectName: !Ref AIPersonaDeploymentProject
+
+Outputs:
+  DeploymentProjectName:
+    Description: Name of the CodeBuild project for AI Persona System deployment
+    Value: !Ref AIPersonaDeploymentProject
+
+  NotificationTopicArn:
+    Description: ARN of the SNS topic for deployment notifications
+    Value: !Ref DeploymentNotificationTopic
