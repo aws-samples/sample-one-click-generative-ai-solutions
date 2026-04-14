@@ -185,7 +185,7 @@ Resources:
                     DEPLOY_OPTS="${DEPLOY_OPTS} --self-signup"
                   fi
                   if [ -n "${AllowedIpAddresses}" ]; then
-                    DEPLOY_OPTS="${DEPLOY_OPTS} --allowed-ips \"${AllowedIpAddresses}\""
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --allowed-ips ${AllowedIpAddresses}"
                   fi
                   if aws cloudformation describe-stacks --stack-name "AIPersonaCognito-dev" --region ${DEPLOY_REGION} > /dev/null 2>&1; then
                     echo "Existing Cognito stack detected, adding --skip-cognito"
