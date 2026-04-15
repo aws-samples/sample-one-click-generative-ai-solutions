@@ -17,7 +17,7 @@ Discover insights through discussions and conversations with AI personas.
 
 Conduct large-scale surveys with hundreds to thousands of AI personas.
 
-- **Persona Data Setup**: Upload open datasets (Nemotron) or proprietary customer data (CSV)
+- **Persona Data Setup**: Upload open datasets or proprietary customer data (CSV)
 - **Template Management**: Create multiple-choice, free-text, and scale-rating questions with image attachments
 - **Results**: CSV download, visual analysis (bar charts), AI insight reports
 
@@ -46,22 +46,36 @@ You can deploy using the button below. Please click after logging into AWS.
 
 ### Parameters
 
-The following parameters can be configured during deployment:
+The following parameters can be configured during deployment.
 
-* **NotificationEmailAddress**: Email address to receive deployment start/completion notifications
-* **Region** (default: us-east-1): Deployment region (us-east-1, us-west-2, ap-northeast-1)
-* **EnableLongTermMemory** (default: true): Enable/disable AgentCore Memory for long-term memory feature
-* **EnableWaf** (default: false): Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)
+* **NotificationEmailAddress**
+    * Email address to receive deployment start/completion notifications
+* **Region** (default: us-east-1)
+    * Deployment region (us-east-1, us-west-2, ap-northeast-1)
+* **EnableLongTermMemory** (default: true)
+    * Enable/disable AgentCore Memory for long-term memory feature
+* **EnableWaf** (default: false)
+    * Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)
+* **SelfSignUp** (default: false)
+    * Enable/disable Cognito self-signup
+* **AllowedIpAddresses**
+    * Allowed IPv4 CIDR ranges for access restriction (comma separated, e.g. 203.0.113.0/24,198.51.100.1/32). WAF is automatically enabled when specified.
 
 !!! warning "Security Note"
-    After deployment, Cognito self-signup is enabled by default. If not needed, it is recommended to disable "Sign-up" in the Cognito User Pool settings.
+    
+    For production use, the following security measures are recommended:
+    
+    1. **IP Restriction**: Use `AllowedIpAddresses` to restrict accessible IP addresses
+    2. **Disable Self-Signup**: Set `SelfSignUp` to `false` and have administrators create users
+    
+    Without IP restriction, the application is deployed with public access, but since SelfSignUp defaults to false, user creation via AWS account (Amazon Cognito) is required to log in.
 
 ## Post-Deployment Setup
 
 ### User Management
 
 1. Access the user management console URL provided in the deployment completion notification email
-2. Create users in the Amazon Cognito User Pool (or use self-signup)
+2. Create users in the Amazon Cognito User Pool (users can self-register if self-signup is enabled)
 3. Log in from the application URL
 
 ### Accessing the Application

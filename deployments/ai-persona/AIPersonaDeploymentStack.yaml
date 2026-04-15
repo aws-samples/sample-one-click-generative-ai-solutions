@@ -11,6 +11,8 @@ Metadata:
           - Region
           - EnableLongTermMemory
           - EnableWaf
+          - SelfSignUp
+          - AllowedIpAddresses
           - Version
 
 Parameters:
@@ -40,6 +42,19 @@ Parameters:
     AllowedValues: [true, false]
     Default: false
     Description: 'Enable AWS WAF on CloudFront for additional security (rate limiting and managed rules)'
+
+  SelfSignUp:
+    Type: String
+    AllowedValues: [true, false]
+    Default: false
+    Description: 'Enable Cognito self-signup (default: false, admin creates users)'
+
+  AllowedIpAddresses:
+    Type: String
+    Default: ""
+    AllowedPattern: "^$|^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])(,((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/(3[0-2]|[12]?[0-9]))*$"
+    ConstraintDescription: "Must be comma-separated IPv4 CIDR ranges (e.g. 203.0.113.0/24,198.51.100.1/32)"
+    Description: 'Allowed IPv4 CIDR ranges for WAF IP restriction (comma separated, e.g. "203.0.113.0/24,198.51.100.1/32"). WAF is automatically enabled when specified.'
 
   Version:
     Type: String
@@ -126,6 +141,10 @@ Resources:
             Value: !Ref EnableLongTermMemory
           - Name: EnableWaf
             Value: !Ref EnableWaf
+          - Name: SelfSignUp
+            Value: !Ref SelfSignUp
+          - Name: AllowedIpAddresses
+            Value: !Ref AllowedIpAddresses
           - Name: SNSTopicArn
             Value: !Ref DeploymentNotificationTopic
           - Name: DEPLOYMENT_STACK_NAME
@@ -164,6 +183,12 @@ Resources:
                   if [ "${EnableLongTermMemory}" = "false" ]; then
                     DEPLOY_OPTS="${DEPLOY_OPTS} --skip-memory"
                   fi
+                  if [ "${SelfSignUp}" = "true" ]; then
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --self-signup"
+                  fi
+                  if [ -n "${AllowedIpAddresses}" ]; then
+                    DEPLOY_OPTS="${DEPLOY_OPTS} --allowed-ips ${AllowedIpAddresses}"
+                  fi
                   if aws cloudformation describe-stacks --stack-name "AIPersonaCognito-dev" --region ${DEPLOY_REGION} > /dev/null 2>&1; then
                     echo "Existing Cognito stack detected, adding --skip-cognito"
                     DEPLOY_OPTS="${DEPLOY_OPTS} --skip-cognito"
@@ -189,9 +214,11 @@ Resources:
                     MESSAGE="AI Persona System deployment completed successfully at $(date).
                     Application URL: https://${CLOUDFRONT_URL:-Not available}
                     User Registration Console: ${USER_REGISTRATION_URL:-Not available}
+                    Self-Signup: ${SelfSignUp}
+                    IP Restriction: ${AllowedIpAddresses:-None}
                     Next Steps:
                     1. Access the application using the URL above
-                    2. Create users in the Cognito User Pool (self-signup is enabled by default)
+                    2. Create users in the Cognito User Pool via the console (or use self-signup if enabled)
                     3. Users can sign in with their credentials"
                     aws sns publish --topic-arn ${SNSTopicArn} --subject "AI Persona System Deployment Completed" --message "$MESSAGE"
                     echo "=== DEPLOYMENT SUMMARY ==="
