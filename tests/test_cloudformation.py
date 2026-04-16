@@ -23,6 +23,10 @@ TEMPLATES = [
     {
         "name": "AIPersona",
         "path": REPO_ROOT / "deployments" / "ai-persona" / "AIPersonaDeploymentStack.yaml"
+    },
+    {
+        "name": "SDPM",
+        "path": REPO_ROOT / "deployments" / "sdpm" / "SdpmDeploymentStack.yaml"
     }
 ]
 

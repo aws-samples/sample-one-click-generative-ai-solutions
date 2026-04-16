@@ -1262,6 +1262,36 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
+      <img src="../assets/images/solutions/sdpm/workflow-en.png" alt="SDPM Workflow" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/sdpm/">Spec-Driven Presentation Maker</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-spec-driven-presentation-maker" target="_blank">Spec-Driven Presentation Maker</a> is an open-source toolkit for creating presentations using a spec-driven development approach. Design 'what to convey' first, and let AI build 'how to present it'.
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="us-east-1">Virginia</option>
+        <option value="us-west-2">Oregon</option>
+        <option value="ap-northeast-1">Tokyo</option>
+      </select>
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=SdpmDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/SdpmDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/sdpm/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        Details
+      </a>
+    </div>
+  </div>
+</div>
+
 ## 3. Start Journey
 
 For Generative AI Use Cases, you can learn how to use it by following the next workshop.
