@@ -11,6 +11,11 @@ Metadata:
           - DeploymentLayer
           - SearchSlides
           - Observability
+      - Label:
+          default: "SDPM Security Parameters"
+        Parameters:
+          - AllowedIpV4AddressRanges
+          - AllowedIpV6AddressRanges
 
 Parameters:
   NotificationEmailAddress:
@@ -36,6 +41,16 @@ Parameters:
     AllowedValues: [true, false]
     Default: false
     Description: 'Enable Bedrock Model Invocation Logging'
+
+  AllowedIpV4AddressRanges:
+    Type: String
+    Default: ""
+    Description: 'Allowed IPv4 address ranges for access (Example: 10.0.0.100/32, 192.168.0.0/24). Find your current Public IP address here: https://checkip.amazonaws.com/'
+
+  AllowedIpV6AddressRanges:
+    Type: String
+    Default: ""
+    Description: Allowed IPv6 address ranges for access
 
 Resources:
   # SNS Topic for deployment notifications
@@ -119,6 +134,12 @@ Resources:
             Value: !Ref DeploymentNotificationTopic
           - Name: NOTIFICATION_EMAIL
             Value: !Ref NotificationEmailAddress
+          - Name: DEPLOYMENT_STACK_NAME
+            Value: !Ref AWS::StackName
+          - Name: ALLOWED_IPV4_ADDRESS_RANGES
+            Value: !Ref AllowedIpV4AddressRanges
+          - Name: ALLOWED_IPV6_ADDRESS_RANGES
+            Value: !Ref AllowedIpV6AddressRanges
       Source:
         Type: NO_SOURCE
         BuildSpec: |
@@ -127,7 +148,7 @@ Resources:
           phases:
             install:
               runtime-versions:
-                nodejs: 20
+                nodejs: 22
               commands:
                 - echo "Starting SDPM deployment"
                 - aws sns publish --topic-arn ${SNS_TOPIC_ARN} --subject "SDPM Deployment Started" --message "Deployment of Spec-Driven Presentation Maker has started. You will receive another notification when deployment is complete."
@@ -253,8 +274,12 @@ Resources:
             post_build:
               commands:
                 - cd $CODEBUILD_SRC_DIR
-                - aws sns publish --topic-arn "${SNS_TOPIC_ARN}" --subject "SDPM Deployment Complete" --message file://deployment-info.txt
-                - echo "Deployment completed successfully"
+                - |
+                  if [ "$CODEBUILD_BUILD_SUCCEEDING" = "1" ]; then
+                    aws sns publish --topic-arn "${SNS_TOPIC_ARN}" --subject "SDPM Deployment Complete" --message file://deployment-info.txt
+                  else
+                    aws sns publish --topic-arn "${SNS_TOPIC_ARN}" --subject "SDPM Deployment FAILED" --message "SDPM deployment failed. Check CodeBuild logs: https://${AWS_DEFAULT_REGION}.console.aws.amazon.com/codesuite/codebuild/projects/CodeBuild-for-${DEPLOYMENT_STACK_NAME}/history?region=${AWS_DEFAULT_REGION}"
+                  fi
                 - rm -rf sample-spec-driven-presentation-maker
           artifacts:
             files:
