@@ -235,7 +235,7 @@ Resources:
                 - cd infra
                 - npx cdk bootstrap --quiet || true
                 - npx cdk deploy --all --require-approval never
-                # Get deployment info
+                # Get deployment info and send notification
                 - cd $CODEBUILD_SRC_DIR
                 - |
                   AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -270,33 +270,34 @@ Resources:
                     fi
                   fi
 
-                  cat << INFOEOF > deployment-info.txt
-                  SDPM Deployment Completed Successfully!
-                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
-
-                  Deployment Layer: ${DEPLOYMENT_LAYER}
-                  Search Slides: ${SEARCH_SLIDES}
-                  Observability: ${OBSERVABILITY}
-                  ${MIL_WARNING:+
-                  ${MIL_WARNING}}
-
-                  Frontend URL: ${SITE_URL:-N/A (Layer 3 does not include Web UI)}
-
-                  User Credentials:
-                  Username: ${USERNAME}
-                  Note: ${USER_NOTE}
-
-                  Important Next Steps:
-                  1. Please enable model access on Amazon Bedrock:
-                     https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_DEFAULT_REGION}#/modelaccess
-
-                  2. To add additional users:
-                     ${USER_CREATION_URL:-N/A}
-
-                  Stack Details:
-                  Region: ${AWS_DEFAULT_REGION}
-
-                  INFOEOF
+                  {
+                    echo "SDPM Deployment Completed Successfully!"
+                    echo "Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')"
+                    echo ""
+                    echo "Deployment Layer: ${DEPLOYMENT_LAYER}"
+                    echo "Search Slides: ${SEARCH_SLIDES}"
+                    echo "Observability: ${OBSERVABILITY}"
+                    if [ -n "${MIL_WARNING}" ]; then
+                      echo ""
+                      echo "${MIL_WARNING}"
+                    fi
+                    echo ""
+                    echo "Frontend URL: ${SITE_URL:-N/A (Layer 3 does not include Web UI)}"
+                    echo ""
+                    echo "User Credentials:"
+                    echo "Username: ${USERNAME}"
+                    echo "Note: ${USER_NOTE}"
+                    echo ""
+                    echo "Important Next Steps:"
+                    echo "1. Please enable model access on Amazon Bedrock:"
+                    echo "   https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_DEFAULT_REGION}#/modelaccess"
+                    echo ""
+                    echo "2. To add additional users:"
+                    echo "   ${USER_CREATION_URL:-N/A}"
+                    echo ""
+                    echo "Stack Details:"
+                    echo "Region: ${AWS_DEFAULT_REGION}"
+                  } > deployment-info.txt
 
             post_build:
               commands:
