@@ -9,6 +9,7 @@ Metadata:
         Parameters:
           - NotificationEmailAddress
           - DeploymentLayer
+          - ModelId
           - SearchSlides
           - Observability
       - Label:
@@ -35,6 +36,11 @@ Parameters:
     AllowedValues: [true, false]
     Default: false
     Description: 'Enable semantic slide search (requires Bedrock Knowledge Base)'
+
+  ModelId:
+    Type: String
+    Default: 'global.anthropic.claude-sonnet-4-6'
+    Description: 'Bedrock model ID for the Agent (e.g. global.anthropic.claude-sonnet-4-6, us.anthropic.claude-sonnet-4-6, global.anthropic.claude-opus-4-6-v1)'
 
   Observability:
     Type: String
@@ -128,6 +134,8 @@ Resources:
             Value: !Ref DeploymentLayer
           - Name: SEARCH_SLIDES
             Value: !Ref SearchSlides
+          - Name: MODEL_ID
+            Value: !Ref ModelId
           - Name: OBSERVABILITY
             Value: !Ref Observability
           - Name: SNS_TOPIC_ARN
@@ -190,7 +198,26 @@ Resources:
                   features:
                     searchSlides: ${SEARCH_SLIDES}
                     observability: ${ACTUAL_OBSERVABILITY}
+                  model:
+                    modelId: "${MODEL_ID}"
                   EOF
+
+                  # Add WAF config if IP ranges are specified
+                  if [ -n "${ALLOWED_IPV4_ADDRESS_RANGES}" ] || [ -n "${ALLOWED_IPV6_ADDRESS_RANGES}" ]; then
+                    echo "  waf:" >> infra/config.yaml
+                    if [ -n "${ALLOWED_IPV4_ADDRESS_RANGES}" ]; then
+                      echo "    allowedIpV4AddressRanges:" >> infra/config.yaml
+                      echo "${ALLOWED_IPV4_ADDRESS_RANGES}" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | while read -r cidr; do
+                        [ -n "$cidr" ] && echo "      - \"${cidr}\"" >> infra/config.yaml
+                      done
+                    fi
+                    if [ -n "${ALLOWED_IPV6_ADDRESS_RANGES}" ]; then
+                      echo "    allowedIpV6AddressRanges:" >> infra/config.yaml
+                      echo "${ALLOWED_IPV6_ADDRESS_RANGES}" | tr ',' '\n' | sed 's/^ *//;s/ *$//' | while read -r cidr; do
+                        [ -n "$cidr" ] && echo "      - \"${cidr}\"" >> infra/config.yaml
+                      done
+                    fi
+                  fi
 
                   echo "Generated config.yaml:"
                   cat infra/config.yaml
