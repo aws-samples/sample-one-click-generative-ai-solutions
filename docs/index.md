@@ -1178,12 +1178,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="./assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
+      <img src="./assets/images/solutions/d360/d360-demo.gif" alt="Discovery 360 Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
+      <div class="solution-card__title"><a href="solutions/d360/">Discovery 360 (D360)</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution" target="_blank">Customer 360 Data Fusion</a> は、別々のブランドや商品の販売データを統合し自然言語処理での分析を可能にします。これによりクロスセルやブランド訴求価値についてデータからインサイトを得ることができるソリューションです。
+        <a href="https://github.com/aws-samples/sample-text2sql-agent" target="_blank">Discovery 360 (D360)</a> は、CSV をアップロードするだけで AI がテーブル設計とデータ投入を自動で行い、SQL を書かずに自然言語でデータへ問い合わせできる分析環境を構築するソリューションです。社内に散在する業務データを横断的に活用したいときに最適です。
       </div>
     </div>
   </div>
@@ -1194,10 +1194,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <option value="us-east-1">バージニア</option>
         <option value="us-west-2">オレゴン</option>
       </select>
-      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://ap-northeast-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=D360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/D360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/c360/" class="detail-button">
+      <a href="solutions/d360/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         詳しく
       </a>

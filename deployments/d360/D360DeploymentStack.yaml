@@ -1,0 +1,471 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Deploy Discovery 360 (D360) Text2SQL Agent on Bedrock AgentCore + Redshift Serverless"
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Notification"
+        Parameters:
+          - NotificationEmailAddress
+      - Label:
+          default: "Default Users"
+        Parameters:
+          - RegisterNotificationAddressAsUser
+          - DefaultUserEmails
+          - DefaultAdminEmails
+      - Label:
+          default: "Deployment"
+        Parameters:
+          - StackPrefix
+      - Label:
+          default: "Application Configuration"
+        Parameters:
+          - BedrockModelId
+          - CsvInputBucketName
+          - SqlResultThreshold
+          - EnablePromptCache
+      - Label:
+          default: "Network Restrictions"
+        Parameters:
+          - AllowedIpv4Cidrs
+          - AllowedIpv6Cidrs
+
+Parameters:
+  NotificationEmailAddress:
+    Type: String
+    Description: Email address for deployment notifications. Also auto-registered as an Agent and Admin Cognito user when RegisterNotificationAddressAsUser is true.
+    AllowedPattern: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+    ConstraintDescription: Must be a valid email address
+
+  RegisterNotificationAddressAsUser:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: 'When true, NotificationEmailAddress is registered as a Cognito user in both the Agent and Admin pools with an auto-generated temporary password (shown in the deployment-completed email). Set to false to skip this.'
+
+  DefaultUserEmails:
+    Type: String
+    Default: ""
+    Description: 'Comma-separated emails to pre-create as Agent Frontend users in Cognito. Each user receives an invitation email from Cognito with a temporary password. Additional to any auto-registered NotificationEmailAddress.'
+    AllowedPattern: "^$|^[^\\s@,]+@[^\\s@,]+\\.[^\\s@,]+(,[^\\s@,]+@[^\\s@,]+\\.[^\\s@,]+)*$"
+    ConstraintDescription: Must be a comma-separated list of valid email addresses, or blank.
+
+  DefaultAdminEmails:
+    Type: String
+    Default: ""
+    Description: 'Comma-separated emails to pre-create as Admin Frontend users in Cognito. Each user receives an invitation email from Cognito with a temporary password. Additional to any auto-registered NotificationEmailAddress.'
+    AllowedPattern: "^$|^[^\\s@,]+@[^\\s@,]+\\.[^\\s@,]+(,[^\\s@,]+@[^\\s@,]+\\.[^\\s@,]+)*$"
+    ConstraintDescription: Must be a comma-separated list of valid email addresses, or blank.
+
+  StackPrefix:
+    Type: String
+    Default: dev
+    AllowedValues: ["dev", "staging", "prod"]
+    Description: Environment prefix applied to D360 stack names
+
+  BedrockModelId:
+    Type: String
+    Default: global.anthropic.claude-sonnet-4-6
+    Description: Bedrock model ID used by the D360 agent (must be enabled in your account)
+
+  SqlResultThreshold:
+    Type: Number
+    Default: 200
+    MinValue: 1
+    Description: Maximum number of rows returned from a single SQL query
+
+  EnablePromptCache:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+    Description: Enable Bedrock prompt caching for the D360 agent
+
+  CsvInputBucketName:
+    Type: String
+    Default: ""
+    Description: Optional name of an existing S3 bucket to load CSV data from. Leave blank to create a new bucket.
+
+  AllowedIpv4Cidrs:
+    Type: String
+    Default: ""
+    AllowedPattern: "^$|^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/(3[0-2]|[12]?[0-9])(,((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])/(3[0-2]|[12]?[0-9]))*$"
+    ConstraintDescription: "Must be comma-separated IPv4 CIDR ranges (e.g. 203.0.113.0/24,198.51.100.1/32) or blank"
+    Description: 'Allowed IPv4 CIDR ranges for WAF (comma separated). Leave blank to use the upstream default (currently 0.0.0.0/1,128.0.0.0/1 which covers all IPv4 addresses).'
+
+  AllowedIpv6Cidrs:
+    Type: String
+    Default: ""
+    AllowedPattern: "^$|^([0-9a-fA-F:]+)/([0-9]|[1-9][0-9]|1[01][0-9]|12[0-8])(,([0-9a-fA-F:]+)/([0-9]|[1-9][0-9]|1[01][0-9]|12[0-8]))*$"
+    ConstraintDescription: "Must be comma-separated IPv6 CIDR ranges (e.g. 2001:db8::/32) or blank"
+    Description: 'Allowed IPv6 CIDR ranges for WAF (comma separated). Leave blank to use the upstream default (currently ::/1,8000::/1 which covers all IPv6 addresses).'
+
+Resources:
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: D360 Deployment Notifications
+      TopicName: !Sub "Notification-for-${AWS::StackName}"
+      KmsMasterKeyId: "alias/aws/sns"
+
+  SNSSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      TopicArn: !Ref SNSTopic
+      Endpoint: !Ref NotificationEmailAddress
+
+  CodeBuildServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AdministratorAccess
+      Policies:
+        - PolicyName: SNSPublishPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref SNSTopic
+
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: !Sub "${AWS::StackName}-build"
+      ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+      Artifacts:
+        Type: NO_ARTIFACTS
+      Environment:
+        Type: ARM_CONTAINER
+        ComputeType: BUILD_GENERAL1_LARGE
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
+        PrivilegedMode: true
+        EnvironmentVariables:
+          - Name: SNS_TOPIC_ARN
+            Value: !Ref SNSTopic
+          - Name: NOTIFICATION_EMAIL
+            Value: !Ref NotificationEmailAddress
+          - Name: REGISTER_NOTIFICATION_AS_USER
+            Value: !Ref RegisterNotificationAddressAsUser
+          - Name: DEFAULT_USER_EMAILS
+            Value: !Ref DefaultUserEmails
+          - Name: DEFAULT_ADMIN_EMAILS
+            Value: !Ref DefaultAdminEmails
+          - Name: STACK_PREFIX
+            Value: !Ref StackPrefix
+          - Name: BEDROCK_MODEL_ID
+            Value: !Ref BedrockModelId
+          - Name: SQL_RESULT_THRESHOLD
+            Value: !Ref SqlResultThreshold
+          - Name: ENABLE_PROMPT_CACHE
+            Value: !Ref EnablePromptCache
+          - Name: CSV_INPUT_BUCKET_NAME
+            Value: !Ref CsvInputBucketName
+          - Name: ALLOWED_IPV4_CIDRS
+            Value: !Ref AllowedIpv4Cidrs
+          - Name: ALLOWED_IPV6_CIDRS
+            Value: !Ref AllowedIpv6Cidrs
+      Source:
+        Type: NO_SOURCE
+        BuildSpec: |
+          version: 0.2
+          phases:
+            install:
+              runtime-versions:
+                nodejs: 22
+                python: 3.12
+              commands:
+                - echo "Installing dependencies..."
+                - aws sns publish --topic-arn $SNS_TOPIC_ARN --message "D360 deployment started" --subject "D360 Deployment Started"
+                - docker --version
+            pre_build:
+              commands:
+                - echo "Cloning repository..."
+                - git clone https://github.com/aws-samples/sample-text2sql-agent.git
+                - cd sample-text2sql-agent
+                - echo "Installing project dependencies..."
+                - npm ci
+                - echo "Patching cdk.json with deployment parameters..."
+                - |
+                  # Only override allowedCidrs / allowedIpv6Cidrs when the user provided a value.
+                  # Leaving the params blank preserves whatever defaults ship in upstream cdk.json,
+                  # so the WAF cannot be accidentally locked down.
+                  jq --arg origin "*" \
+                     --arg model "$BEDROCK_MODEL_ID" \
+                     --arg csvBucket "$CSV_INPUT_BUCKET_NAME" \
+                     --argjson threshold "$SQL_RESULT_THRESHOLD" \
+                     --argjson promptCache "$ENABLE_PROMPT_CACHE" \
+                     --arg prefix "$STACK_PREFIX" \
+                     --arg cidrsV4 "$ALLOWED_IPV4_CIDRS" \
+                     --arg cidrsV6 "$ALLOWED_IPV6_CIDRS" \
+                     '.context.allowOrigin = $origin
+                      | .context.bedrockModelId = $model
+                      | .context.csvInputBucketName = $csvBucket
+                      | .context.sqlResultThreshold = $threshold
+                      | .context.enablePromptCache = $promptCache
+                      | .context.testAgentUser = ""
+                      | .context.testAdminUser = ""
+                      | .context.stackPrefix = $prefix
+                      | (if $cidrsV4 != "" then .context.allowedCidrs = ($cidrsV4 | split(",")) else . end)
+                      | (if $cidrsV6 != "" then .context.allowedIpv6Cidrs = ($cidrsV6 | split(",")) else . end)' \
+                     cdk.json > cdk.json.tmp && mv cdk.json.tmp cdk.json
+                - cat cdk.json
+            build:
+              commands:
+                - echo "Bootstrapping CDK in deployment region and us-east-1 (for CloudFront WAF)..."
+                - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                - npx cdk bootstrap aws://${AWS_ACCOUNT_ID}/${AWS_DEFAULT_REGION}
+                - |
+                  if [ "$AWS_DEFAULT_REGION" != "us-east-1" ]; then
+                    npx cdk bootstrap aws://${AWS_ACCOUNT_ID}/us-east-1
+                  fi
+                - echo "Deploying D360 stacks..."
+                - npx cdk deploy --all --require-approval never
+            post_build:
+              commands:
+                - |
+                  if [ "$CODEBUILD_BUILD_SUCCEEDING" = "0" ]; then
+                    aws sns publish --topic-arn "$SNS_TOPIC_ARN" \
+                      --subject "D360 Deployment Failed" \
+                      --message "D360 deployment failed during the build phase. Check CodeBuild logs at: https://${AWS_DEFAULT_REGION}.console.aws.amazon.com/codesuite/codebuild/projects/${CODEBUILD_BUILD_ID%%:*}/build/${CODEBUILD_BUILD_ID}/?region=${AWS_DEFAULT_REGION}"
+                    exit 1
+                  fi
+                - echo "Collecting deployment outputs..."
+                - APP_STACK_NAME="${STACK_PREFIX}DwhAgentStack"
+                - AGENT_URL=$(aws cloudformation describe-stacks --stack-name $APP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='AgentFrontendUrl'].OutputValue" --output text)
+                - ADMIN_URL=$(aws cloudformation describe-stacks --stack-name $APP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='AdminFrontendUrl'].OutputValue" --output text)
+                - AGENT_USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $APP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='AgentCognitoUserPoolId'].OutputValue" --output text)
+                - ADMIN_USER_POOL_ID=$(aws cloudformation describe-stacks --stack-name $APP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='AdminCognitoUserPoolId'].OutputValue" --output text)
+                - CSV_BUCKET=$(aws cloudformation describe-stacks --stack-name $APP_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='CsvBucketName'].OutputValue" --output text)
+                - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+                - |
+                  # Read the effective CIDRs from the (post-patch) cdk.json, so the email shows the
+                  # exact values the WAF was deployed with, whether the user overrode them or not.
+                  EFFECTIVE_V4=$(jq -r '.context.allowedCidrs | join(",")' "$CODEBUILD_SRC_DIR/sample-text2sql-agent/cdk.json")
+                  EFFECTIVE_V6=$(jq -r '.context.allowedIpv6Cidrs | join(",")' "$CODEBUILD_SRC_DIR/sample-text2sql-agent/cdk.json")
+
+                  generate_cognito_password() {
+                    local base
+                    base="$(openssl rand -base64 18 | tr -d '/=+' | head -c 16)"
+                    printf '%sAa1!' "$base"
+                  }
+
+                  # Cognito rejects usernames that look like emails when the pool uses email as a
+                  # sign-in alias. Use the local part of the email (before '@') as the username.
+                  # Users still sign in with their email (signInAliases.email=true).
+                  # Note: distinct emails sharing a local part (e.g. alice@a.com and alice@b.com)
+                  # will collide; the second create-user call returns "user already exists".
+                  cognito_username_for_email() {
+                    printf '%s' "${1%%@*}"
+                  }
+
+                  # Register NotificationEmailAddress with a generated password and suppressed email.
+                  # Returns the password on stdout on success, empty string on failure.
+                  register_notification_user() {
+                    local pool_id="$1"
+                    local email="$2"
+                    local username
+                    username="$(cognito_username_for_email "$email")"
+                    local password
+                    password="$(generate_cognito_password)"
+                    local err
+                    if err=$(aws cognito-idp admin-create-user \
+                        --user-pool-id "$pool_id" \
+                        --username "$username" \
+                        --temporary-password "$password" \
+                        --user-attributes "Name=email,Value=$email" "Name=email_verified,Value=true" \
+                        --message-action SUPPRESS 2>&1 >/dev/null); then
+                      printf '%s' "$password"
+                    else
+                      echo "register_notification_user failed for $email in $pool_id: $err" >&2
+                    fi
+                  }
+
+                  # Create users via Cognito's default invitation email flow.
+                  invite_cognito_users() {
+                    local pool_id="$1"
+                    local emails="$2"
+                    local results=""
+                    for email in $(echo "$emails" | tr ',' '\n' | sed 's/^ *//;s/ *$//'); do
+                      [ -z "$email" ] && continue
+                      local username
+                      username="$(cognito_username_for_email "$email")"
+                      local err
+                      if err=$(aws cognito-idp admin-create-user \
+                          --user-pool-id "$pool_id" \
+                          --username "$username" \
+                          --user-attributes "Name=email,Value=$email" "Name=email_verified,Value=true" \
+                          --desired-delivery-mediums EMAIL 2>&1 >/dev/null); then
+                        results="${results}    - ${email} (invitation email sent)\n"
+                      else
+                        echo "invite_cognito_users failed for $email in $pool_id: $err" >&2
+                        results="${results}    - ${email} (creation failed — see CodeBuild logs)\n"
+                      fi
+                    done
+                    printf "%b" "$results"
+                  }
+
+                  NOTIFICATION_AGENT_PASSWORD=""
+                  NOTIFICATION_ADMIN_PASSWORD=""
+                  if [ "$REGISTER_NOTIFICATION_AS_USER" = "true" ]; then
+                    NOTIFICATION_AGENT_PASSWORD=$(register_notification_user "$AGENT_USER_POOL_ID" "$NOTIFICATION_EMAIL")
+                    NOTIFICATION_ADMIN_PASSWORD=$(register_notification_user "$ADMIN_USER_POOL_ID" "$NOTIFICATION_EMAIL")
+                  fi
+
+                  INVITED_AGENT_USERS=""
+                  INVITED_ADMIN_USERS=""
+                  if [ -n "$DEFAULT_USER_EMAILS" ]; then
+                    INVITED_AGENT_USERS=$(invite_cognito_users "$AGENT_USER_POOL_ID" "$DEFAULT_USER_EMAILS")
+                  fi
+                  if [ -n "$DEFAULT_ADMIN_EMAILS" ]; then
+                    INVITED_ADMIN_USERS=$(invite_cognito_users "$ADMIN_USER_POOL_ID" "$DEFAULT_ADMIN_EMAILS")
+                  fi
+
+                  # Build the notification-user section conditionally
+                  NOTIFICATION_USER_SECTION=""
+                  if [ "$REGISTER_NOTIFICATION_AS_USER" = "true" ]; then
+                    NOTIFICATION_USERNAME="$(cognito_username_for_email "$NOTIFICATION_EMAIL")"
+                    AGENT_LINE="    Password: ${NOTIFICATION_AGENT_PASSWORD:-(creation failed — user may already exist)}"
+                    ADMIN_LINE="    Password: ${NOTIFICATION_ADMIN_PASSWORD:-(creation failed — user may already exist)}"
+                    NOTIFICATION_USER_SECTION=$(cat <<NOTIF
+                  Auto-registered user (${NOTIFICATION_USERNAME}):
+                    Sign in with email: ${NOTIFICATION_EMAIL}
+                    Agent Frontend (${AGENT_URL}):
+                  ${AGENT_LINE}
+                    Admin Frontend (${ADMIN_URL}):
+                  ${ADMIN_LINE}
+                  !! Sign in and change this temporary password immediately.
+                  NOTIF
+                  )
+                  fi
+
+                  INVITED_SECTION=""
+                  if [ -n "$INVITED_AGENT_USERS$INVITED_ADMIN_USERS" ]; then
+                    INVITED_SECTION=$(cat <<INV
+                  Additional users invited by Cognito email:
+                    Agent Frontend (pool ${AGENT_USER_POOL_ID}):
+                  ${INVITED_AGENT_USERS:-    (none)}
+                    Admin Frontend (pool ${ADMIN_USER_POOL_ID}):
+                  ${INVITED_ADMIN_USERS:-    (none)}
+                  Each invited user receives a Cognito invitation email with their own temporary password.
+                  INV
+                  )
+                  fi
+
+                  AGENT_USER_MGMT_URL="https://${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${AGENT_USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+                  ADMIN_USER_MGMT_URL="https://${AWS_DEFAULT_REGION}.console.aws.amazon.com/cognito/v2/idp/user-pools/${ADMIN_USER_POOL_ID}/user-management/users?region=${AWS_DEFAULT_REGION}"
+
+                  cat > deployment-info.txt << EOF
+                  D360 (Discovery 360) Deployment Completed Successfully!
+                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+
+                  Agent Frontend URL : ${AGENT_URL}
+                  Admin Frontend URL : ${ADMIN_URL}
+
+                  Configuration:
+                  Stack Prefix         : ${STACK_PREFIX}
+                  Bedrock Model ID     : ${BEDROCK_MODEL_ID}
+                  SQL Result Threshold : ${SQL_RESULT_THRESHOLD}
+                  Prompt Cache Enabled : ${ENABLE_PROMPT_CACHE}
+                  CSV Input Bucket     : ${CSV_INPUT_BUCKET_NAME:-${CSV_BUCKET} (auto-created)}
+                  Allowed IPv4 Ranges  : ${EFFECTIVE_V4}
+                  Allowed IPv6 Ranges  : ${EFFECTIVE_V6}
+
+                  ${NOTIFICATION_USER_SECTION:-Notification address not registered as a Cognito user (RegisterNotificationAddressAsUser=false).}
+
+                  ${INVITED_SECTION}
+
+                  Important Next Steps:
+                  1. Enable Bedrock model access for ${BEDROCK_MODEL_ID} in the Bedrock console
+                  2. Enable Bedrock AgentCore Observability in CloudWatch (Transaction Search)
+                  3. Sign in to the Admin Frontend, go to "Upload & Build", upload your CSVs and run Analyze -> Confirm
+                  4. Once schema generation completes, end users can sign in to the Agent Frontend
+
+                  Cognito user management consoles:
+                    Agent users : ${AGENT_USER_MGMT_URL}
+                    Admin users : ${ADMIN_USER_MGMT_URL}
+
+                  Stack Details:
+                  App Stack : ${APP_STACK_NAME}
+                  WAF Stack : ${STACK_PREFIX}DwhAgentWafStack (us-east-1)
+                  Region    : ${AWS_DEFAULT_REGION}
+
+                  For more information, visit: https://github.com/aws-samples/sample-text2sql-agent
+                  EOF
+                - aws sns publish --topic-arn $SNS_TOPIC_ARN --subject "D360 Deployment Completed" --message file://deployment-info.txt
+
+  LambdaTriggerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CodeBuildStartPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:StartBuild
+                Resource: !GetAtt CodeBuildProject.Arn
+
+  LambdaTriggerFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}-trigger"
+      Runtime: python3.11
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaTriggerRole.Arn
+      Code:
+        ZipFile: |
+          import boto3
+          import cfnresponse
+
+          def lambda_handler(event, context):
+              try:
+                  if event['RequestType'] == 'Create':
+                      codebuild = boto3.client('codebuild')
+                      project_name = event['ResourceProperties']['ProjectName']
+
+                      response = codebuild.start_build(projectName=project_name)
+                      build_id = response['build']['id']
+
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {
+                          'BuildId': build_id
+                      })
+                  else:
+                      cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
+              except Exception as e:
+                  print(f"Error: {str(e)}")
+                  cfnresponse.send(event, context, cfnresponse.FAILED, {})
+
+  TriggerBuild:
+    Type: AWS::CloudFormation::CustomResource
+    Properties:
+      ServiceToken: !GetAtt LambdaTriggerFunction.Arn
+      ProjectName: !Ref CodeBuildProject
+
+Outputs:
+  SNSTopicArn:
+    Description: SNS Topic ARN for notifications
+    Value: !Ref SNSTopic
+
+  CodeBuildProjectName:
+    Description: CodeBuild project name
+    Value: !Ref CodeBuildProject
