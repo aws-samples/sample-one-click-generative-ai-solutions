@@ -1150,12 +1150,12 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="document">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="../assets/images/solutions/c360/c360-demo.gif" alt="Customer 360 Data Fusion Demo" style="display: block;">
+      <img src="../assets/images/solutions/d360/d360-demo.gif" alt="Discovery 360 Demo" style="display: block;">
     </div>
     <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/c360/">Customer 360 Data Fusion</a></div>
+      <div class="solution-card__title"><a href="solutions/d360/">Discovery 360 (D360)</a></div>
       <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-c360-text2sql-segmentation-entityresolution" target="_blank">Customer 360 Data Fusion</a> leverages AWS Entity Resolution to match and integrate customer data across different data sources, enabling natural language segment creation for comprehensive Customer 360 implementation.
+        <a href="https://github.com/aws-samples/sample-text2sql-agent" target="_blank">Discovery 360 (D360)</a> builds an analytical environment from your CSV files — AI automatically handles table design and data loading, and users query the data warehouse in natural language without writing SQL. Ideal for unlocking business data scattered across the organization.
       </div>
     </div>
   </div>
@@ -1166,10 +1166,10 @@ document.addEventListener('DOMContentLoaded', function() {
         <option value="us-west-2">Oregon</option>
         <option value="ap-northeast-1">Tokyo</option>
       </select>
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=C360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/C360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=D360DeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/D360DeploymentStack.yaml" class="deployment-button md-button" target="_blank">
         <i class="fa-solid fa-rocket"></i>　Deploy
       </a>
-      <a href="solutions/c360/" class="detail-button">
+      <a href="solutions/d360/" class="detail-button">
         <i class="fa-solid fa-file-lines"></i>
         Details
       </a>
