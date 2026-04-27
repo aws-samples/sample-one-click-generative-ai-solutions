@@ -105,4 +105,5 @@ nav:
     - 'Remote SWE Agents': 'solutions/remote-swe-agents.md'
     - 'Bedrock Engineer': 'solutions/bedrock-engineer.md'
     - 'Langfuse': 'solutions/langfuse.md'
+    - 'Spec-Driven Presentation Maker': 'solutions/sdpm.md'
 #  - License: 'general/license.md'
