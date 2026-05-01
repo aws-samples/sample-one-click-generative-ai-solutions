@@ -904,7 +904,7 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
-      <img src="../assets/images/solutions/sdpm/workflow-ja.png" alt="SDPM Workflow" style="display: block;">
+      <img src="./assets/images/solutions/sdpm/workflow-ja.png" alt="SDPM Workflow" style="display: block;">
     </div>
     <div class="solution-card__content">
       <div class="solution-card__title"><a href="solutions/sdpm/">Spec-Driven Presentation Maker</a></div>

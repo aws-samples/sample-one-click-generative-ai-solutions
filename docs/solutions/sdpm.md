@@ -9,7 +9,7 @@
 - **4層アーキテクチャ**: Kiro CLIスキルからフルスタックWebアプリまで
 - **MCP対応**: Claude Desktop, VS Code, Kiro等のMCPクライアントで利用可能
 
-![SDPM ワークフロー](../assets/images/solutions/sdpm/workflow-ja.png)
+![SDPM ワークフロー](./assets/images/solutions/sdpm/workflow-ja.png)
 
 ## AWS へのデプロイ
 
