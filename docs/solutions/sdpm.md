@@ -48,15 +48,12 @@
 
 デプロイのボタンを押すと、しばらくしてから `AWS Notification - Subscription Confirmation` というメールが届くため `Confirm subscription` のリンクを押してください。これで、デプロイの開始、終了のメールが届くようになります。
 
-デプロイが完了すると通知メールが届きます。通知メールには以下の情報が含まれます：
-
-1. CloudFront URL
-2. Cognitoでのユーザー作成手順
+デプロイが完了すると通知メールが届きます。通知メールには CloudFront URL 等のアクセス情報が含まれます。また、通知メールアドレスで Cognito ユーザーが自動作成され、仮パスワードが別メールで届きます。
 
 **Layer 4（フルスタック）の場合:**
 
-1. Amazon Cognitoでユーザーを作成
-2. CloudFront URLからWebアプリにアクセス
+1. 仮パスワードのメールを確認
+2. CloudFront URL からWebアプリにアクセスし、初回ログイン時にパスワードを変更
 
 **Layer 3（MCPサーバーのみ）の場合:**
 

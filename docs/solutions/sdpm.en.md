@@ -48,15 +48,12 @@ You can configure the following parameters during deployment:
 
 After clicking the deployment button, you will receive an email titled `AWS Notification - Subscription Confirmation` after a short while. Click the `Confirm subscription` link to start receiving deployment start and completion notifications.
 
-When deployment is complete, you'll receive a notification email containing:
-
-1. CloudFront URL
-2. Instructions for creating users in Cognito
+When deployment is complete, you'll receive a notification email containing access information such as the CloudFront URL. A Cognito user is automatically created with your notification email address, and a temporary password is sent in a separate email.
 
 **For Layer 4 (Full Stack):**
 
-1. Create a user in Amazon Cognito
-2. Access the web app via the CloudFront URL
+1. Check the temporary password email
+2. Access the web app via the CloudFront URL and change your password on first login
 
 **For Layer 3 (MCP Server Only):**
 
