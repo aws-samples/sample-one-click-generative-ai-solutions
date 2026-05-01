@@ -41,9 +41,6 @@ You can configure the following parameters during deployment:
 * **AllowedIpV4AddressRanges**: Optional IPv4 allow list for access restrictions. Specify the CIDR ranges that should be allowed to access the application
 * **AllowedIpV6AddressRanges**: Optional IPv6 allow list for access restrictions. Specify the CIDR ranges that should be allowed to access the application
 
-!!! info "Slide Search"
-    Semantic slide search is enabled by default. It uses Bedrock Knowledge Base (Titan Embed V2) + S3 Vectors. Expected cost is **under $0.05/month** for standard usage (1,000 slides, 100 searches/month). See [SDPM Cost Estimates](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/cost.md) for details.
-
 !!! warning "Security Considerations"
     For production use, the following security measures are recommended:
 

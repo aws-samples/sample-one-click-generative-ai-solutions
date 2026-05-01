@@ -41,9 +41,6 @@
 * **AllowedIpV4AddressRanges**: アクセスを許可する IPv4 アドレス範囲（CIDR）を指定します。推奨される IP 制限を適用する際に使用します
 * **AllowedIpV6AddressRanges**: アクセスを許可する IPv6 アドレス範囲（CIDR）を指定します。IPv6 環境での IP 制限に使用します
 
-!!! info "スライド検索機能"
-    セマンティックスライド検索はデフォルトで有効です。Bedrock Knowledge Base（Titan Embed V2）+ S3 Vectors の構成で動作します。想定コストは標準利用で **月額 $0.05 以下**（1,000 スライド・月 100 検索規模）です。詳細は [SDPM コスト試算](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/cost.md) を参照してください。
-
 !!! warning "セキュリティに関する注意点"
     本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
 
