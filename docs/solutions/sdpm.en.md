@@ -66,4 +66,4 @@ For MCP client connection instructions, see the [Agent Connection Guide](https:/
 
 ### Uninstallation
 
-For instructions on deleting the deployed resources, see the [Uninstall Guide](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/uninstall.md) in the SDPM repository. We recommend using `go-to-k/delstack` for one-shot deletion.
+We recommend using [go-to-k/delstack](https://github.com/go-to-k/delstack) to delete deployed resources. See the [Uninstall Guide](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/uninstall.md) in the SDPM repository for detailed steps.

@@ -66,4 +66,4 @@ MCP クライアントの接続方法は、SDPM リポジトリの [エージェ
 
 ### リソースの削除
 
-デプロイしたリソースを一括削除する手順は、SDPM リポジトリの [削除手順](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/uninstall.md) を参照してください（`go-to-k/delstack` を使った一発削除を推奨しています）。
+デプロイしたリソースの削除には [go-to-k/delstack](https://github.com/go-to-k/delstack) の利用を推奨しています。詳細な手順は SDPM リポジトリの [削除手順](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/uninstall.md) を参照してください。
