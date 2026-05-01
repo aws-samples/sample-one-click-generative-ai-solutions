@@ -42,11 +42,7 @@
 * **AllowedIpV6AddressRanges**: アクセスを許可する IPv6 アドレス範囲（CIDR）を指定します。IPv6 環境での IP 制限に使用します
 
 !!! warning "セキュリティに関する注意点"
-    本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
-
-    1. **IP制限の設定**: `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges` でアクセス可能なIPアドレスを制限
-    2. **セルフサインアップの無効化**: 管理者がユーザーを作成
-    3. **メールドメイン制限**: 特定のドメインからのサインアップのみを許可
+    `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges` を設定し、アクセス元 IP を制限することを推奨します。
 
 ### デプロイ後の設定
 

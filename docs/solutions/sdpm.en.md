@@ -42,11 +42,7 @@ You can configure the following parameters during deployment:
 * **AllowedIpV6AddressRanges**: Optional IPv6 allow list for access restrictions. Specify the CIDR ranges that should be allowed to access the application
 
 !!! warning "Security Considerations"
-    For production use, the following security measures are recommended:
-
-    1. **IP Restrictions**: Restrict access using `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges`
-    2. **Disable Self-Signup**: Have administrators create users
-    3. **Email Domain Restrictions**: Allow signups only from specific domains
+    We recommend setting `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges` to restrict access by source IP.
 
 ### Post-Deployment Setup
 
