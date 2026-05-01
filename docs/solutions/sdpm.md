@@ -62,7 +62,7 @@
 
 1. MCPクライアント（Claude Desktop, VS Code, Kiro等）からデプロイされたMCPサーバーエンドポイントに接続
 
-MCP クライアントの詳細な設定方法（mcp.json、Cognito/IAM 認証、mcp-proxy-for-aws、WAF 推奨設定など）は、SDPM リポジトリの [MCP 接続ガイド](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/add-to-gateway.md) を参照してください。
+MCP クライアントの接続方法は、SDPM リポジトリの [エージェント接続ガイド](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/add-to-gateway.md) を参照してください。
 
 ### リソースの削除
 

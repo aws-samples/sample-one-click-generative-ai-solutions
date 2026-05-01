@@ -62,7 +62,7 @@ When deployment is complete, you'll receive a notification email containing:
 
 1. Connect to the deployed MCP server endpoint using an MCP client (Claude Desktop, VS Code, Kiro, etc.)
 
-For detailed MCP client setup (mcp.json, Cognito/IAM authentication, mcp-proxy-for-aws), see [Connecting MCP Clients](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/add-to-gateway.md) in the SDPM repository.
+For MCP client connection instructions, see the [Agent Connection Guide](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/add-to-gateway.md) in the SDPM repository.
 
 ### Uninstallation
 
