@@ -91,6 +91,7 @@ nav:
       - 'Use Case Builder': 'solutions/generative-ai-use-cases-ready-to-use.md'
       - 'Update Guide': 'solutions/generative-ai-use-cases-update.md'
     - 'Dify': 'solutions/dify.md'
+    - 'Spec-Driven Presentation Maker': 'solutions/sdpm.md'
     - 'Kiro IDE Remote': 'solutions/kiro-ide.md'
     - 'Cursor IDE Remote': 'solutions/cursor-ide.md'
     - 'AI Agent Development Code Server': 'solutions/aiagentdev.md'
@@ -104,5 +105,4 @@ nav:
     - 'Remote SWE Agents': 'solutions/remote-swe-agents.md'
     - 'Bedrock Engineer': 'solutions/bedrock-engineer.md'
     - 'Langfuse': 'solutions/langfuse.md'
-    - 'Spec-Driven Presentation Maker': 'solutions/sdpm.md'
 #  - License: 'general/license.md'

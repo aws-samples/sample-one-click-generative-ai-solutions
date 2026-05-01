@@ -1,6 +1,6 @@
 # Spec-Driven Presentation Maker (SDPM)
 
-[Spec-Driven Presentation Maker](https://github.com/aws-samples/sample-spec-driven-presentation-maker) is an open-source toolkit for creating presentations using a spec-driven development approach. Design 'what to convey' first, and let AI build 'how to present it'.
+[Spec-Driven Presentation Maker](https://github.com/aws-samples/sample-spec-driven-presentation-maker) is an open-source application that creates presentation materials using generative AI. It uses a spec-driven development approach — design 'what to convey' first, and let AI build 'how to present it' — to generate structured, high-quality slides.
 
 ## Key Features
 
@@ -36,13 +36,18 @@ You can configure the following parameters during deployment:
 * **DeploymentLayer**: Deployment layer (default: layer4)
     - `layer3`: MCP Server only
     - `layer4`: Full stack with Agent + Web UI
-* **SearchSlides**: Enable semantic slide search (default: false). Uses Bedrock Knowledge Base
-* **Observability**: Enable Bedrock Model Invocation Logging (default: false)
+* **ModelId** (default: global.anthropic.claude-sonnet-4-6): Amazon Bedrock model ID to use for presentation generation. Select a model that is available in your target AWS Region and enabled for your account
+* **EnableInvocationLogging** (default: false): Enable Bedrock Model Invocation Logging
+* **AllowedIpV4AddressRanges**: Optional IPv4 allow list for access restrictions. Specify the CIDR ranges that should be allowed to access the application
+* **AllowedIpV6AddressRanges**: Optional IPv6 allow list for access restrictions. Specify the CIDR ranges that should be allowed to access the application
+
+!!! info "Slide Search"
+    Semantic slide search is enabled by default. It uses Bedrock Knowledge Base (Titan Embed V2) + S3 Vectors. Expected cost is **under $0.05/month** for standard usage (1,000 slides, 100 searches/month). See [SDPM Cost Estimates](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/cost.md) for details.
 
 !!! warning "Security Considerations"
     For production use, the following security measures are recommended:
 
-    1. **IP Restrictions**: Restrict access to specific IP addresses
+    1. **IP Restrictions**: Restrict access using `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges`
     2. **Disable Self-Signup**: Have administrators create users
     3. **Email Domain Restrictions**: Allow signups only from specific domains
 
@@ -64,13 +69,8 @@ When deployment is complete, you'll receive a notification email containing:
 
 1. Connect to the deployed MCP server endpoint using an MCP client (Claude Desktop, VS Code, Kiro, etc.)
 
-### Resource Removal
+For detailed MCP client setup (mcp.json, Cognito/IAM authentication, mcp-proxy-for-aws), see [Connecting MCP Clients](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/add-to-gateway.md) in the SDPM repository.
 
-To remove deployed resources, delete the following stacks from the CloudFormation console in reverse dependency order:
+### Uninstallation
 
-1. `SdpmWebUi`
-2. `SdpmAgent`
-3. `SdpmRuntime`
-4. `SdpmData`
-5. `SdpmAuth`
-6. `SdpmDeploymentStack`
+For instructions on deleting the deployed resources, see the [Uninstall Guide](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/en/uninstall.md) in the SDPM repository. We recommend using `go-to-k/delstack` for one-shot deletion.

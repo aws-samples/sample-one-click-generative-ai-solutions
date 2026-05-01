@@ -10,8 +10,7 @@ Metadata:
           - NotificationEmailAddress
           - DeploymentLayer
           - ModelId
-          - SearchSlides
-          - Observability
+          - EnableInvocationLogging
       - Label:
           default: "SDPM Security Parameters"
         Parameters:
@@ -31,18 +30,12 @@ Parameters:
     Default: layer4
     Description: 'Layer 3: MCP Server only. Layer 4: Full stack with Agent + Web UI'
 
-  SearchSlides:
-    Type: String
-    AllowedValues: [true, false]
-    Default: false
-    Description: 'Enable semantic slide search (requires Bedrock Knowledge Base)'
-
   ModelId:
     Type: String
     Default: 'global.anthropic.claude-sonnet-4-6'
     Description: 'Bedrock model ID for the Agent (e.g. global.anthropic.claude-sonnet-4-6, us.anthropic.claude-sonnet-4-6, global.anthropic.claude-opus-4-6-v1)'
 
-  Observability:
+  EnableInvocationLogging:
     Type: String
     AllowedValues: [true, false]
     Default: false
@@ -132,12 +125,10 @@ Resources:
         EnvironmentVariables:
           - Name: DEPLOYMENT_LAYER
             Value: !Ref DeploymentLayer
-          - Name: SEARCH_SLIDES
-            Value: !Ref SearchSlides
           - Name: MODEL_ID
             Value: !Ref ModelId
-          - Name: OBSERVABILITY
-            Value: !Ref Observability
+          - Name: ENABLE_INVOCATION_LOGGING
+            Value: !Ref EnableInvocationLogging
           - Name: SNS_TOPIC_ARN
             Value: !Ref DeploymentNotificationTopic
           - Name: NOTIFICATION_EMAIL
@@ -176,15 +167,15 @@ Resources:
                     WEBUI_ENABLED=true
                   fi
 
-                  ACTUAL_OBSERVABILITY="${OBSERVABILITY}"
+                  ACTUAL_INVOCATION_LOGGING="${ENABLE_INVOCATION_LOGGING}"
                   MIL_WARNING=""
-                  if [ "${OBSERVABILITY}" = "true" ]; then
+                  if [ "${ENABLE_INVOCATION_LOGGING}" = "true" ]; then
                     EXISTING_MIL=$(aws bedrock get-model-invocation-logging-configuration \
                       --query 'loggingConfig.cloudWatchConfig.logGroupName' --output text 2>/dev/null || echo "None")
                     if [ "${EXISTING_MIL}" != "None" ] && [ -n "${EXISTING_MIL}" ]; then
-                      echo "WARNING: Existing Model Invocation Logging detected (${EXISTING_MIL}). Skipping observability to avoid overwriting."
-                      ACTUAL_OBSERVABILITY=false
-                      MIL_WARNING="WARNING: Observability was requested but SKIPPED because Model Invocation Logging is already configured (log group: ${EXISTING_MIL}). To avoid overwriting the existing configuration, observability was set to false."
+                      echo "WARNING: Existing Model Invocation Logging detected (${EXISTING_MIL}). Skipping to avoid overwriting."
+                      ACTUAL_INVOCATION_LOGGING=false
+                      MIL_WARNING="WARNING: Invocation Logging was requested but SKIPPED because Model Invocation Logging is already configured (log group: ${EXISTING_MIL}). To avoid overwriting the existing configuration, it was set to false."
                     fi
                   fi
                   export MIL_WARNING
@@ -196,8 +187,7 @@ Resources:
                     agent: ${AGENT_ENABLED}
                     webUi: ${WEBUI_ENABLED}
                   features:
-                    searchSlides: ${SEARCH_SLIDES}
-                    observability: ${ACTUAL_OBSERVABILITY}
+                    enableInvocationLogging: ${ACTUAL_INVOCATION_LOGGING}
                   model:
                     modelId: "${MODEL_ID}"
                   EOF
@@ -233,7 +223,13 @@ Resources:
                   fi
                 # CDK bootstrap and deploy
                 - cd infra
-                - npx cdk bootstrap --quiet || true
+                - |
+                  if aws cloudformation describe-stacks --stack-name CDKToolkit >/dev/null 2>&1; then
+                    echo "CDK bootstrap stack already exists. Skipping bootstrap."
+                  else
+                    echo "CDK bootstrap stack not found. Running bootstrap..."
+                    npx cdk bootstrap --quiet
+                  fi
                 - npx cdk deploy --all --require-approval never
                 # Get deployment info
                 - cd $CODEBUILD_SRC_DIR
@@ -271,32 +267,31 @@ Resources:
                   fi
 
                   cat << INFOEOF > deployment-info.txt
-                  SDPM Deployment Completed Successfully!
-                  Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
+          SDPM Deployment Completed Successfully!
+          Deployment Time: $(date '+%Y-%m-%d %H:%M:%S')
 
-                  Deployment Layer: ${DEPLOYMENT_LAYER}
-                  Search Slides: ${SEARCH_SLIDES}
-                  Observability: ${OBSERVABILITY}
-                  ${MIL_WARNING:+
-                  ${MIL_WARNING}}
+          Deployment Layer: ${DEPLOYMENT_LAYER}
+          Invocation Logging: ${ACTUAL_INVOCATION_LOGGING}
+          ${MIL_WARNING:+
+          ${MIL_WARNING}}
 
-                  Frontend URL: ${SITE_URL:-N/A (Layer 3 does not include Web UI)}
+          Frontend URL: ${SITE_URL:-N/A (Layer 3 does not include Web UI)}
 
-                  User Credentials:
-                  Username: ${USERNAME}
-                  Note: ${USER_NOTE}
+          User Credentials:
+          Username: ${USERNAME}
+          Note: ${USER_NOTE}
 
-                  Important Next Steps:
-                  1. Please enable model access on Amazon Bedrock:
-                     https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_DEFAULT_REGION}#/modelaccess
+          Important Next Steps:
+          1. Please enable model access on Amazon Bedrock:
+             https://${AWS_ACCOUNT_ID}.${AWS_DEFAULT_REGION}.console.aws.amazon.com/bedrock/home?region=${AWS_DEFAULT_REGION}#/modelaccess
 
-                  2. To add additional users:
-                     ${USER_CREATION_URL:-N/A}
+          2. To add additional users:
+             ${USER_CREATION_URL:-N/A}
 
-                  Stack Details:
-                  Region: ${AWS_DEFAULT_REGION}
+          Stack Details:
+          Region: ${AWS_DEFAULT_REGION}
 
-                  INFOEOF
+          INFOEOF
 
             post_build:
               commands:

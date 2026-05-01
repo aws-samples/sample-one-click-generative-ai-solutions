@@ -1,6 +1,6 @@
 # Spec-Driven Presentation Maker (SDPM)
 
-[Spec-Driven Presentation Maker](https://github.com/aws-samples/sample-spec-driven-presentation-maker) は、仕様駆動開発のアプローチでプレゼンテーション資料を作成するオープンソースツールキットです。「何を伝えるか」を先に設計し、「どう見せるか」を AI が構築します。
+[Spec-Driven Presentation Maker](https://github.com/aws-samples/sample-spec-driven-presentation-maker) は、プレゼンテーション資料を生成 AI で作成できるオープンソースのアプリケーションです。仕様駆動開発のアプローチを用いて、「何を伝えるか」を先に設計し、「どう見せるか」を AI が構築することで、構造化された高品質なスライドを生成します。
 
 ## 主な機能
 
@@ -9,7 +9,7 @@
 - **4層アーキテクチャ**: Kiro CLIスキルからフルスタックWebアプリまで
 - **MCP対応**: Claude Desktop, VS Code, Kiro等のMCPクライアントで利用可能
 
-![SDPM ワークフロー](./assets/images/solutions/sdpm/workflow-ja.png)
+![SDPM ワークフロー](../assets/images/solutions/sdpm/workflow-ja.png)
 
 ## AWS へのデプロイ
 
@@ -36,13 +36,18 @@
 * **DeploymentLayer**: デプロイするレイヤー（デフォルト: layer4）
     - `layer3`: MCPサーバーのみ
     - `layer4`: Agent + Web UIを含むフルスタック
-* **SearchSlides**: セマンティックスライド検索の有効化（デフォルト: false）。Bedrock Knowledge Baseを使用します
-* **Observability**: Bedrock Model Invocation Loggingの有効化（デフォルト: false）
+* **ModelId** (デフォルト: global.anthropic.claude-sonnet-4-6): Agent が使用する Amazon Bedrock のモデル ID です。必要に応じて別のモデルへ変更できます
+* **EnableInvocationLogging** (デフォルト: false): Bedrock Model Invocation Logging の有効/無効を切り替えます
+* **AllowedIpV4AddressRanges**: アクセスを許可する IPv4 アドレス範囲（CIDR）を指定します。推奨される IP 制限を適用する際に使用します
+* **AllowedIpV6AddressRanges**: アクセスを許可する IPv6 アドレス範囲（CIDR）を指定します。IPv6 環境での IP 制限に使用します
+
+!!! info "スライド検索機能"
+    セマンティックスライド検索はデフォルトで有効です。Bedrock Knowledge Base（Titan Embed V2）+ S3 Vectors の構成で動作します。想定コストは標準利用で **月額 $0.05 以下**（1,000 スライド・月 100 検索規模）です。詳細は [SDPM コスト試算](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/cost.md) を参照してください。
 
 !!! warning "セキュリティに関する注意点"
     本番環境で使用する場合は、以下のセキュリティ対策を推奨します：
 
-    1. **IP制限の設定**: アクセス可能なIPアドレスを制限
+    1. **IP制限の設定**: `AllowedIpV4AddressRanges` / `AllowedIpV6AddressRanges` でアクセス可能なIPアドレスを制限
     2. **セルフサインアップの無効化**: 管理者がユーザーを作成
     3. **メールドメイン制限**: 特定のドメインからのサインアップのみを許可
 
@@ -64,13 +69,8 @@
 
 1. MCPクライアント（Claude Desktop, VS Code, Kiro等）からデプロイされたMCPサーバーエンドポイントに接続
 
+MCP クライアントの詳細な設定方法（mcp.json、Cognito/IAM 認証、mcp-proxy-for-aws、WAF 推奨設定など）は、SDPM リポジトリの [MCP 接続ガイド](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/add-to-gateway.md) を参照してください。
+
 ### リソースの削除
 
-デプロイしたリソースを削除するには、CloudFormation コンソールから以下のスタックを依存関係の逆順で削除します：
-
-1. `SdpmWebUi`
-2. `SdpmAgent`
-3. `SdpmRuntime`
-4. `SdpmData`
-5. `SdpmAuth`
-6. `SdpmDeploymentStack`
+デプロイしたリソースを一括削除する手順は、SDPM リポジトリの [削除手順](https://github.com/aws-samples/sample-spec-driven-presentation-maker/blob/main/docs/ja/uninstall.md) を参照してください（`go-to-k/delstack` を使った一発削除を推奨しています）。

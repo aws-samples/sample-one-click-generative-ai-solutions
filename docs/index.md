@@ -904,6 +904,36 @@ document.addEventListener('DOMContentLoaded', function() {
 <div class="solution-card" data-category="development">
   <div class="solution-card__top">
     <div class="solution-card__image">
+      <img src="../assets/images/solutions/sdpm/workflow-ja.png" alt="SDPM Workflow" style="display: block;">
+    </div>
+    <div class="solution-card__content">
+      <div class="solution-card__title"><a href="solutions/sdpm/">Spec-Driven Presentation Maker</a></div>
+      <div class="solution-card__description">
+        <a href="https://github.com/aws-samples/sample-spec-driven-presentation-maker" target="_blank">Spec-Driven Presentation Maker</a> は、プレゼンテーション資料を生成 AI で作成できるオープンソースのアプリケーションです。仕様駆動開発のアプローチを用いて、構造化された高品質なスライドを生成します。
+      </div>
+    </div>
+  </div>
+  <div class="solution-card__actions">
+    <div class="solution-card__deployment">
+      <select class="region-selector">
+        <option value="us-east-1">バージニア</option>
+        <option value="us-west-2">オレゴン</option>
+        <option value="ap-northeast-1">東京</option>
+      </select>
+      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=SdpmDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/SdpmDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
+        <i class="fa-solid fa-rocket"></i>　Deploy
+      </a>
+      <a href="solutions/sdpm/" class="detail-button">
+        <i class="fa-solid fa-file-lines"></i>
+        詳しく
+      </a>
+    </div>
+  </div>
+</div>
+
+<div class="solution-card" data-category="development">
+  <div class="solution-card__top">
+    <div class="solution-card__image">
       <img src="./assets/images/solutions/kiro-ide/kiro.png" alt="Kiro IDE Remote" style="display: block;">
     </div>
     <div class="solution-card__content">
@@ -1290,36 +1320,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 
-
-<div class="solution-card" data-category="development">
-  <div class="solution-card__top">
-    <div class="solution-card__image">
-      <img src="./assets/images/solutions/sdpm/workflow-ja.png" alt="SDPM Workflow" style="display: block;">
-    </div>
-    <div class="solution-card__content">
-      <div class="solution-card__title"><a href="solutions/sdpm/">Spec-Driven Presentation Maker</a></div>
-      <div class="solution-card__description">
-        <a href="https://github.com/aws-samples/sample-spec-driven-presentation-maker" target="_blank">Spec-Driven Presentation Maker</a> は、仕様駆動開発のアプローチでプレゼンテーション資料を作成するオープンソースツールキットです。「何を伝えるか」を先に設計し、「どう見せるか」を AI が構築します。
-      </div>
-    </div>
-  </div>
-  <div class="solution-card__actions">
-    <div class="solution-card__deployment">
-      <select class="region-selector">
-        <option value="us-east-1">バージニア</option>
-        <option value="us-west-2">オレゴン</option>
-        <option value="ap-northeast-1">東京</option>
-      </select>
-      <a href="https://us-east-1.console.aws.amazon.com/cloudformation/home#/stacks/create/review?stackName=SdpmDeploymentStack&templateURL=https://aws-ml-jp.s3.ap-northeast-1.amazonaws.com/asset-deployments/SdpmDeploymentStack.yaml" class="deployment-button md-button" target="_blank">
-        <i class="fa-solid fa-rocket"></i>　Deploy
-      </a>
-      <a href="solutions/sdpm/" class="detail-button">
-        <i class="fa-solid fa-file-lines"></i>
-        詳しく
-      </a>
-    </div>
-  </div>
-</div>
 
 
 ## 3. Start Journey
