@@ -916,7 +916,7 @@ Resources:
     Properties:
       Runtime: python3.13
       MemorySize: 128
-      Timeout: 600
+      Timeout: 900
       Architectures: [x86_64]
       Handler: index.lambda_handler
       Role: !GetAtt RunSSMDocLambdaRole.Arn
@@ -924,7 +924,27 @@ Resources:
         ZipFile: |
           import cfnresponse
           import boto3
-          import json
+          import botocore
+          import time
+
+          def wait_for_ssm_online(ssm, instance_id, timeout=600, interval=10):
+              deadline = time.time() + timeout
+              while time.time() < deadline:
+                  try:
+                      resp = ssm.describe_instance_information(
+                          Filters=[{'Key': 'InstanceIds', 'Values': [instance_id]}])
+                      infos = resp.get('InstanceInformationList', [])
+                      if infos and infos[0].get('PingStatus') == 'Online':
+                          return
+                  except botocore.exceptions.ClientError:
+                      # Tolerate transient errors during the registration window
+                      # (e.g. IAM role propagation lag, eventually-consistent SSM
+                      # inventory). No SSM waiter exists for this state.
+                      # See: https://github.com/aws/aws-cli/issues/4006
+                      pass
+                  time.sleep(interval)
+              raise TimeoutError(
+                  f"Instance {instance_id} did not register with SSM within {timeout}s")
 
           def lambda_handler(event, context):
               if event['RequestType'] != 'Create':
@@ -944,7 +964,10 @@ Resources:
                            if k not in ['ServiceToken', 'InstanceId', 'DocumentName', 'SecretArn']}
                   params['UserPassword'] = [password]
 
-                  response = boto3.client('ssm').send_command(
+                  ssm = boto3.client('ssm')
+                  wait_for_ssm_online(ssm, props['InstanceId'])
+
+                  response = ssm.send_command(
                       InstanceIds=[props['InstanceId']],
                       DocumentName=props['DocumentName'],
                       Parameters=params)
@@ -973,6 +996,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ssm:SendCommand
+                  - ssm:DescribeInstanceInformation
                   - secretsmanager:GetSecretValue
                 Resource: '*'
 
