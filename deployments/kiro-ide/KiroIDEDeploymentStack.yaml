@@ -936,12 +936,13 @@ Resources:
                       infos = resp.get('InstanceInformationList', [])
                       if infos and infos[0].get('PingStatus') == 'Online':
                           return
-                  except botocore.exceptions.ClientError:
+                  except botocore.exceptions.ClientError as e:
                       # Tolerate transient errors during the registration window
                       # (e.g. IAM role propagation lag, eventually-consistent SSM
                       # inventory). No SSM waiter exists for this state.
                       # See: https://github.com/aws/aws-cli/issues/4006
-                      pass
+                      code = e.response.get('Error', {}).get('Code', 'Unknown')
+                      print(f"[wait_for_ssm_online] transient {code}: {e}")
                   time.sleep(interval)
               raise TimeoutError(
                   f"Instance {instance_id} did not register with SSM within {timeout}s")
@@ -997,8 +998,11 @@ Resources:
                 Action:
                   - ssm:SendCommand
                   - ssm:DescribeInstanceInformation
-                  - secretsmanager:GetSecretValue
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref UserCredentials
 
   # SNS Topic for Notifications
   DeploymentNotificationTopic:
