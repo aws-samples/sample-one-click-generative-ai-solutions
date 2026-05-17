@@ -460,7 +460,7 @@ Resources:
                   touch "/home/$USERNAME/.config/gnome-initial-setup-done"
                   
                   # Configure GNOME dock favorites (sidebar)
-                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['kiro-ide.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']" || true
+                  sudo -u "$USERNAME" dbus-launch dconf write /org/gnome/shell/favorite-apps "['kiro-ide.desktop', 'org.gnome.TextEditor.desktop', 'firefox_firefox.desktop', 'org.gnome.Nautilus.desktop']"
 
                   # Configure GDM for automatic login and disable Wayland
                   # DCV does not support Wayland protocol (AWS documentation requirement)
@@ -840,6 +840,7 @@ Resources:
   # ALB for DCV access
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: InternetGatewayAttachment
     Properties:
       Scheme: internet-facing
       Type: application
@@ -998,129 +999,3 @@ Resources:
                 Action:
                   - ssm:SendCommand
                   - ssm:DescribeInstanceInformation
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - secretsmanager:GetSecretValue
-                Resource: !Ref UserCredentials
-
-  # SNS Topic for Notifications
-  DeploymentNotificationTopic:
-    Type: AWS::SNS::Topic
-    Properties:
-      DisplayName: Kiro IDE Ubuntu Deployment Notifications
-      TopicName: !Sub 'KiroIDE-Ubuntu-Notification-${AWS::StackName}'
-
-  DeploymentNotificationSubscription:
-    Type: AWS::SNS::Subscription
-    Properties:
-      Protocol: email
-      TopicArn: !Ref DeploymentNotificationTopic
-      Endpoint: !Ref UserEmail
-
-  StackStatusRule:
-    Type: AWS::Events::Rule
-    Properties:
-      EventPattern:
-        source: ["aws.cloudformation"]
-        detail-type: ["CloudFormation Stack Status Change"]
-        detail:
-          stack-id: [!Ref AWS::StackId]
-          status-details:
-            status: ["CREATE_COMPLETE", "CREATE_FAILED", "UPDATE_COMPLETE", "UPDATE_FAILED"]
-      Targets:
-        - Arn: !GetAtt NotificationLambda.Arn
-          Id: "StackStatusTarget"
-
-  NotificationLambda:
-    Type: AWS::Lambda::Function
-    Properties:
-      Runtime: python3.13
-      Handler: index.handler
-      Timeout: 30
-      Code:
-        ZipFile: !Sub
-          - |
-            import boto3
-
-            sns = boto3.client('sns')
-            secretsmanager = boto3.client('secretsmanager')
-
-            def handler(event, context):
-                try:
-                    detail = event['detail']
-                    status = detail['status-details']['status']
-                    stack_id = detail['stack-id']
-
-                    password = secretsmanager.get_secret_value(SecretId="${UserCredentials}")['SecretString']
-                    username = "${Username}"
-
-                    message = "Kiro IDE Ubuntu Deployment " + status + " for ${UserEmail}\n\n"
-                    message += "Stack ID: " + stack_id + "\n\n"
-                    message += "Access Information:\n"
-                    message += "URL: https://${CloudFrontDistribution.DomainName}/dcv\n"
-                    message += "Username: " + username + "\n"
-                    message += "Password: " + password + "\n\n"
-                    message += "Please enter the username and password when prompted to access your Kiro IDE environment."
-
-                    sns.publish(
-                        TopicArn='${DeploymentNotificationTopic}',
-                        Message=message,
-                        Subject='Kiro IDE Ubuntu Deployment ' + status
-                    )
-
-                    return {'statusCode': 200}
-                except Exception as e:
-                    print('Error: ' + str(e))
-                    return {'statusCode': 500}
-          - Username: !GetAtt UsernameGenerator.Username
-      Role: !GetAtt NotificationLambdaRole.Arn
-
-  NotificationLambdaRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: NotificationPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: sns:Publish
-                Resource: !Ref DeploymentNotificationTopic
-              - Effect: Allow
-                Action: secretsmanager:GetSecretValue
-                Resource: !Ref UserCredentials
-
-  NotificationLambdaPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref NotificationLambda
-      Action: lambda:InvokeFunction
-      Principal: events.amazonaws.com
-      SourceArn: !GetAtt StackStatusRule.Arn
-
-Outputs:
-  KiroIDEURL:
-    Description: Kiro IDE Access URL via CloudFront
-    Value: !Sub 'https://${CloudFrontDistribution.DomainName}/dcv'
-
-  Username:
-    Description: Username for Kiro IDE login
-    Value: !GetAtt UsernameGenerator.Username
-
-  Password:
-    Description: Password for Kiro IDE login
-    Value: !GetAtt RunSSMDoc.Password
-
-  InstanceId:
-    Description: EC2 Instance ID
-    Value: !Ref Instance
