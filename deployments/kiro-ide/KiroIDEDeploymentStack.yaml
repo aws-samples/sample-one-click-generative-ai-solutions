@@ -840,6 +840,7 @@ Resources:
   # ALB for DCV access
   ALB:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: InternetGatewayAttachment
     Properties:
       Scheme: internet-facing
       Type: application
