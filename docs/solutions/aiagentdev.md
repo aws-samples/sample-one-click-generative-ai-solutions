@@ -7,7 +7,7 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 ## 主な機能
 
 - **ブラウザベース開発環境** - code-server による VS Code 互換の開発体験
-- **事前設定済み開発ツール** - AWS CLI、SAM CLI、Kiro CLI、uv、Docker などを標準装備
+- **事前設定済み開発ツール** - AgentCore CLI、AWS CLI、SAM CLI、Kiro CLI、Claude Code、uv、Docker などを標準装備
 - **Amazon Bedrock Agent Core 対応** - エージェント開発に必要な権限とツールを事前設定
 - **CloudFront 経由のセキュアアクセス** - HTTPS による安全な接続
 - **自動環境構築** - SSM Document による一貫性のある環境セットアップ
@@ -44,12 +44,17 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
     - デプロイ完了通知もこのアドレスに送信されます。
 - **UserFullName** (デフォルト: AIAgent Developer)
     - Git 設定に使用されるフルネームです。
-- **InstanceType** (デフォルト: t4g.medium)
-    - EC2 インスタンスタイプです。ARM64 アーキテクチャ (Graviton) のインスタンスを使用します。性能、価格は以下を目安にしてください。特に価格は[最新の情報](https://aws.amazon.com/jp/ec2/pricing/on-demand/)を確認することを推奨します。ハイパフォーマンスな環境が必要な場合、m7g/c7g を検討ください。
-    - t4g.small : 2 vCPU + 2G メモリ, 24 時間で 60 円ぐらい
-    - t4g.medium : 2 vCPU + 4G メモリ, 24 時間で 120 円ぐらい
-    - t4g.large : 2 vCPU + 8G メモリ, 24 時間で 250 円ぐらい
-    - t4g.xlarge : 4 vCPU + 16G メモリ, 24 時間で 480 円ぐらい
+- **InstanceType** (デフォルト: t4g.large)
+    - EC2 インスタンスタイプです。ARM64 アーキテクチャ (Graviton) のインスタンスを使用します。性能と価格は以下を目安にしてください。ハイパフォーマンスな環境が必要な場合、m7g/c7g を検討ください。
+    - 以下は **us-east-1 のオンデマンド料金** の目安です (AWS Price List API 2026-08-31 時点、1 USD = 160 円換算)。
+    - **価格・為替レートはいずれも変動します。** また料金はリージョンによって異なります (例: 東京リージョンは us-east-1 の約 1.29 倍)。実際の費用は必ず[最新の料金](https://aws.amazon.com/jp/ec2/pricing/on-demand/)とその時点の為替レートでご確認ください。
+    - t4g.medium : 2 vCPU + 4G メモリ, 24 時間で 130 円ぐらい (エージェント実行には非推奨)
+    - t4g.large : 2 vCPU + 8G メモリ, 24 時間で 260 円ぐらい (デフォルト)
+    - t4g.xlarge : 4 vCPU + 16G メモリ, 24 時間で 520 円ぐらい (コンテナビルドを多用する場合)
+    - t4g.2xlarge : 8 vCPU + 32G メモリ, 24 時間で 1,030 円ぐらい
+    - m7g.large : 2 vCPU + 8G メモリ, 24 時間で 310 円ぐらい (バースト不要の場合)
+    - m7g.xlarge : 4 vCPU + 16G メモリ, 24 時間で 630 円ぐらい
+    - メモリについて: code-server、エージェント CLI のセッション、`agentcore dev` で起動するローカルエージェント、Docker が同時に動作します。4G (t4g.medium) では OOM でハングアップする可能性があるため、8G 以上を推奨します。
 - **InstanceVolumeSize** (デフォルト: 40)
     - EBS ボリュームサイズ (GB) です。
 - **HomeFolder** (デフォルト: /workshop)
@@ -73,9 +78,10 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 
 開発環境には以下のツールが事前インストールされています：
 
-- **AWS ツール**: AWS CLI v2、AWS SAM CLI、Kiro CLI
+- **AWS ツール**: AgentCore CLI (`agentcore`)、AWS CLI v2、AWS SAM CLI、Kiro CLI
+- **AI コーディングツール**: Kiro CLI、Claude Code (`claude`)
 - **開発ツール**: Git、Docker、Python、UV、NVM (Node.js LTS、NPM)
-- **エディタ**: Code-Server
+- **エディタ**: Code-Server (Claude Code 拡張機能を同梱。その他の拡張機能はディスク容量を抑えるため既定では導入していません)
 
 環境変数も自動設定されます：
 
@@ -94,7 +100,7 @@ AI Agent Development Code Server は、Amazon Bedrock Agent Core を活用した
 
 主なコストは以下のリソースから発生します：
 
-- **EC2 インスタンス** - t4g.medium (2 vCPU, 4GB メモリ) の実行時間に応じた課金 (t4g.medium、をオンデマンドで 24 時間使った場合 250 円程度です)
+- **EC2 インスタンス** - t4g.large (2 vCPU, 8GB メモリ) の実行時間に応じた課金 (us-east-1 のオンデマンドで 24 時間使った場合 260 円程度です)
 - **EBS ボリューム** - 40GB (デフォルト) の gp3 ストレージ料金
 - **CloudFront** - データ転送量に応じた課金
 - **その他** - VPC、Secrets Manager、SNS などの最小限のコスト

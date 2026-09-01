@@ -7,7 +7,7 @@ AI Agent Development Code Server is a pre-configured development environment wit
 ## Key Features
 
 - **Browser-Based Development Environment** - VS Code-compatible development experience via code-server
-- **Pre-Configured Development Tools** - AWS CLI, SAM CLI, Kiro CLI, uv, Docker, and more included by default
+- **Pre-Configured Development Tools** - AgentCore CLI, AWS CLI, SAM CLI, Kiro CLI, Claude Code, uv, Docker, and more included by default
 - **Amazon Bedrock Agent Core Ready** - Pre-configured permissions and tools for agent development
 - **Secure Access via CloudFront** - Safe HTTPS connections
 - **Automated Environment Setup** - Consistent environment provisioning via SSM Document
@@ -44,12 +44,17 @@ You can configure the following parameters during deployment:
     - Deployment completion notifications will be sent to this address.
 - **UserFullName** (Default: AIAgent Developer)
     - Full name used for Git configuration.
-- **InstanceType** (Default: t4g.medium)
-    - EC2 instance type. Uses ARM64 architecture (Graviton) instances. Use the following as a guide for performance and pricing. We recommend checking the [latest pricing information](https://aws.amazon.com/ec2/pricing/on-demand/).
-    - t4g.small: 2 vCPU + 2GB memory, approximately $0.48/24 hours
-    - t4g.medium: 2 vCPU + 4GB memory, approximately $0.72/24 hours
-    - t4g.large: 2 vCPU + 8GB memory, approximately $1.68/24 hours
-    - t4g.xlarge: 4 vCPU + 16GB memory, approximately $3.12/24 hours
+- **InstanceType** (Default: t4g.large)
+    - EC2 instance type. Uses ARM64 architecture (Graviton) instances. Use the following as a guide for performance and pricing. Consider m7g/c7g if you need a higher-performance environment.
+    - The figures below are a guide to **us-east-1 on-demand** pricing (AWS Price List API, as of 2026-08-31).
+    - **Prices change over time and differ by region** (Tokyo is about 1.29x us-east-1). Always confirm actual cost against the [latest pricing](https://aws.amazon.com/ec2/pricing/on-demand/), and against the current exchange rate if you are budgeting in another currency.
+    - t4g.medium: 2 vCPU + 4GB memory, approximately $0.81/24 hours (not recommended for running agents)
+    - t4g.large: 2 vCPU + 8GB memory, approximately $1.61/24 hours (default)
+    - t4g.xlarge: 4 vCPU + 16GB memory, approximately $3.23/24 hours (for heavy container builds)
+    - t4g.2xlarge: 8 vCPU + 32GB memory, approximately $6.45/24 hours
+    - m7g.large: 2 vCPU + 8GB memory, approximately $1.96/24 hours (non-burstable)
+    - m7g.xlarge: 4 vCPU + 16GB memory, approximately $3.92/24 hours
+    - On memory: code-server, an agent CLI session, a local agent started by `agentcore dev` and Docker all run at the same time. 4GB (t4g.medium) risks an out-of-memory hang, so 8GB or more is recommended.
 - **InstanceVolumeSize** (Default: 40)
     - EBS volume size in GB.
 - **HomeFolder** (Default: /workshop)
@@ -73,9 +78,10 @@ Once deployment is complete, access the browser-based development environment us
 
 The development environment comes with the following pre-installed tools:
 
-- **AWS Tools**: AWS CLI v2, AWS SAM CLI, Kiro CLI
+- **AWS Tools**: AgentCore CLI (`agentcore`), AWS CLI v2, AWS SAM CLI, Kiro CLI
+- **AI Coding Tools**: Kiro CLI, Claude Code (`claude`)
 - **Development Tools**: Git, Docker, Python, UV, NVM (Node.js LTS, NPM)
-- **Editor**: Code-Server
+- **Editor**: Code-Server (bundled with the Claude Code extension; no other extensions are installed by default, to keep disk usage minimal)
 
 Environment variables are automatically configured:
 
@@ -94,7 +100,7 @@ Environment variables are automatically configured:
 
 Main costs come from the following resources:
 
-- **EC2 Instance** - Charged based on t4g.medium (2 vCPU, 4GB memory) runtime (approximately $0.72 for 24 hours on-demand with t4g.medium)
+- **EC2 Instance** - Charged based on t4g.large (2 vCPU, 8GB memory) runtime (approximately $1.61 for 24 hours on-demand in us-east-1)
 - **EBS Volume** - 40GB (default) gp3 storage charges
 - **CloudFront** - Charged based on data transfer volume
 - **Other** - Minimal costs for VPC, Secrets Manager, SNS, etc.
