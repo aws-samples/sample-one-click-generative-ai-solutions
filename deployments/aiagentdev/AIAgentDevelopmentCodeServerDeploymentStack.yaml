@@ -743,7 +743,7 @@ Resources:
     Properties:
       Runtime: python3.13
       MemorySize: 128
-      Timeout: 600
+      Timeout: 900
       Architectures: [arm64]
       Handler: index.lambda_handler
       Role: !GetAtt RunSSMDocLambdaRole.Arn
@@ -751,8 +751,31 @@ Resources:
         ZipFile: |
           import cfnresponse
           import boto3
+          import botocore
           import json
-          
+          import time
+
+          def wait_for_ssm_online(ssm, instance_id, timeout=600, interval=10):
+              # The instance reaches CREATE_COMPLETE as soon as EC2 reports "running",
+              # which is before the SSM Agent registers. Calling SendCommand too early
+              # fails with InvalidInstanceId. No SSM waiter exists for this state.
+              deadline = time.time() + timeout
+              while time.time() < deadline:
+                  try:
+                      resp = ssm.describe_instance_information(
+                          Filters=[{'Key': 'InstanceIds', 'Values': [instance_id]}])
+                      infos = resp.get('InstanceInformationList', [])
+                      if infos and infos[0].get('PingStatus') == 'Online':
+                          return
+                  except botocore.exceptions.ClientError as e:
+                      # Tolerate transient errors during the registration window
+                      # (e.g. IAM role propagation lag) and log them for diagnosis.
+                      code = e.response.get('Error', {}).get('Code', 'Unknown')
+                      print(f"[wait_for_ssm_online] transient {code}: {e}")
+                  time.sleep(interval)
+              raise TimeoutError(
+                  f"Instance {instance_id} did not register with SSM within {timeout}s")
+
           def lambda_handler(event, context):
               if event['RequestType'] != 'Create':
                   cfnresponse.send(event, context, cfnresponse.SUCCESS, {})
@@ -772,7 +795,10 @@ Resources:
                            if k not in ['ServiceToken', 'InstanceId', 'DocumentName', 'SecretArn']}
                   params['CodeEditorPassword'] = [password]
                   
-                  response = boto3.client('ssm').send_command(
+                  ssm = boto3.client('ssm')
+                  wait_for_ssm_online(ssm, props['InstanceId'])
+
+                  response = ssm.send_command(
                       InstanceIds=[props['InstanceId']],
                       DocumentName=props['DocumentName'],
                       Parameters=params)
@@ -801,6 +827,7 @@ Resources:
               - Effect: Allow
                 Action: 
                   - ssm:SendCommand
+                  - ssm:DescribeInstanceInformation
                   - secretsmanager:GetSecretValue
                 Resource: '*'
 
